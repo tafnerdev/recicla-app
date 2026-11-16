@@ -3,19 +3,22 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script>
+      // Modo estável (?estavel=1): liga antes de tudo, para nada piscar na TV.
+      if (new URLSearchParams(location.search).get('estavel') === '1') document.documentElement.classList.add('estavel');
+    </script>
     <title>Telão do ranking | Recicla Slide</title>
-    <meta name="description" content="Ranking dos andares em tela cheia, para projetor ou TV, com animação a cada descarte." />
-    <meta name="theme-color" content="#071B16" />
+    <meta name="description" content="Ranking dos andares em tela cheia, para projetor ou TV, com o prédio aceso no andar líder." />
+    <meta name="theme-color" content="#050807" />
     <meta name="color-scheme" content="dark" />
     <link rel="manifest" href="../manifest.webmanifest" />
     <link rel="icon" href="../icons/icon.svg" type="image/svg+xml" />
     <link rel="icon" href="../icons/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
+    <link rel="preload" href="../fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="../fonts/rubik-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="../fonts/nunito-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="../css/base.css" />
     <link rel="stylesheet" href="../css/telao.css" />
-    <script src="../js/vendor/gsap.min.js" defer></script>
     <script type="module" src="../js/telao.js"></script>
     <script type="module" src="../js/pwa.js"></script>
   </head>
@@ -24,80 +27,44 @@
 
     <main class="enquadramento" id="enquadramento">
       <div class="palco" id="palco">
+        <div class="t-luzes" aria-hidden="true">
+          <div class="luz t-luz-1"></div>
+          <div class="luz t-luz-2"></div>
+        </div>
+
         <header class="t-topo">
-          <span class="logo t-logo" translate="no">Recicla Slide</span>
-          <div class="t-titulo">
-            <p class="t-titulo__predio" id="t-predio">Edifício Exemplo</p>
-            <h2 class="t-titulo__texto">Ranking de <span id="t-mes">novembro</span></h2>
+          <div class="t-marca">
+            <span class="logo t-logo" translate="no">Recicla Slide</span>
+            <span class="t-divisor" aria-hidden="true"></span>
+            <div>
+              <p class="t-predio-nome" id="t-predio">Edifício Exemplo</p>
+              <h2 class="t-titulo">Ranking de <span id="t-mes">novembro</span></h2>
+            </div>
           </div>
-          <div class="t-topo__direita">
-            <p class="t-status" id="t-status"><span class="t-status__ponto" aria-hidden="true"></span><span id="t-status-texto">Ao vivo</span></p>
-            <button type="button" class="t-botao" id="t-sensor" hidden>
-              <span data-icone="sensor"></span><span id="t-sensor-texto">Conectar sensor</span>
-            </button>
-            <button type="button" class="t-botao" id="t-tela-cheia" aria-label="Tela cheia (atalho: F)">
+          <div class="t-acoes">
+            <p class="t-chip t-status" id="t-status"><span class="ponto ponto--brilho t-status__ponto" aria-hidden="true"></span><span id="t-status-texto">Ao vivo</span></p>
+            <button type="button" class="t-chip t-botao" id="t-tela-cheia" aria-label="Tela cheia (atalho: F)">
               <span data-icone="telaCheia"></span><span class="t-botao__rotulo">Tela cheia</span>
             </button>
           </div>
         </header>
 
-        <section class="t-ranking" aria-labelledby="t-ranking-titulo">
-          <h2 class="visualmente-oculto" id="t-ranking-titulo">Ranking dos andares</h2>
-          <div class="t-ranking__legenda" aria-hidden="true">
-            <span>Lugar</span>
-            <span>Andar</span>
-            <span class="t-legenda">
-              <span class="legenda legenda--r">Reciclável</span>
-              <span class="legenda legenda--o">Orgânico</span>
-            </span>
-            <span class="t-legenda__pontos">Pontos</span>
+        <section class="t-esquerda" aria-label="Prédio e totais">
+          <div class="t-predio" id="t-predio-caixa"></div>
+          <div class="t-totais" id="t-totais">
+            <p class="t-totais__geral"><span class="numero t-totais__numero" id="t-total" data-valor="0">0</span> <span class="t-totais__rotulo">descartes</span></p>
+            <p class="t-totais__tipo"><span class="ponto" aria-hidden="true"></span><span class="numero" id="t-total-r" data-valor="0">0</span> <span class="t-totais__rotulo">recicláveis</span></p>
+            <p class="t-totais__tipo"><span class="ponto ponto--o" aria-hidden="true"></span><span class="numero" id="t-total-o" data-valor="0">0</span> <span class="t-totais__rotulo">orgânicos</span></p>
           </div>
-          <div class="t-ranking__carregando" id="t-carregando" aria-hidden="true">
-            <div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div>
-            <div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div>
-          </div>
-          <ol class="t-lista" id="t-lista" role="list" hidden></ol>
-          <div class="t-vazio" id="t-vazio" hidden></div>
-          <div class="t-erro" id="t-erro" hidden></div>
-        </section>
 
-        <aside class="t-lado" aria-label="Destaques">
-          <section class="t-cartao t-lider" id="t-lider" aria-labelledby="t-lider-titulo">
-            <div class="t-lider__cabeca">
-              <span class="t-lider__icone" data-icone="trofeu"></span>
-              <h2 class="t-lider__titulo" id="t-lider-titulo">Na frente</h2>
+          <!-- Sensor pela porta serial: só aparece com ?sensor=1 -->
+          <section class="t-sensor vidro" id="t-sensor-painel" aria-labelledby="t-sensor-titulo" hidden>
+            <div class="t-sensor__cabeca">
+              <h2 class="t-sensor__titulo" id="t-sensor-titulo">Sensor na porta serial</h2>
+              <button type="button" class="t-sensor__conectar" id="t-sensor">
+                <span data-icone="sensor"></span><span id="t-sensor-texto">Conectar sensor</span>
+              </button>
             </div>
-            <p class="t-lider__andar" id="t-lider-andar"><span class="numero">&nbsp;</span></p>
-            <p class="t-lider__pontos" id="t-lider-pontos">&nbsp;</p>
-            <div class="t-premio">
-              <p class="t-premio__rotulo">Prêmio do mês <span class="etiqueta etiqueta--exemplo" id="t-premio-exemplo" hidden>Exemplo</span></p>
-              <p class="t-premio__nome" id="t-premio-nome">&nbsp;</p>
-            </div>
-          </section>
-
-          <section class="t-cartao t-feed" aria-labelledby="t-feed-titulo">
-            <h2 class="t-cartao__titulo" id="t-feed-titulo">Últimos descartes</h2>
-            <ol class="t-feed__lista" id="t-feed" role="list"></ol>
-            <p class="t-feed__vazio" id="t-feed-vazio">Os descartes aparecem aqui assim que acontecem.</p>
-          </section>
-
-          <section class="t-cartao t-totais" aria-labelledby="t-totais-titulo">
-            <h2 class="visualmente-oculto" id="t-totais-titulo">Descartes no prédio este mês</h2>
-            <dl class="t-totais__grade">
-              <div>
-                <dt class="marca-tipo" aria-hidden="true">R</dt>
-                <dd><span class="numero" id="t-total-r" data-valor="0">0</span><span class="t-totais__rotulo">recicláveis</span></dd>
-              </div>
-              <div>
-                <dt class="marca-tipo marca-tipo--organico" aria-hidden="true">O</dt>
-                <dd><span class="numero" id="t-total-o" data-valor="0">0</span><span class="t-totais__rotulo">orgânicos</span></dd>
-              </div>
-            </dl>
-          </section>
-
-          <!-- Painel do sensor: só aparece com ?sensor=1, no lugar dos totais -->
-          <section class="t-cartao t-sensor" id="t-sensor-painel" aria-labelledby="t-sensor-titulo" hidden>
-            <h2 class="visualmente-oculto" id="t-sensor-titulo">Sensor na porta serial</h2>
             <p class="t-sensor__linha">
               <span class="t-sensor__estado" id="t-sensor-estado" role="status">Sensor desconectado.</span>
               <span class="t-sensor__ultima" id="t-sensor-ultima">Nenhuma linha recebida ainda.</span>
@@ -105,24 +72,40 @@
             <form class="t-sensor__teste" id="t-sensor-teste">
               <label for="t-sensor-linha">Testar uma linha</label>
               <input id="t-sensor-linha" name="linha" type="text" placeholder="R,7" autocomplete="off" spellcheck="false" />
-              <button type="submit" class="t-botao">Enviar</button>
+              <button type="submit" class="t-sensor__enviar">Enviar</button>
             </form>
           </section>
-        </aside>
+        </section>
+
+        <section class="t-ranking" aria-labelledby="t-ranking-titulo">
+          <h2 class="visualmente-oculto" id="t-ranking-titulo">Ranking dos andares</h2>
+          <div class="t-carregando" id="t-carregando" aria-hidden="true">
+            <div class="esqueleto t-esq-topo"></div>
+            <div class="esqueleto t-esq-topo"></div>
+            <div class="esqueleto t-esq-topo"></div>
+            <div class="esqueleto t-esq-resto"></div>
+            <div class="esqueleto t-esq-resto"></div>
+            <div class="esqueleto t-esq-resto"></div>
+            <div class="esqueleto t-esq-resto"></div>
+          </div>
+          <ol class="t-lista" id="t-lista" role="list" hidden></ol>
+          <div class="t-vazio" id="t-vazio" hidden></div>
+          <div class="t-erro" id="t-erro" hidden></div>
+        </section>
 
         <footer class="t-rodape">
-          <p class="t-rodape__nfc"><span data-icone="nfc"></span>Encoste o celular na etiqueta da lixeira e pontue no seu nome</p>
-          <p class="t-rodape__regra" id="t-regra">Cada descarte vale 10 pontos</p>
+          <p>Encoste o celular na etiqueta da lixeira e pontue no seu nome</p>
+          <p id="t-regra">Cada descarte vale 10 pontos</p>
         </footer>
 
-        <!-- Celebração de novo líder -->
+        <!-- Novo líder -->
         <div class="t-celebracao" id="t-celebracao" aria-hidden="true" hidden>
-          <div class="t-celebracao__cartao">
+          <div class="t-celebracao__folha">
+            <span class="t-celebracao__feixe" aria-hidden="true"></span>
             <p class="t-celebracao__rotulo">Novo líder</p>
             <p class="t-celebracao__andar" id="t-celebracao-andar"></p>
             <p class="t-celebracao__texto" id="t-celebracao-texto"></p>
           </div>
-          <div class="t-celebracao__pecas" id="t-celebracao-pecas"></div>
         </div>
       </div>
     </main>

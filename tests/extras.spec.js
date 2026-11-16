@@ -28,6 +28,17 @@ test.describe('sensor pela porta serial', () => {
     expect(resultados.lixo.ok).toBe(false);
   });
 
+  test('telão em ?estavel=1: sem desfoque, sem canvas e com corte seco', async ({ page }) => {
+    await page.goto('telao/?estavel=1');
+    await expect(page.locator('.t-linha').first()).toBeVisible();
+    await expect(page.locator('html')).toHaveClass(/estavel/);
+    await expect(page.locator('#t-status')).toHaveCSS('backdrop-filter', 'none');
+    await expect(page.locator('.t-linha--lider')).toHaveCSS('backdrop-filter', 'none');
+    await page.waitForTimeout(800);
+    await expect(page.locator('canvas')).toHaveCount(0);
+    expect(await page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length)).toBe(0);
+  });
+
   test('sem ?sensor=1 o painel do sensor fica escondido', async ({ page }) => {
     await page.goto('telao/');
     await expect(page.locator('.t-linha').first()).toBeVisible();

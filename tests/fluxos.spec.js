@@ -75,8 +75,8 @@ test.describe('sincronização entre abas', () => {
     await expect(app.locator('#destaque-posicao')).toContainText('3º lugar');
     // a lista do telão está na ordem nova
     await expect(telao.locator('.t-linha').nth(2)).toHaveAttribute('data-andar', '7');
-    // e o feed mostra o último descarte
-    await expect(telao.locator('.t-feed__item').first()).toContainText('7º andar');
+    // e o telão anuncia o último descarte
+    await expect(telao.locator('#t-anuncio')).toContainText('7º andar');
   });
 
   test('novo líder dispara a celebração no telão', async ({ context }) => {
@@ -86,7 +86,8 @@ test.describe('sincronização entre abas', () => {
     await demo.goto('demo/');
     // 4º andar lidera com 410; o 8º tem 390: 3 descartes levam o 8º a 420.
     for (let i = 0; i < 3; i += 1) await demo.getByRole('button', { exact: true, name: 'Orgânico no 8º andar' }).click();
-    await expect(telao.locator('#t-lider-andar')).toHaveText('8º andar');
+    await expect(telao.locator('.t-linha').first()).toHaveAttribute('data-andar', '8');
+    await expect(telao.locator('.t-linha').first()).toHaveClass(/t-linha--lider/);
     await expect(telao.locator('#t-celebracao-andar')).toHaveText('8º andar');
     await expect(telao.locator('#t-celebracao')).toBeVisible();
   });
@@ -109,13 +110,13 @@ test.describe('zerar e restaurar', () => {
     await expect(pontosNoPainel(demo, 7)).toHaveText('0');
     await expect(demo.locator('#d-vazio')).toBeVisible();
     await expect(telao.locator('#t-vazio')).toContainText('Placar zerado');
-    await expect(telao.locator('#t-lider-andar')).toHaveText('Ninguém');
+    await expect(telao.locator('#t-lista')).toBeHidden();
     await expect(app.locator('#ranking-vazio')).toContainText('Placar zerado');
     await expect(app.locator('#destaque-pontos')).toHaveText('0');
 
     // primeiro descarte depois de zerar: o andar vai para a frente
     await demo.getByRole('button', { exact: true, name: 'Reciclável no 5º andar' }).click();
-    await expect(telao.locator('#t-lider-andar')).toHaveText('5º andar');
+    await expect(telao.locator('.t-linha').first()).toHaveAttribute('data-andar', '5');
     await expect(app.locator('#destaque-posicao')).toContainText('1º lugar');
   });
 
