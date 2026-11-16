@@ -796,6 +796,14 @@ button.chip--vidro:active {
   display: block;
   width: 100%;
   height: 100%;
+  /* o 3D entra por cima do mesmo desenho em SVG, sem salto */
+  animation: predio-3d-entra var(--t-entrada) var(--ease-saida) both;
+}
+
+@keyframes predio-3d-entra {
+  from {
+    opacity: 0;
+  }
 }
 
 /* Rótulos "você" e "líder" por cima do canvas, na quina esquerda do andar */

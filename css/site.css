@@ -365,6 +365,12 @@
   }
 }
 
+@media (min-width: 561px) and (max-width: 899px) {
+  .heroi__predio {
+    max-width: 480px;
+  }
+}
+
 @media (max-width: 560px) {
   .heroi {
     margin-top: 40px;
