@@ -701,3 +701,15 @@ dialog.dialogo p {
     animation: none;
   }
 }
+
+/* Ícones inseridos por data-icone não encolhem dentro de botões flexíveis */
+[data-icone] {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+
+.botao [data-icone] svg {
+  width: 1.25em;
+  height: 1.25em;
+}
