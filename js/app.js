@@ -45,8 +45,8 @@ const estado = {
   empilhouFolha: false,
   linhas: new Map(),
   predio: null,
-  lixeira: null,
-  ultimoToque: null, // último descarte pela etiqueta neste aparelho (a pessoa usou a lixeira)
+  lixeiras: {}, // { reciclavel, organico }: as duas lixeiras do andar
+  ultimoToque: null, // último descarte pela etiqueta neste aparelho: { andar, tipo, em }
 };
 
 const mes = nomeMes();
@@ -76,8 +76,20 @@ async function iniciar() {
   const alerta = await resolverAndar();
   preencherTextosFixos();
   montarEscolha();
-  estado.lixeira = criarLixeira({ foto: 'verde', base: '../' });
-  $('lixeira-foto').append(estado.lixeira.elemento);
+  estado.lixeiras = {
+    reciclavel: criarLixeira({
+      foto: 'verde',
+      base: '../',
+      descricao: 'Lixeira de recicláveis: corpo branco, tampa verde e anel de LED, presa ao seu tubo de aço.',
+    }),
+    organico: criarLixeira({
+      foto: 'verde',
+      tampa: 'marrom',
+      base: '../',
+      descricao: 'Lixeira de orgânicos: corpo branco, tampa marrom e anel de LED, presa ao seu tubo de aço.',
+    }),
+  };
+  for (const [tipo, lixeira] of Object.entries(estado.lixeiras)) $(`lixeira-foto-${tipo}`).append(lixeira.elemento);
   estado.predio = montarPredio($('predio'), {
     andares: estado.edificio.andares,
     aceso: estado.meuAndar,
@@ -486,7 +498,7 @@ function renderizarPremio() {
   $('premio-exemplo').hidden = !premio.exemplo;
 }
 
-/** A lixeira do andar: estado da conexão e último descarte (do placar ou da etiqueta). */
+/** As duas lixeiras do andar: estado da conexão e último descarte de cada uma. */
 function renderizarLixeira() {
   const andar = estado.meuAndar;
   const caixa = $('lixeira');
@@ -497,17 +509,20 @@ function renderizarLixeira() {
   // Ainda não há sensor de verdade: a conexão é simulada, e "Sem sinal" é quando o celular está sem internet.
   const online = navigator.onLine !== false;
   caixa.dataset.sinal = online ? 'ok' : 'sem';
-  $('lixeira-estado').textContent = online ? 'Conectada' : 'Sem sinal';
+  $('lixeira-estado').textContent = online ? 'Conectadas' : 'Sem sinal';
 
-  const doPlacar = estado.placar.historico?.find((h) => h.andar === andar)?.em ?? null;
-  const toque = estado.ultimoToque?.andar === andar ? estado.ultimoToque.em : null;
-  const ultimo = [doPlacar, toque].filter(Boolean).sort().at(-1);
-  if (!ultimo) {
-    $('lixeira-ultimo').textContent = 'Nenhum descarte recente';
-    return;
+  for (const tipo of ['reciclavel', 'organico']) {
+    const doPlacar = estado.placar.historico?.find((h) => h.andar === andar && h.descarte === tipo)?.em ?? null;
+    const toque = estado.ultimoToque?.andar === andar && estado.ultimoToque.tipo === tipo ? estado.ultimoToque.em : null;
+    const ultimo = [doPlacar, toque].filter(Boolean).sort().at(-1);
+    const linha = $(`lixeira-ultimo-${tipo}`);
+    if (!ultimo) {
+      linha.textContent = 'Nenhum descarte recente';
+      continue;
+    }
+    const quando = tempoRelativo(ultimo);
+    linha.textContent = /^\d/.test(quando) ? `Último descarte às ${quando}` : `Último descarte ${quando}`;
   }
-  const quando = tempoRelativo(ultimo);
-  $('lixeira-ultimo').textContent = /^\d/.test(quando) ? `Último descarte às ${quando}` : `Último descarte ${quando}`;
 }
 
 function atualizarHora() {
@@ -530,7 +545,7 @@ function aoMudarPlacar(placar) {
     estado.predio?.soltarLuz(evento.andar, evento.descarte);
 
     if (evento.andar === estado.meuAndar) {
-      estado.lixeira?.pulsar(evento.descarte);
+      estado.lixeiras[evento.descarte]?.pulsar(evento.descarte);
       const mais = $('destaque-mais');
       mais.textContent = `+${evento.pontos}`;
       if (semMovimento()) {
@@ -590,9 +605,9 @@ async function pontuarPessoal(tipo, botao) {
     estado.pessoal = resumo;
     renderizarPessoal(true);
     vibrar();
-    estado.ultimoToque = { andar: estado.meuAndar, em: new Date().toISOString() };
+    estado.ultimoToque = { andar: estado.meuAndar, tipo, em: new Date().toISOString() };
     renderizarLixeira();
-    estado.lixeira?.pulsar(tipo);
+    estado.lixeiras[tipo]?.pulsar(tipo);
     const pontos = estado.edificio.pontosPorDescarte[tipo];
     avisar(`+${pontos} pontos no seu nome (${tipo === 'organico' ? 'orgânico' : 'reciclável'}). Obrigado por separar.`);
     pulsar(botao.querySelector('.botao-tipo__brilho'), [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 0 }], {

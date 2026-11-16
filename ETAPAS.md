@@ -136,3 +136,50 @@ A auditoria de acessibilidade não apontou nada.
 ### Ainda da Etapa 0
 
 O resultado do `?diag=1` veio sem preencher na sua resposta ("(MODELO)" e "(O QUE APARECEU)"). Como o prédio agora fica na aba Ranking, o link para conferir passou a ser https://tafnerdev.github.io/recicla-app/app/?diag=1#ranking.
+
+---
+
+## Ajustes antes da Etapa 2 (16/11/2026)
+
+### 1. Atualização automática
+
+**O que acontecia:** o service worker novo ficava esperando até todas as abas do app fecharem, e a tela só recarregava se a pessoa tocasse em "Atualizar". Por isso o seu celular ficou na versão antiga.
+
+**Agora:**
+- **Na hora:** a versão nova assume assim que é baixada.
+- **Uma recarga só:** cada tela recarrega sozinha uma vez, assim que estiver parada: sem folha aberta, sem campo sendo digitado e sem animação curta rodando. Não aparece aviso nenhum.
+- **Telão:** espera a celebração de novo líder terminar e 2,5 s depois do último descarte, para não cortar a luz descendo nem os números contando.
+- **Telão em tela cheia:** ele também espera sair da tela cheia ativada pelo botão "Tela cheia" (ou pela tecla F), porque recarregar tiraria o telão da tela cheia no meio da apresentação. Com a tela cheia do próprio navegador (F11), recarrega normalmente.
+- **Quando procura versão nova:** ao abrir, ao voltar para a aba, quando a internet volta e a cada 10 minutos.
+- **Páginas abertas com o código antigo** (como a do seu celular agora): elas não sabem recarregar sozinhas, então o próprio service worker recarrega cada uma uma vez, menos o telão. Daqui para frente, isso não depende mais de nada.
+
+### 2. Duas lixeiras por andar
+
+Agora o produto é sempre descrito como duas lixeiras por andar: a verde, de recicláveis, e a marrom, de orgânicos, cada uma com seu tubo.
+- **Site:** os textos dizem isso na descrição da página, na abertura, em "O que é", nos passos de "Como funciona" (incluindo "passe o pé embaixo e a tampa abre sozinha", como nos slides) e nas perguntas.
+- **App:** a folha virou "Qual lixeira você usou?".
+- **Telão e guias:** o telão fala na "etiqueta das lixeiras"; o guia da etiqueta NFC e o exemplo do ESP32 também foram corrigidos.
+- **Topo do app:** passou a mostrar "Lixeiras do 7º andar" com as duas lado a lado, cada uma com o anel de LED e o seu último descarte. O pulso cai na lixeira certa: o reciclável na verde, o orgânico na marrom.
+- **A lixeira marrom:** é a mesma foto com a tampa pintada de marrom (luz e sombra mantidas), porque só existe render da verde. Quando houver render da marrom, é só trocar.
+
+### Links para testar
+
+- https://tafnerdev.github.io/recicla-app/app/?andar=7 (as duas lixeiras no topo)
+- https://tafnerdev.github.io/recicla-app/#como-funciona (os passos com as duas lixeiras)
+
+### Três coisas para conferir no celular
+
+1. **Atualização:** abra o app como você usa e espere alguns segundos. Ele deve recarregar sozinho uma vez e mostrar as duas lixeiras no topo, sem você tocar em nada. Se ainda aparecer a versão antiga, feche e abra uma última vez; daí em diante é automático.
+2. **Duas lixeiras:** toque em "Pontuar agora" e depois em "Orgânico". A folha deve dizer "Qual lixeira você usou?", e o anel da lixeira marrom deve pulsar em laranja.
+3. **Textos do site:** em "Como funciona", o primeiro passo deve falar na lixeira verde e na marrom e em "passe o pé embaixo".
+
+### Testes
+
+58 testes passando (eram 53). Os novos:
+- recarga sozinha com a tela parada;
+- espera com uma folha aberta;
+- telão sem recarregar no meio da celebração;
+- uma atualização de verdade do service worker, numa cópia do site, que assume sozinha e recarrega uma vez só;
+- site e app sem "boca", falando em duas lixeiras.
+
+A auditoria de acessibilidade não apontou nada.

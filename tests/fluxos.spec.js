@@ -197,7 +197,7 @@ test.describe('app do morador', () => {
 
     await pontuar.click();
     await expect(folha).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Qual boca você usou?' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Qual lixeira você usou?' })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(folha).toBeHidden();
     await expect(page).not.toHaveURL(/#pontuar/);

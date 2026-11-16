@@ -103,7 +103,7 @@ Na pasta do projeto, rode `npm run servir` e abra `http://localhost:8080/` no Ch
 4. Role até "Escolha um andar e faça um descarte". Com o 7º andar escolhido, toque 5 vezes em "Reciclável": a linha sobe para o 3º lugar.
 
 **App (`/app/?andar=7`)**
-1. Toque no aviso "Você está no 7º andar. Pontuar agora" para abrir "Qual boca você usou?". Toque em "Reciclável": os números contam e aparece o aviso no topo.
+1. Toque no aviso "Você está no 7º andar. Pontuar agora" para abrir "Qual lixeira você usou?". Toque em "Reciclável": os números contam e aparece o aviso no topo.
 2. Toque em "Concluir". Na aba Início, compare com `referencia-app-inicio.png`: prédio com o 7º aceso, 290 pontos e "Faltam 5 descartes".
 3. Toque em "Ranking" na barra e compare com `referencia-app-ranking.png`. Use o voltar do navegador para retornar à aba Início.
 4. Toque no chip "7º andar" no topo para trocar de andar.

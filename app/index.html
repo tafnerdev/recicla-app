@@ -58,18 +58,28 @@
           <span class="a-etiqueta__texto">Você está no <span id="aviso-etiqueta-andar">7º andar</span>.</span>
           <span class="a-etiqueta__acao">Pontuar agora</span>
         </a>
-        <!-- A lixeira do andar: foto com o anel de LED (js/lixeira.js), estado e último descarte -->
-        <section class="a-lixeira" id="lixeira" aria-labelledby="lixeira-titulo">
-          <div class="a-lixeira__foto" id="lixeira-foto"></div>
-          <div class="a-lixeira__info">
-            <h2 class="a-lixeira__titulo" id="lixeira-titulo">Lixeira do <span id="lixeira-andar">7º andar</span></h2>
-            <p class="a-lixeira__estado">
-              <span class="a-lixeira__sinal" id="lixeira-sinal" aria-hidden="true"></span>
-              <span id="lixeira-estado">Conectada</span>
-              <span class="chip a-lixeira__simulado" id="lixeira-simulado" title="Ainda não há sensor de verdade ligado a este prédio">Simulado</span>
+        <!-- As duas lixeiras do andar (verde: recicláveis; marrom: orgânicos), com o anel de LED (js/lixeira.js) -->
+        <section class="a-lixeiras" id="lixeira" aria-labelledby="lixeira-titulo">
+          <div class="a-lixeiras__cabeca">
+            <h2 class="a-lixeiras__titulo" id="lixeira-titulo">Lixeiras do <span id="lixeira-andar">7º andar</span></h2>
+            <p class="a-lixeiras__estado">
+              <span class="a-lixeiras__sinal" aria-hidden="true"></span>
+              <span id="lixeira-estado">Conectadas</span>
+              <span class="chip a-lixeiras__simulado" id="lixeira-simulado" title="Ainda não há sensor de verdade ligado a este prédio">Simulado</span>
             </p>
-            <p class="a-lixeira__ultimo" id="lixeira-ultimo"></p>
           </div>
+          <ul class="a-lixeiras__lista" role="list">
+            <li class="a-lixeira" data-tipo="reciclavel">
+              <div class="a-lixeira__foto" id="lixeira-foto-reciclavel"></div>
+              <p class="a-lixeira__nome"><span class="ponto" aria-hidden="true"></span>Recicláveis</p>
+              <p class="a-lixeira__ultimo" id="lixeira-ultimo-reciclavel"></p>
+            </li>
+            <li class="a-lixeira" data-tipo="organico">
+              <div class="a-lixeira__foto" id="lixeira-foto-organico"></div>
+              <p class="a-lixeira__nome"><span class="ponto ponto--o" aria-hidden="true"></span>Orgânicos</p>
+              <p class="a-lixeira__ultimo" id="lixeira-ultimo-organico"></p>
+            </li>
+          </ul>
         </section>
 
         <div class="a-destaque" id="destaque">
@@ -148,7 +158,7 @@
     <dialog class="folha" id="folha-pontuar" aria-labelledby="pontuar-titulo">
       <div class="folha__alca" aria-hidden="true"></div>
       <p class="folha__rotulo"><span data-icone="aproximar"></span><span id="pontuar-texto">Etiqueta do 7º andar</span></p>
-      <h2 class="folha__titulo" id="pontuar-titulo" tabindex="-1" autofocus>Qual boca você usou?</h2>
+      <h2 class="folha__titulo" id="pontuar-titulo" tabindex="-1" autofocus>Qual lixeira você usou?</h2>
 
       <div class="pontuar__botoes">
         <button type="button" class="botao-tipo" data-tipo="reciclavel">
@@ -181,7 +191,7 @@
       </dl>
 
       <p class="pontuar__ola" id="pontuar-ola" hidden></p>
-      <p class="pontuar__nota">Fica só neste celular, sem conta e sem senha. Quem conta para o andar é o sensor da lixeira.</p>
+      <p class="pontuar__nota">Fica só neste celular, sem conta e sem senha. Quem conta para o andar é o sensor das lixeiras.</p>
 
       <details class="pontuar__mais">
         <summary>Seu nome e seus dados</summary>
@@ -206,7 +216,7 @@
       <div class="folha__alca" aria-hidden="true"></div>
       <p class="escolher__alerta" id="escolher-alerta" role="alert" hidden></p>
       <h2 class="folha__titulo" id="escolher-titulo" tabindex="-1" autofocus>Qual é o seu andar?</h2>
-      <p class="folha__texto">Escolha uma vez e o app lembra neste aparelho. A etiqueta NFC da lixeira já abre no andar certo.</p>
+      <p class="folha__texto">Escolha uma vez e o app lembra neste aparelho. A etiqueta NFC das lixeiras já abre no andar certo.</p>
       <div class="escolher__grade" id="escolher-grade"></div>
       <button type="button" class="botao botao--vidro botao--bloco" id="escolher-cancelar" hidden>Manter o andar atual</button>
     </dialog>

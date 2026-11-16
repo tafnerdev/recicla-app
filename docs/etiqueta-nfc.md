@@ -43,7 +43,7 @@ No Android, o NFC precisa estar ligado nas configurações. No iPhone, a gravaç
 
 - **Proteger contra regravação:** o NFC Tools tem a opção de bloquear a etiqueta (Outras > Bloquear etiqueta). O bloqueio é **definitivo**. Só bloqueie depois de testar e com o endereço publicado certo.
 - **Lixeira de metal:** metal atrapalha o NFC. Use etiquetas "anti-metal" (com uma camada de ferrite) ou cole a etiqueta numa plaquinha de plástico.
-- **Onde colar:** perto da boca da lixeira, na altura da mão, com um desenho de celular e o texto "Encoste para pontuar no seu nome".
+- **Onde colar:** entre as duas lixeiras do andar (ou em cada uma), na altura da mão, com um desenho de celular e o texto "Encoste para pontuar no seu nome".
 - **Celular sem NFC:** imprima também um QR Code com o mesmo endereço ao lado da etiqueta. Qualquer gerador de QR Code serve.
 
 ## Para a demonstração

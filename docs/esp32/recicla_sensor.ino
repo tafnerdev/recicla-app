@@ -3,8 +3,9 @@
   ======================================================
 
   O que faz
-    Neste exemplo, a lixeira usa um sensor simples em cada boca (é o jeito mais
-    barato de saber o tipo do descarte). Quando algo passa pela boca, o ESP32
+    Neste exemplo, cada andar tem duas lixeiras (a verde, de recicláveis, e a marrom,
+    de orgânicos), cada uma com um sensor simples. Como cada lixeira é de um tipo, o
+    sensor já sabe o tipo do descarte. Quando algo passa pela abertura, o ESP32
     manda uma linha pela USB (porta serial) para o telão:
       R,7   descarte reciclável no 7º andar
       O,7   descarte orgânico no 7º andar
@@ -13,14 +14,14 @@
 
   Material (exemplo)
     - 1 placa ESP32 com USB (qualquer DevKit)
-    - 2 sensores infravermelhos de obstáculo com saída digital (um por boca),
+    - 2 sensores infravermelhos de obstáculo com saída digital (um por lixeira),
       por exemplo módulos do tipo FC-51 ou TCRT5000. Barreira infravermelha
       (emissor de um lado, receptor do outro) também funciona e erra menos.
     - Fios e um cabo USB de dados (não só de carga)
 
   Ligação
-    Sensor da boca RECICLÁVEL:  VCC -> 3V3   GND -> GND   OUT -> GPIO 27
-    Sensor da boca ORGÂNICO:    VCC -> 3V3   GND -> GND   OUT -> GPIO 26
+    Sensor da lixeira RECICLÁVEL: VCC -> 3V3   GND -> GND   OUT -> GPIO 27
+    Sensor da lixeira ORGÂNICO:   VCC -> 3V3   GND -> GND   OUT -> GPIO 26
     LED da placa (GPIO 2) pisca a cada descarte.
     Botão BOOT (GPIO 0): segure e solte para mandar um descarte de teste.
 
@@ -35,15 +36,15 @@
     - Se o módulo mandar LOW quando detecta (o mais comum nos FC-51), deixe
       ATIVO_EM_BAIXO = true. Se for o contrário, troque para false.
     - BLOQUEIO_MS evita contar o mesmo descarte duas vezes (saco que balança).
-    - Para um prédio inteiro, acrescente mais linhas em SENSORES, uma por boca,
+    - Para um prédio inteiro, acrescente mais linhas em SENSORES, uma por lixeira,
       cada uma com o seu andar.
 */
 
 const unsigned long VELOCIDADE = 115200;  // o telão usa 115200 por padrão (?baud=... muda)
-const uint8_t ANDAR = 7;                   // andar desta lixeira
+const uint8_t ANDAR = 7;                   // andar destas lixeiras
 const bool ATIVO_EM_BAIXO = true;          // saída do módulo em LOW quando detecta
 const unsigned long ESTAVEL_MS = 25;       // a leitura precisa ficar firme por este tempo (filtro de ruído)
-const unsigned long BLOQUEIO_MS = 900;     // tempo mínimo entre dois descartes na mesma boca
+const unsigned long BLOQUEIO_MS = 900;     // tempo mínimo entre dois descartes na mesma lixeira
 const uint8_t PINO_LED = 2;
 const uint8_t PINO_TESTE = 0;              // botão BOOT da placa
 
@@ -107,7 +108,7 @@ void loop() {
         enviar(s.tipo, s.andar);
       }
     } else if (!detectando && s.ocupado) {
-      s.ocupado = false;  // a boca ficou livre de novo
+      s.ocupado = false;  // a abertura ficou livre de novo
     }
   }
 

@@ -962,6 +962,31 @@ button.chip--vidro:active {
   opacity: 0.55;
 }
 
+/* Tampa marrom (lixeira de orgânicos): escurece e tinge só a tampa da foto */
+.lixeira__tinta {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.lixeira__tinta--sombra {
+  mix-blend-mode: multiply;
+}
+
+.lixeira__tinta--sombra path {
+  fill: #9b7e66;
+}
+
+.lixeira__tinta--cor {
+  mix-blend-mode: color;
+}
+
+.lixeira__tinta--cor path {
+  fill: #6a4529;
+}
+
 /* Com o vídeo do giro tocando, o vídeo já mostra o próprio LED */
 .lixeira--video .lixeira__led {
   opacity: 0;

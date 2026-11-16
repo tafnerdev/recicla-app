@@ -104,9 +104,9 @@
 
 .esq-predio {
   width: 100%;
-  height: 236px;
-  margin-top: 14px;
-  border-radius: 28px;
+  height: 196px;
+  margin-top: 66px;
+  border-radius: 24px;
 }
 
 .esq-numero {
@@ -229,21 +229,65 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* A lixeira do andar (Início)                                         */
+/* As duas lixeiras do andar (Início)                                  */
 /* ------------------------------------------------------------------ */
 
-.a-lixeira {
+.a-lixeiras {
   margin-top: 14px;
   padding-bottom: 22px;
   border-bottom: 1px solid var(--linha);
   margin-bottom: 12px;
 }
 
+.a-lixeiras__titulo {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.a-lixeiras__estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: 6px;
+  color: var(--texto-vidro);
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.a-lixeiras__sinal {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--verde);
+  box-shadow: 0 0 10px rgba(139, 209, 124, 0.8);
+}
+
+.a-lixeiras[data-sinal='sem'] .a-lixeiras__sinal {
+  background: var(--texto-2);
+  box-shadow: none;
+}
+
+.a-lixeiras__simulado {
+  min-height: 24px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.a-lixeiras__lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
 .a-lixeira__foto {
   position: relative;
-  height: 236px;
+  height: 196px;
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: 24px;
   background: #1f2c23;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
 }
@@ -256,9 +300,13 @@
   --lx-y: 52%;
 }
 
-/* entrada: a foto aparece e o zoom assenta */
+/* entrada: as fotos aparecem uma depois da outra e o zoom assenta */
 .a-aba.entrou .a-lixeira__foto .lixeira__cena {
   animation: lixeira-entra 900ms var(--ease-saida) both;
+}
+
+.a-aba.entrou .a-lixeira + .a-lixeira .lixeira__cena {
+  animation-delay: 90ms;
 }
 
 @keyframes lixeira-entra {
@@ -268,52 +316,21 @@
   }
 }
 
-.a-lixeira__info {
-  margin-top: 14px;
-}
-
-.a-lixeira__titulo {
-  font-size: 22px;
-  line-height: 28px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
-.a-lixeira__estado {
+.a-lixeira__nome {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 6px 8px;
-  margin-top: 6px;
-  color: var(--texto-vidro);
-  font-size: 15px;
-  line-height: 20px;
-}
-
-.a-lixeira__sinal {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--verde);
-  box-shadow: 0 0 10px rgba(139, 209, 124, 0.8);
-}
-
-.a-lixeira[data-sinal='sem'] .a-lixeira__sinal {
-  background: var(--texto-2);
-  box-shadow: none;
-}
-
-.a-lixeira__simulado {
-  min-height: 24px;
-  padding: 0 10px;
-  font-size: 12px;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
 }
 
 .a-lixeira__ultimo {
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--texto-2);
-  font-size: 15px;
-  line-height: 20px;
+  font-size: 14px;
+  line-height: 19px;
 }
 
 .a-numero {

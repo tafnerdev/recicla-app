@@ -17,6 +17,9 @@ export const FOTOS = {
     largura: 1700,
     altura: 949,
     anel: 'M664,281 C730,304 830,322 893,325 C940,327 978,301 1014,271',
+    // contorno da tampa, para a versão marrom (lixeira de orgânicos)
+    tampa:
+      'M665,262 C665,250 669,242 688,232 L776,204 C800,198 840,199 862,203 C868,214 878,222 900,224 C920,225 935,223 946,220 L995,227 C1012,230 1019,238 1019,250 L1019,262 C1005,282 980,300 940,309 C900,316 850,312 800,303 C750,296 700,290 667,283 Z',
     luz: { cx: 842, cy: 300, rx: 250, ry: 70 },
     // centro e altura da lixeira na foto (frações), para recortar em volta dela
     foco: { x: 0.494, y: 0.511, altura: 0.537 },
@@ -40,14 +43,26 @@ function variaveis(dados) {
   return `--lx-proporcao: ${dados.largura} / ${dados.altura}; --lx-razao: ${(dados.altura / dados.largura).toFixed(4)}; --lx-foco-x: ${dados.foco.x}; --lx-foco-y: ${dados.foco.y}; --lx-altura: ${dados.foco.altura};`;
 }
 
-/** HTML da lixeira (usado direto no index.html da abertura e por criarLixeira). */
-export function htmlLixeira({ foto = 'verde', base = '', descricao, carregamento = 'eager', id = `lx-${++contador}`, classe = '' } = {}) {
+/** Tampa marrom (lixeira de orgânicos): a tampa da foto é pintada mantendo a luz e a sombra. */
+function htmlTampaMarrom(dados, id) {
+  if (!dados.tampa) return '';
+  const caixa = `viewBox="0 0 ${dados.largura} ${dados.altura}" preserveAspectRatio="none" aria-hidden="true" focusable="false"`;
+  return `
+    <svg class="lixeira__tinta lixeira__tinta--sombra" ${caixa}><defs><filter id="${id}-borda"><feGaussianBlur stdDeviation="0.8" /></filter></defs><path d="${dados.tampa}" filter="url(#${id}-borda)" /></svg>
+    <svg class="lixeira__tinta lixeira__tinta--cor" ${caixa}><path d="${dados.tampa}" filter="url(#${id}-borda)" /></svg>`;
+}
+
+/**
+ * HTML da lixeira (usado direto no index.html da abertura e por criarLixeira).
+ * tampa: 'verde' (recicláveis, a foto como é) ou 'marrom' (orgânicos).
+ */
+export function htmlLixeira({ foto = 'verde', base = '', descricao, carregamento = 'eager', id = `lx-${++contador}`, classe = '', tampa = 'verde' } = {}) {
   const dados = FOTOS[foto] ?? FOTOS.verde;
   const { cx, cy, rx, ry } = dados.luz;
   const alt = (descricao ?? dados.descricao).replace(/"/g, '&quot;');
-  return `<div class="lixeira${classe ? ` ${classe}` : ''}" data-foto="${foto}" style="${variaveis(dados)}">
+  return `<div class="lixeira${classe ? ` ${classe}` : ''}" data-foto="${foto}" data-tampa="${tampa}" style="${variaveis(dados)}">
   <div class="lixeira__cena">
-    <img class="lixeira__foto" src="${base}assets/lixeira/${dados.arquivo}" width="${dados.largura}" height="${dados.altura}" alt="${alt}" decoding="async" loading="${carregamento}" />
+    <img class="lixeira__foto" src="${base}assets/lixeira/${dados.arquivo}" width="${dados.largura}" height="${dados.altura}" alt="${alt}" decoding="async" loading="${carregamento}" />${tampa === 'marrom' ? htmlTampaMarrom(dados, id) : ''}
     <svg class="lixeira__led" viewBox="0 0 ${dados.largura} ${dados.altura}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
       <defs>
         <filter id="${id}-halo" x="-30%" y="-300%" width="160%" height="700%"><feGaussianBlur stdDeviation="9" /></filter>

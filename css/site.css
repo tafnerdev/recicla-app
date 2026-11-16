@@ -367,9 +367,9 @@ html.menu-aberto {
 .heroi__lixeira {
   position: absolute;
   inset: 0;
-  --lx-ocupa: 0.36;
+  --lx-ocupa: 0.32;
   --lx-x: 50%;
-  --lx-y: 31%;
+  --lx-y: 29%;
   background: var(--fundo);
 }
 

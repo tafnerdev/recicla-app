@@ -61,17 +61,20 @@ test.describe('abertura do site', () => {
     await expect(video).toHaveAttribute('poster', /lixeira-parede-verde\.jpg$/);
   });
 
-  test('o anel de LED pulsa verde no reciclável e laranja no orgânico', async ({ page }) => {
+  test('o anel de LED pulsa verde na lixeira de recicláveis e laranja na de orgânicos', async ({ page }) => {
     await page.goto('app/?andar=7');
     await page.goto('app/#inicio');
-    const lixeira = page.locator('#lixeira-foto .lixeira');
-    await expect(lixeira).toBeVisible();
+    const verde = page.locator('#lixeira-foto-reciclavel .lixeira');
+    const marrom = page.locator('#lixeira-foto-organico .lixeira');
+    await expect(verde).toBeVisible();
+    await expect(marrom).toHaveAttribute('data-tampa', 'marrom');
     await descarte(page, 7, 'reciclavel');
-    await expect(lixeira).toHaveAttribute('data-pulso', 'reciclavel');
-    expect(await lixeira.locator('.lixeira__pulso').evaluate((g) => g.getAnimations().length)).toBeGreaterThan(0);
+    await expect(verde).toHaveAttribute('data-pulso', 'reciclavel');
+    expect(await verde.locator('.lixeira__pulso').evaluate((g) => g.getAnimations().length)).toBeGreaterThan(0);
+    await expect(marrom).not.toHaveAttribute('data-pulso', /.+/);
     await descarte(page, 7, 'organico');
-    await expect(lixeira).toHaveAttribute('data-pulso', 'organico');
-    const cor = await lixeira.locator('.lixeira__pulso .lixeira__fio').evaluate((p) => getComputedStyle(p).stroke);
+    await expect(marrom).toHaveAttribute('data-pulso', 'organico');
+    const cor = await marrom.locator('.lixeira__pulso .lixeira__fio').evaluate((p) => getComputedStyle(p).stroke);
     expect(cor).toBe('rgb(242, 165, 65)');
   });
 
@@ -87,34 +90,37 @@ test.describe('abertura do site', () => {
   });
 });
 
-test.describe('app: a lixeira do andar no Início', () => {
-  test('mostra a lixeira do andar, a conexão (simulada) e o último descarte', async ({ page, context }) => {
+test.describe('app: as duas lixeiras do andar no Início', () => {
+  test('mostra as duas lixeiras, a conexão (simulada) e o último descarte de cada uma', async ({ page, context }) => {
     await page.goto('app/?andar=7');
     await page.goto('app/#inicio');
-    await expect(page.getByRole('heading', { name: 'Lixeira do 7º andar' })).toBeVisible();
-    await expect(page.locator('#lixeira-estado')).toHaveText('Conectada');
+    await expect(page.getByRole('heading', { name: 'Lixeiras do 7º andar' })).toBeVisible();
+    await expect(page.locator('.a-lixeira__nome')).toHaveText(['Recicláveis', 'Orgânicos']);
+    await expect(page.locator('#lixeira-estado')).toHaveText('Conectadas');
     await expect(page.locator('#lixeira-simulado')).toHaveText('Simulado');
-    await expect(page.locator('#lixeira-ultimo')).toHaveText('Nenhum descarte recente');
+    await expect(page.locator('#lixeira-ultimo-reciclavel')).toHaveText('Nenhum descarte recente');
+    await expect(page.locator('#lixeira-ultimo-organico')).toHaveText('Nenhum descarte recente');
 
     await descarte(page, 7, 'organico');
-    await expect(page.locator('#lixeira-ultimo')).toHaveText('Último descarte agora');
+    await expect(page.locator('#lixeira-ultimo-organico')).toHaveText('Último descarte agora');
+    await expect(page.locator('#lixeira-ultimo-reciclavel')).toHaveText('Nenhum descarte recente');
 
-    // descarte em outro andar não muda a lixeira do 7º
+    // descarte em outro andar não muda as lixeiras do 7º
     await descarte(page, 3, 'reciclavel');
-    await expect(page.locator('#lixeira-foto .lixeira')).toHaveAttribute('data-pulso', 'organico');
+    await expect(page.locator('#lixeira-ultimo-reciclavel')).toHaveText('Nenhum descarte recente');
 
     await context.setOffline(true);
     await expect(page.locator('#lixeira-estado')).toHaveText('Sem sinal');
     await context.setOffline(false);
-    await expect(page.locator('#lixeira-estado')).toHaveText('Conectada');
+    await expect(page.locator('#lixeira-estado')).toHaveText('Conectadas');
   });
 
-  test('pontuar pela etiqueta também acende o anel e marca "agora"', async ({ page }) => {
+  test('pontuar pela etiqueta também acende o anel da lixeira usada e marca "agora"', async ({ page }) => {
     await page.goto('app/?andar=7');
     await page.getByRole('link', { name: /Pontuar agora/ }).click();
-    await page.locator('.pontuar__botoes').getByRole('button', { name: 'Reciclável' }).click();
-    await expect(page.locator('#lixeira-foto .lixeira')).toHaveAttribute('data-pulso', 'reciclavel');
-    await expect(page.locator('#lixeira-ultimo')).toHaveText('Último descarte agora');
+    await page.locator('.pontuar__botoes').getByRole('button', { name: 'Orgânico' }).click();
+    await expect(page.locator('#lixeira-foto-organico .lixeira')).toHaveAttribute('data-pulso', 'organico');
+    await expect(page.locator('#lixeira-ultimo-organico')).toHaveText('Último descarte agora');
   });
 
   test('o prédio foi para a aba Ranking, menor', async ({ page }) => {
@@ -183,4 +189,19 @@ test.describe('service worker', () => {
     expect(guardados.some((u) => u.endsWith('.mp4'))).toBe(false);
     expect(guardados.some((u) => u.endsWith('lixeira-parede-verde.jpg'))).toBe(true);
   });
+});
+
+test('site e app falam em duas lixeiras por andar, como na apresentação, e nunca em "boca"', async ({ page }) => {
+  await page.goto('./');
+  const site = await page.locator('body').innerText();
+  expect(site).not.toMatch(/boca/i);
+  await expect(page.locator('.heroi__sub')).toContainText('Duas lixeiras em cada andar');
+  await expect(page.locator('#como-funciona')).toContainText('a verde, de recicláveis, e a marrom, de orgânicos');
+  expect(await page.locator('meta[name="description"]').getAttribute('content')).toMatch(/^Duas lixeiras em cada andar/);
+
+  await page.goto('app/?andar=7');
+  await page.getByRole('link', { name: /Pontuar agora/ }).click();
+  await expect(page.getByRole('heading', { name: 'Qual lixeira você usou?' })).toBeVisible();
+  const app = await page.locator('body').innerText();
+  expect(app).not.toMatch(/boca/i);
 });

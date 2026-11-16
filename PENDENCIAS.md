@@ -16,7 +16,7 @@ O site está no ar em **https://tafnerdev.github.io/recicla-app/**, no repositó
 
 Conferido no endereço publicado: o service worker ativa, guarda 34 arquivos e as quatro telas abrem sem internet (com o prédio em 3D).
 
-**Para publicar mudanças depois:** aumente `VERSAO` no `sw.js` (por exemplo `recicla-v5`), faça o commit e rode `git push`. O GitHub Pages republica sozinho em 1 ou 2 minutos.
+**Para publicar mudanças depois:** aumente `VERSAO` no `sw.js` (por exemplo `recicla-v5`), faça o commit e rode `git push`. O GitHub Pages republica sozinho em 1 ou 2 minutos. Os celulares e o telão pegam a versão nova sozinhos: o service worker novo assume na hora e a tela recarrega uma vez, quando estiver parada (o telão espera a celebração terminar e a saída da tela cheia do botão).
 
 **Histórico:** antes de tornar o repositório público, o caminho com o nome de usuário do Windows foi trocado por um caminho genérico em todo o histórico. As etiquetas `backup-antes-publicar` e `backup-main-antes-publicar` guardam a versão antiga só neste PC (não foram enviadas).
 
@@ -39,7 +39,7 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
    Escrevi só o que o briefing permite, sem números, clientes nem depoimentos. Mesmo assim, confiram estas frases da página inicial com o grupo:
    - "Shafts dos tubos e centrais do térreo previstos desde o projeto" e "App do morador e telão prontos na entrega das chaves" (Para quem é)
    - "Em prédio pronto, a adaptação depende de uma avaliação de cada caso" (Perguntas)
-   - "A lixeira tem um sensor que percebe cada descarte e por qual boca ele passou" (o briefing diz "um sensor por lixeira"; o exemplo do ESP32 usa um sensor por boca)
+   - "Cada lixeira tem um sensor que percebe cada descarte" (Perguntas): agora são duas lixeiras por andar, uma por tipo, como na apresentação
 
 5. **Virada do mês.**
    O placar não zera sozinho no dia 1º. Fiz assim de propósito: o demo day é em 1º de dezembro, e um placar zerado sozinho naquela manhã apagaria a demonstração. Para fechar o mês, use **Zerar placar** no painel. Com um banco online, quem fecha o mês é o servidor.
@@ -80,5 +80,5 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
 ## 7. `prompt-app.md` (sistema de verdade)
 
 1. **Conferir o prédio 3D no seu celular** (Etapa 0). Na resposta da Etapa 0, o modelo e o resultado vieram como "(MODELO)" e "(O QUE APARECEU)", sem preencher. Como o prédio agora fica na aba Ranking, abra `https://tafnerdev.github.io/recicla-app/app/?diag=1#ranking` e me diga o que aparece embaixo do prédio e o modelo do celular.
-2. **Uma lixeira de duas bocas ou duas lixeiras?** (para a Etapa 6). A apresentação fala em duas lixeiras por andar (a verde, de recicláveis, e a marrom, de orgânicos, com a tampa que abre com o pé). O site e o app ainda dizem "uma lixeira de duas bocas". Não mudei os textos nesta etapa; a Etapa 6 alinha tudo com os slides. O pulso laranja do orgânico aparece na lixeira verde porque é a única foto que existe.
-3. **"Conectada" é simulado.** Ainda não há sensor de verdade ligado ao app, então o estado da lixeira aparece com a marca "Simulado"; "Sem sinal" aparece quando o celular está sem internet. "Último descarte" é verdadeiro: vem dos descartes registrados (painel, sensor ou a etiqueta neste celular).
+2. **Duas lixeiras por andar: decidido e feito.** Como na apresentação, cada andar tem a lixeira verde (recicláveis) e a marrom (orgânicos), cada uma com seu tubo. Os textos do site, do app e dos guias já dizem isso. A tampa marrom do app é a foto da lixeira verde com a tampa pintada (só existe render da verde); quando houver render da marrom, troque em `js/lixeira.js`.
+3. **"Conectadas" é simulado.** Ainda não há sensor de verdade ligado ao app, então o estado das lixeiras aparece com a marca "Simulado"; "Sem sinal" aparece quando o celular está sem internet. "Último descarte" é verdadeiro: vem dos descartes registrados (painel, sensor ou a etiqueta neste celular).

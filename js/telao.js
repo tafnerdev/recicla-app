@@ -26,6 +26,7 @@ import {
   textoErroCarregar,
 } from './comum.js';
 import { montarPredio } from './predio.js';
+import { definirCondicaoParaRecarregar } from './pwa.js';
 import { BAUD_PADRAO, LeitorSerial, interpretarLinha, serialDisponivel } from './serial.js';
 
 const $ = (id) => document.getElementById(id);
@@ -43,6 +44,7 @@ const estado = {
   leitor: null,
   ignoradas: 0,
   fimCelebracao: 0,
+  ultimaMudanca: 0, // quando o placar mudou pela última vez (luz caindo, números contando)
   animacoes: [],
 };
 
@@ -104,6 +106,19 @@ function ligarControles() {
 /* ------------------------------------------------------------------ */
 /* Início                                                              */
 /* ------------------------------------------------------------------ */
+
+/**
+ * Versão nova do site: o telão só recarrega com a tela parada. Espera a celebração
+ * de novo líder, 2,5 s depois do último descarte (luz caindo no prédio, números
+ * contando) e a saída da tela cheia do botão, porque recarregar tiraria o telão da
+ * tela cheia no meio da apresentação (com F11 do navegador, recarrega normalmente).
+ */
+definirCondicaoParaRecarregar(
+  () =>
+    !$('palco')?.classList.contains('celebrando') &&
+    Date.now() - estado.ultimaMudanca > 2500 &&
+    !document.fullscreenElement,
+);
 
 async function iniciar() {
   for (const caixa of document.querySelectorAll('[data-icone]')) caixa.innerHTML = icone(caixa.dataset.icone);
@@ -291,6 +306,7 @@ function renderizar(animar) {
 /* ------------------------------------------------------------------ */
 
 function aoMudar(placar) {
+  estado.ultimaMudanca = Date.now();
   const antes = estado.placar;
   const liderAntes = liderUnico(antes);
   const posicaoAntes = new Map(antes.ranking.map((i) => [i.andar, i.posicao]));

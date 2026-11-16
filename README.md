@@ -2,7 +2,7 @@
 
 Site e app web (PWA) do Recicla Slide, para o demo day de 1º de dezembro de 2026.
 
-O Recicla Slide é um sistema para prédios novos. Em cada andar há uma lixeira com duas bocas (reciclável e orgânico), ligadas por dois tubos-tobogã às centrais do térreo. Um sensor conta os descartes. Cada descarte vale 10 pontos para o andar, e o andar campeão do mês ganha um prêmio.
+O Recicla Slide é um sistema para prédios novos. Em cada andar há duas lixeiras, a verde de recicláveis e a marrom de orgânicos, cada uma ligada pelo seu tubo-tobogã à sua central no térreo. Um sensor em cada lixeira conta os descartes. Cada descarte vale 10 pontos para o andar, e o andar campeão do mês ganha um prêmio.
 
 **Visual:** vidro, luz e letra fina. Fundo quase preto, letra Geist fina e grande, vidro só no que flutua e a cor aparecendo só como luz e como dado (verde = reciclável, laranja = orgânico). No centro de tudo está o prédio com os dois tubos de luz, em 3D onde o aparelho aguenta. As regras estão em [`DESIGN.md`](DESIGN.md) e o que mudou no redesign em [`RESUMO-REDESIGN.md`](RESUMO-REDESIGN.md).
 
@@ -78,7 +78,7 @@ Para TVs que piscam com animação contínua (como a da escola): abra `.../telao
 1. **Site**: mostre o prédio da abertura (os pontos de luz descendo pelos tubos) e role até "Escolha um andar e faça um descarte".
 2. **Telão**: registre 5 descartes no 7º andar (pelo sensor ou pelo painel). A cada um, o ponto de luz desce pelo tubo, o número conta e aparece um "+10" discreto. No quinto, o 7º andar (340 pontos) desliza para o 3º lugar.
 3. Registre 3 descartes no 8º andar: ele chega a 420 pontos, passa o 4º andar, acende no prédio e entra a folha de **novo líder** por 4 segundos.
-4. **App**: no celular, encoste na etiqueta NFC (ou abra `.../app/?andar=7`). No topo aparece "Você está no 7º andar. Pontuar agora"; toque nele para abrir "Qual boca você usou?". Depois mostre as abas Início e Ranking.
+4. **App**: no celular, encoste na etiqueta NFC (ou abra `.../app/?andar=7`). No topo aparece "Você está no 7º andar. Pontuar agora"; toque nele para abrir "Qual lixeira você usou?". Depois mostre as abas Início e Ranking.
 5. Se a TV piscar: troque para `.../telao/?estavel=1`.
 
 ### Atalhos do painel

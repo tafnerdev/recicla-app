@@ -7,7 +7,7 @@
  *
  * Ao publicar uma versão nova, mude VERSAO. As telas avisam "Nova versão disponível".
  */
-const VERSAO = 'recicla-v6';
+const VERSAO = 'recicla-v7';
 const ESPERA_REDE = 2500;
 
 const ARQUIVOS = [
@@ -49,9 +49,13 @@ const ARQUIVOS = [
   'icons/favicon-32.png',
 ];
 
+// Versão nova assume na hora: guarda os arquivos novos e não espera as abas fecharem.
 self.addEventListener('install', (evento) => {
   evento.waitUntil(
-    caches.open(VERSAO).then((cache) => cache.addAll(ARQUIVOS.map((a) => new Request(a, { cache: 'reload' })))),
+    caches
+      .open(VERSAO)
+      .then((cache) => cache.addAll(ARQUIVOS.map((a) => new Request(a, { cache: 'reload' }))))
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -59,15 +63,37 @@ self.addEventListener('activate', (evento) => {
   evento.waitUntil(
     (async () => {
       const nomes = await caches.keys();
-      await Promise.all(nomes.filter((n) => n.startsWith('recicla-') && n !== VERSAO).map((n) => caches.delete(n)));
+      const antigas = nomes.filter((n) => n.startsWith('recicla-') && n !== VERSAO);
+      await Promise.all(antigas.map((n) => caches.delete(n)));
       await self.clients.claim();
+      // Só numa atualização (havia versão antiga): avisa as abas abertas para recarregarem.
+      if (antigas.length) await avisarAbas();
     })(),
   );
 });
 
+/** Abas que responderam "eu recarrego sozinha" (código novo do js/pwa.js). */
+const abasQueCuidam = new Set();
+
 self.addEventListener('message', (evento) => {
   if (evento.data?.tipo === 'atualizar') self.skipWaiting();
+  if (evento.data?.tipo === 'eu-recarrego' && evento.source?.id) abasQueCuidam.add(evento.source.id);
 });
+
+/**
+ * Avisa as abas que há versão nova. As que têm o js/pwa.js novo recarregam sozinhas
+ * quando a tela estiver parada. As que ainda rodam código antigo (que só recarregava
+ * com um toque) são recarregadas por aqui, menos o telão, que nunca é interrompido.
+ */
+async function avisarAbas() {
+  const abas = await self.clients.matchAll({ type: 'window' });
+  for (const aba of abas) aba.postMessage({ tipo: 'versao-nova', versao: VERSAO });
+  await new Promise((resolver) => setTimeout(resolver, 2500));
+  for (const aba of abas) {
+    if (abasQueCuidam.has(aba.id) || new URL(aba.url).pathname.includes('/telao/')) continue;
+    if (typeof aba.navigate === 'function') aba.navigate(aba.url).catch(() => {});
+  }
+}
 
 function comPrazo(promessa, ms) {
   return new Promise((resolver, rejeitar) => {
