@@ -450,11 +450,6 @@
   gap: var(--e-2);
 }
 
-.botao .marca-tipo {
-  background: var(--fundo);
-  color: var(--botao-fundo);
-}
-
 .pontuar__resumo {
   display: grid;
   grid-template-columns: 1.3fr 1fr 1fr;

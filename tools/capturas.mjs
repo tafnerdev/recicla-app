@@ -39,8 +39,29 @@ async function descartes(page, lista) {
   }, [URL_DADOS, lista]);
 }
 
+/** Rola a página até o fim (revela o que aparece na rolagem) e volta ao topo. */
+async function rolarAteOFim(page) {
+  await page.evaluate(async () => {
+    const passo = innerHeight * 0.6;
+    for (let y = 0; y < document.documentElement.scrollHeight; y += passo) {
+      scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 120));
+    }
+    scrollTo(0, 0);
+  });
+  await page.waitForTimeout(1200);
+}
+
 const CAPTURAS = [
-  { nome: 'site', url: '', tamanhos: [CELULAR, TABLET, COMPUTADOR], inteira: true },
+  { nome: 'site', url: '', tamanhos: [CELULAR, TABLET, COMPUTADOR], inteira: true, depois: rolarAteOFim },
+  { nome: 'site-topo', url: '', tamanhos: [CELULAR, TABLET, COMPUTADOR], inteira: false, depois: async (page) => page.waitForTimeout(2600) },
+  {
+    nome: 'secoes',
+    url: '',
+    tamanhos: [COMPUTADOR, CELULAR],
+    secoes: ['.oque', '#como-funciona', '#ranking', '#para-quem', '#perguntas', '#contato', '.rodape'],
+    depois: rolarAteOFim,
+  },
   { nome: 'app', url: 'app/?andar=7', tamanhos: [CELULAR, TABLET, COMPUTADOR], inteira: true },
   { nome: 'app-sem-andar', url: 'app/', tamanhos: [CELULAR, COMPUTADOR], inteira: true },
   { nome: 'app-andar-invalido', url: 'app/?andar=42', tamanhos: [CELULAR], inteira: true },
@@ -107,6 +128,19 @@ try {
       }
       await page.waitForTimeout(900);
       if (captura.depois) await captura.depois(page);
+      if (captura.secoes) {
+        for (const seletor of captura.secoes) {
+          const alvo = page.locator(seletor).first();
+          await alvo.scrollIntoViewIfNeeded();
+          await page.waitForTimeout(700);
+          const nomeSecao = seletor.replace(/[^a-z0-9-]/gi, '');
+          const arquivoSecao = fileURLToPath(new URL(`${captura.nome}-${nomeSecao}-${tamanho.width}.png`, PASTA));
+          await alvo.screenshot({ path: arquivoSecao, animations: 'allow' });
+          console.log('ok', arquivoSecao);
+        }
+        await contexto.close();
+        continue;
+      }
 
       const largura = await page.evaluate(() => document.documentElement.scrollWidth);
       if (largura > tamanho.width) problemas.push(`${captura.nome} ${tamanho.width}: rolagem horizontal (${largura}px)`);

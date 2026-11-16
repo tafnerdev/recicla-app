@@ -340,7 +340,7 @@ export function criarLinhaRanking(andar) {
  * Atualiza a linha com o item do ranking.
  * opcoes: { maximo (pontos do 1º), minha (destaca como 'Seu andar'), animar }
  */
-export function atualizarLinhaRanking(linha, item, { maximo = 1, minha = false, animar = false } = {}) {
+export function atualizarLinhaRanking(linha, item, { maximo = 1, minha = false, animar = false, rotulo = 'Seu andar' } = {}) {
   linha.classList.toggle('linha--minha', minha);
   linha.classList.toggle('linha--zero', item.pontos === 0);
   linha.dataset.posicao = String(item.posicao ?? '');
@@ -350,7 +350,7 @@ export function atualizarLinhaRanking(linha, item, { maximo = 1, minha = false, 
   linha.querySelector('.linha__posicao').textContent = item.posicao ? ordinal(item.posicao) : '';
   const nome = linha.querySelector('.linha__andar');
   nome.replaceChildren(el('span', { class: 'linha__nome' }, nomeAndar(item.andar)));
-  if (minha) nome.append(el('span', { class: 'etiqueta etiqueta--reciclavel' }, 'Seu andar'));
+  if (minha) nome.append(el('span', { class: 'etiqueta etiqueta--reciclavel' }, rotulo));
 
   const fr = item.pontosReciclavel / maximo;
   const fo = item.pontosOrganico / maximo;
@@ -368,7 +368,7 @@ export function atualizarLinhaRanking(linha, item, { maximo = 1, minha = false, 
 
   const lugar = item.posicao ? `${ordinal(item.posicao)} lugar` : 'sem posição';
   linha.querySelector('.linha__leitura').textContent =
-    `${lugar}, ${nomeAndar(item.andar)}${minha ? ', seu andar' : ''}: ${rotuloPontos(item.pontos)}, ` +
+    `${lugar}, ${nomeAndar(item.andar)}${minha ? `, ${rotulo.toLowerCase()}` : ''}: ${rotuloPontos(item.pontos)}, ` +
     `${item.reciclavel} ${item.reciclavel === 1 ? 'descarte reciclável' : 'descartes recicláveis'} e ` +
     `${item.organico} ${item.organico === 1 ? 'orgânico' : 'orgânicos'}.`;
 }

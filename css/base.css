@@ -482,6 +482,12 @@ a.logo:hover {
   background: var(--laranja);
 }
 
+/* Dentro de um botão verde ou laranja, a marca inverte as cores */
+.botao .marca-tipo {
+  background: var(--fundo);
+  color: var(--botao-fundo);
+}
+
 /* ------------------------------------------------------------------ */
 /* Aviso (toast)                                                       */
 /* ------------------------------------------------------------------ */
