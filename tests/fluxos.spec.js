@@ -29,6 +29,20 @@ test.describe('painel de demonstração', () => {
     await expect(page.locator('#d-desfazer')).toBeDisabled();
   });
 
+  test('descartes automáticos registram sozinhos e desligam', async ({ page }) => {
+    await page.goto('demo/');
+    const chave = page.getByRole('switch', { name: 'Descartes automáticos' });
+    await chave.click();
+    await expect(chave).toHaveAttribute('aria-checked', 'true');
+    // o primeiro sai na hora; o segundo, 4 segundos depois
+    await expect(page.locator('#d-historico li')).toHaveCount(1);
+    await expect(page.locator('#d-historico li')).toHaveCount(2, { timeout: 6000 });
+    await chave.click();
+    await expect(chave).toHaveAttribute('aria-checked', 'false');
+    await page.waitForTimeout(4500);
+    await expect(page.locator('#d-historico li')).toHaveCount(2);
+  });
+
   test('atalhos de teclado: número do andar e depois R', async ({ page }) => {
     await page.goto('demo/');
     await expect(pontosNoPainel(page, 3)).toHaveText('200');
