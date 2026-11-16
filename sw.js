@@ -7,7 +7,7 @@
  *
  * Ao publicar uma versão nova, mude VERSAO. As telas avisam "Nova versão disponível".
  */
-const VERSAO = 'recicla-v2';
+const VERSAO = 'recicla-v3';
 const ESPERA_REDE = 2500;
 
 const ARQUIVOS = [
@@ -31,6 +31,9 @@ const ARQUIVOS = [
   'js/demo.js',
   'js/serial.js',
   'js/predio.js',
+  'js/predio3d.js',
+  'js/vendor/three.module.min.js',
+  'js/vendor/three.core.min.js',
   'js/pwa.js',
   'js/vendor/gsap.min.js',
   'js/vendor/ScrollTrigger.min.js',

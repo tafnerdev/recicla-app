@@ -28,6 +28,32 @@ test.describe('sensor pela porta serial', () => {
     expect(resultados.lixo.ok).toBe(false);
   });
 
+  test('sem WebGL, o prédio fica no desenho em SVG', async ({ page }) => {
+    await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (tipo, ...resto) {
+        if (String(tipo).startsWith('webgl')) return null;
+        return original.call(this, tipo, ...resto);
+      };
+    });
+    await page.goto('app/?andar=7');
+    await page.goto('app/#inicio');
+    const predio = page.locator('#predio');
+    await expect(predio.locator('svg.predio-svg')).toBeVisible();
+    await page.waitForTimeout(800);
+    await expect(predio).toHaveAttribute('data-modo', 'svg');
+    await expect(predio.locator('canvas')).toHaveCount(0);
+    await expect(predio.locator('svg.predio-svg')).toHaveAttribute('aria-label', /7º andar, o seu, está aceso/);
+  });
+
+  test('com WebGL, o prédio do app vira 3D com a mesma descrição', async ({ page }) => {
+    await page.goto('app/?andar=7');
+    await page.goto('app/#inicio');
+    const predio = page.locator('#predio');
+    await expect(predio).toHaveAttribute('data-modo', '3d', { timeout: 8000 });
+    await expect(predio.locator('canvas')).toHaveAttribute('aria-label', /7º andar, o seu, está aceso/);
+  });
+
   test('telão em ?estavel=1: sem desfoque, sem canvas e com corte seco', async ({ page }) => {
     await page.goto('telao/?estavel=1');
     await expect(page.locator('.t-linha').first()).toBeVisible();

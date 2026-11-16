@@ -76,6 +76,7 @@ async function iniciar() {
     andares: estado.edificio.andares,
     aceso: estado.meuAndar,
     lider: liderUnico()?.andar ?? null,
+    pontos: pontosPorAndar(),
     modo: 'morador',
     rotulos: true,
     pontos: 'app',
@@ -310,6 +311,10 @@ function liderUnico(placar = estado.placar) {
   return primeiros.length === 1 ? primeiros[0] : null;
 }
 
+function pontosPorAndar() {
+  return Object.fromEntries(estado.placar.ranking.map((i) => [i.andar, i.pontos]));
+}
+
 function pontosPorDescarte() {
   const { reciclavel, organico } = estado.edificio.pontosPorDescarte;
   return Math.max(reciclavel, organico);
@@ -320,7 +325,7 @@ function renderizar({ animar }) {
   renderizarDestaque(animar);
   renderizarPremio();
   atualizarHora();
-  estado.predio?.atualizar({ aceso: estado.meuAndar, lider: liderUnico()?.andar ?? null });
+  estado.predio?.atualizar({ aceso: estado.meuAndar, lider: liderUnico()?.andar ?? null, pontos: pontosPorAndar() });
 }
 
 function renderizarDestaque(animar) {

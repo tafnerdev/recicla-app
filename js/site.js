@@ -122,6 +122,7 @@ async function ligarPredio() {
   const predio = montarPredio(caixa, {
     andares: edificio.andares,
     aceso: lider,
+    pontos: Object.fromEntries(placar.ranking.map((i) => [i.andar, i.pontos])),
     modo: 'lider',
     pontos: 'site',
     traco: 0.7,

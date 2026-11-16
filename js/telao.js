@@ -131,6 +131,7 @@ async function iniciar() {
   estado.predio = montarPredio($('t-predio-caixa'), {
     andares: estado.edificio.andares,
     aceso: andarAceso(),
+    pontos: Object.fromEntries(estado.placar.ranking.map((i) => [i.andar, i.pontos])),
     modo: 'lider',
     pontos: 'telao',
     traco: 0.6,
@@ -282,7 +283,7 @@ function renderizarTotais(animar) {
 function renderizar(animar) {
   renderizarRanking(animar);
   renderizarTotais(animar);
-  estado.predio?.atualizar({ aceso: andarAceso() });
+  estado.predio?.atualizar({ aceso: andarAceso(), pontos: Object.fromEntries(estado.placar.ranking.map((i) => [i.andar, i.pontos])) });
 }
 
 /* ------------------------------------------------------------------ */

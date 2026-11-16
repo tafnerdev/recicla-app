@@ -220,7 +220,7 @@ export function criarPredioSVG(opcoes) {
 /* ------------------------------------------------------------------ */
 
 /** Liga a troca para o 3D (js/predio3d.js). */
-const TRES_D_ATIVO = false;
+const TRES_D_ATIVO = true;
 
 function podeUsar3D() {
   if (!TRES_D_ATIVO) return false;
@@ -246,7 +246,7 @@ export function montarPredio(conteiner, opcoes) {
   conteiner.classList.add('predio');
   const svg = criarPredioSVG(opcoes);
   conteiner.replaceChildren(svg.elemento);
-  const estado = { aceso: opcoes.aceso ?? null, lider: opcoes.lider ?? null, modo: opcoes.modo ?? 'lider' };
+  const estado = { aceso: opcoes.aceso ?? null, lider: opcoes.lider ?? null, modo: opcoes.modo ?? 'lider', pontos: opcoes.pontos ?? {} };
   let tresD = null;
   let destruido = false;
 
@@ -258,7 +258,7 @@ export function montarPredio(conteiner, opcoes) {
       /* já foi */
     }
     tresD = null;
-    svg.elemento.hidden = false;
+    svg.elemento.removeAttribute('hidden'); // SVGElement não tem a propriedade .hidden
     conteiner.dataset.modo = 'svg';
   };
 
@@ -278,7 +278,7 @@ export function montarPredio(conteiner, opcoes) {
           return;
         }
         tresD = instancia;
-        svg.elemento.hidden = true;
+        svg.elemento.setAttribute('hidden', '');
         conteiner.dataset.modo = '3d';
       } catch (erro) {
         console.warn('[Recicla Slide] prédio 3D indisponível, usando o desenho em SVG.', erro);
