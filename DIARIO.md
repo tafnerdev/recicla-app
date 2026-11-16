@@ -27,3 +27,4 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 07:52 | Polimento ciclo 9: rodada completa (auditoria, capturas, testes); o "+10" do telão virou um selo com fundo próprio para não se misturar à barra; "Subiu!" virou "Subiu de posição." |
 | 16/11 07:55 | Polimento ciclo 10: dois defeitos sérios na página inicial corrigidos (links do menu não rolavam no computador; blocos revelados ficavam 28 px fora do lugar) e teste novo para isso. 24 testes. |
 | 16/11 07:56 | Polimento ciclo 11: nenhum defeito novo; testes de navegação (menu do celular, botões da abertura) e de troca de andar no app. 26 testes. Primeiro ciclo limpo. |
+| 16/11 08:01 | Polimento ciclo 12: revelação na rolagem também ao voltar para cima (quem rolava rápido podia ver blocos vazios); teste de que nada fica invisível. 27 testes. Contagem de ciclos limpos recomeça. |

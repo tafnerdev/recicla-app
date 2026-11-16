@@ -283,8 +283,10 @@
   text-decoration-color: var(--borda-forte);
 }
 
-.destaque__trocar:hover {
-  color: var(--texto);
+@media (hover: hover) {
+  .destaque__trocar:hover {
+    color: var(--texto);
+  }
 }
 
 .destaque__titulo {

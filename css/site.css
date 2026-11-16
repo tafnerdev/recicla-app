@@ -116,8 +116,10 @@
   white-space: nowrap;
 }
 
-.menu ul a:hover {
-  color: var(--texto);
+@media (hover: hover) {
+  .menu ul a:hover {
+    color: var(--texto);
+  }
 }
 
 .menu ul a[aria-current='true'] {
@@ -851,8 +853,10 @@
   text-underline-offset: 0.25em;
 }
 
-.controle__reiniciar:hover {
-  color: var(--texto);
+@media (hover: hover) {
+  .controle__reiniciar:hover {
+    color: var(--texto);
+  }
 }
 
 .ranking-demo__miolo {
@@ -1054,8 +1058,10 @@
   transform: rotate(45deg);
 }
 
-.pergunta summary:hover::after {
-  border-color: var(--verde);
+@media (hover: hover) {
+  .pergunta summary:hover::after {
+    border-color: var(--verde);
+  }
 }
 
 .pergunta__resposta {
@@ -1169,8 +1175,10 @@
   text-decoration: none;
 }
 
-.rodape__links a:hover {
-  color: var(--texto);
+@media (hover: hover) {
+  .rodape__links a:hover {
+    color: var(--texto);
+  }
 }
 
 .rodape__nota {
