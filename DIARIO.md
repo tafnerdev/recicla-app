@@ -52,3 +52,4 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 10:32 | Redesign, polimento ciclo 3: varredura no navegador (só Geist e o Rubik do logo, nenhum peso 700+, nenhum texto laranja); `strong` com peso 500 na base; vidros por tela contados (site 3 e 4, app 2 a 3, telão 3) e o painel reduzido de 6 para 2 tirando o desfoque do cabeçalho e da lateral. |
 | 16/11 10:32 | Redesign, polimento ciclo 4: foco pelo teclado conferido no app e no site (contorno claro em cápsula, Tab preso dentro da folha). Nada a corrigir; ciclo limpo 1 de 3. |
 | 16/11 10:33 | Redesign, polimento ciclo 5: estados vazio e de erro do telão e do app conferidos; ícone do "Tentar de novo" do telão no tamanho do texto. |
+| 16/11 10:36 | Redesign, polimento ciclo 6: rodada completa (auditoria sem apontamentos, 33 testes); linha fina duplicada entre o passo 4 e o bloco NFC no celular removida. |
