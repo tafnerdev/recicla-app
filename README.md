@@ -31,11 +31,13 @@ Abra `http://localhost:8080/`. O terminal mostra os endereços das quatro telas.
 
 ```bash
 npm install     # só na primeira vez: instala o Playwright (dependência de desenvolvimento)
-npm test        # 22 testes, usando o Chrome já instalado
+npm test        # 27 testes, usando o Chrome já instalado
 npm run capturas  # capturas de todas as telas em capturas/ (fora do git)
 ```
 
-Os testes cobrem: registrar descarte, placar atualizando em outra aba (telão e app), subida na lista, novo líder, zerar e cancelar, voltar ao exemplo, abrir com `?andar=7`, escolha de andar, andar inexistente, contador pessoal, erro de carregamento, linhas do sensor, demonstração da página inicial, menu do celular, rolagem horizontal, uso sem internet, manifest e página 404.
+Os testes cobrem: registrar descarte, desfazer, atalhos de teclado e descartes automáticos no painel; placar atualizando em outra aba (telão e app), subida na lista e novo líder; zerar e cancelar, voltar ao exemplo; abrir com `?andar=7`, escolher e trocar de andar, andar inexistente, contador pessoal e erro de carregamento no app; linhas do sensor; demonstração, menu, links e revelação na rolagem da página inicial; rolagem horizontal; uso sem internet, manifest e página 404.
+
+Outras ferramentas: `node tools/auditoria.mjs` (contraste, foco, nomes e alvos de toque), `node tools/og.mjs` (imagem de compartilhamento) e `npm run icones` (ícones da PWA).
 
 ## Apresentar no dia
 
