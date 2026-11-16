@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "servir": "node tools/servidor.mjs",
+    "servir:pages": "node tools/servidor.mjs --base /recicla-app/",
+    "test": "playwright test",
     "testar": "playwright test",
     "capturas": "node tools/capturas.mjs",
     "icones": "node tools/icones.mjs"
