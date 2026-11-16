@@ -329,7 +329,7 @@ async function ligarDemoRanking() {
       }
       const depois = novo.ranking.find((i) => i.andar === escolhido)?.posicao;
       if (antes && depois && depois < antes) {
-        status.innerHTML = `<strong>Subiu!</strong> ${descrever()}`;
+        status.innerHTML = `<strong>Subiu de posição.</strong> ${descrever()}`;
       }
     }
     reiniciar.hidden = novo.evento?.tipo === 'restaurado';

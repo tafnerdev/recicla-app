@@ -325,11 +325,18 @@
 }
 
 .t-linha__mais {
+  /* selo que salta por cima da ponta da barra, com fundo próprio para não se misturar a ela */
   position: absolute;
-  right: 210px;
+  right: 206px;
   top: 50%;
-  margin-top: -24px;
-  font-size: 46px;
+  margin-top: -30px;
+  padding: 6px 16px 8px;
+  border-radius: var(--r-pilula);
+  background: rgb(15 44 37 / 0.94);
+  box-shadow:
+    0 0 0 2px currentColor,
+    0 14px 30px -10px rgb(2 12 9 / 0.9);
+  font-size: 42px;
   line-height: 1;
   color: var(--verde-claro);
   opacity: 0;
@@ -850,7 +857,7 @@
   }
 
   .t-linha__mais {
-    right: 180px;
+    right: 176px;
   }
 
   .t-lado {
