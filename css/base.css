@@ -812,6 +812,25 @@ button.chip--vidro:active {
   }
 }
 
+/* Diagnóstico (?diag=1): diz se o prédio está em 3D ou SVG e por quê */
+.predio__diag {
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  z-index: 1;
+  max-width: calc(100% - 16px);
+  translate: -50% 0;
+  padding: 4px 12px;
+  border-radius: var(--r-pilula);
+  border: 1px solid var(--linha);
+  background: rgba(5, 8, 7, 0.88);
+  color: var(--texto-2);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+}
+
 /* Rótulos "você" e "líder" por cima do canvas, na quina esquerda do andar */
 .predio-3d__rotulo {
   --escala: 1;

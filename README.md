@@ -9,7 +9,7 @@ O Recicla Slide é um sistema para prédios novos. Em cada andar há uma lixeira
 | Tela | Endereço | Para quê |
 |---|---|---|
 | Site | `/` | Apresentação: o que é, como funciona, ranking ao vivo, para quem é, perguntas e contato |
-| App do morador | `/app/?andar=7` | Abas Início (`#inicio`) e Ranking (`#ranking`) e a folha Pontuar (`#pontuar`). O `?andar=7` é o link da etiqueta NFC e abre a folha sozinho |
+| App do morador | `/app/?andar=7` | Abas Início (`#inicio`) e Ranking (`#ranking`) e a folha Pontuar (`#pontuar`). O `?andar=7` é o link da etiqueta NFC: o Início mostra o aviso "Pontuar agora", que abre a folha |
 | Telão | `/telao/` | Prédio com o líder aceso e o ranking em tela cheia, para projetor ou TV. `?estavel=1` para TV que pisca |
 | Painel | `/demo/` | Registrar descartes à mão, desfazer, zerar e voltar ao exemplo. É o plano B do palco |
 
@@ -33,7 +33,7 @@ Abra `http://localhost:8080/`. O terminal mostra os endereços das quatro telas.
 
 ```bash
 npm install     # só na primeira vez: instala o Playwright (dependência de desenvolvimento)
-npm test        # 33 testes, usando o Chrome já instalado
+npm test        # 41 testes, usando o Chrome já instalado
 npm run capturas  # capturas de todas as telas em capturas/ (fora do git)
 ```
 
@@ -48,9 +48,9 @@ O prédio é montado por `js/predio.js`. Primeiro aparece sempre o desenho em SV
 - o navegador tem WebGL;
 - "reduzir movimento" está desligado no sistema;
 - a tela não está no modo estável (`?estavel=1`);
-- o 3D carregou sem erro e o primeiro segundo passou de 30 quadros por segundo.
+- o 3D carregou sem erro e desenha pelo menos 24 quadros por segundo (medidos depois do aquecimento, só enquanto o prédio está na tela; telas limitadas a 30 Hz passam).
 
-Qualquer falha volta para o SVG, sem mensagem. Os dois mostram a mesma coisa: o andar do morador (no app) ou o líder (no telão e no site) aceso, e um ponto de luz descendo pelo tubo certo a cada descarte. No app e no site dá para arrastar o prédio 3D para girar. Para ver o SVG de propósito, abra qualquer tela com `?svg=1`.
+Qualquer falha volta para o SVG, sem mensagem. Para saber o que aconteceu num aparelho, abra a tela com `?diag=1` (por exemplo `.../app/?diag=1`): embaixo do prédio aparece "3D · 60 quadros/s" ou "SVG · " e o motivo. Os dois mostram a mesma coisa: o andar do morador (no app) ou o líder (no telão e no site) aceso, e um ponto de luz descendo pelo tubo certo a cada descarte. No app e no site dá para arrastar o prédio 3D para girar. Para ver o SVG de propósito, abra qualquer tela com `?svg=1`.
 
 ## Modo estável do telão (`?estavel=1`)
 
@@ -72,7 +72,7 @@ Para TVs que piscam com animação contínua (como a da escola): abra `.../telao
 1. **Site**: mostre o prédio da abertura (os pontos de luz descendo pelos tubos) e role até "Escolha um andar e faça um descarte".
 2. **Telão**: registre 5 descartes no 7º andar (pelo sensor ou pelo painel). A cada um, o ponto de luz desce pelo tubo, o número conta e aparece um "+10" discreto. No quinto, o 7º andar (340 pontos) desliza para o 3º lugar.
 3. Registre 3 descartes no 8º andar: ele chega a 420 pontos, passa o 4º andar, acende no prédio e entra a folha de **novo líder** por 4 segundos.
-4. **App**: no celular, encoste na etiqueta NFC (ou abra `.../app/?andar=7`). A folha "Qual boca você usou?" abre sozinha; depois mostre as abas Início e Ranking.
+4. **App**: no celular, encoste na etiqueta NFC (ou abra `.../app/?andar=7`). No topo aparece "Você está no 7º andar. Pontuar agora"; toque nele para abrir "Qual boca você usou?". Depois mostre as abas Início e Ranking.
 5. Se a TV piscar: troque para `.../telao/?estavel=1`.
 
 ### Atalhos do painel

@@ -30,7 +30,7 @@
     <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
 
     <header class="a-topo">
-      <a class="logo" href="../" aria-label="Recicla Slide, página inicial" translate="no">Recicla Slide</a>
+      <a class="logo" href="#inicio" id="logo-app" aria-label="Recicla Slide, início do app" translate="no">Recicla Slide</a>
       <button type="button" class="chip chip--vidro a-andar" id="trocar-andar" aria-label="Trocar de andar" hidden>
         <span id="chip-andar">7º andar</span>
         <span data-icone="abaixo" class="a-andar__seta"></span>
@@ -53,6 +53,11 @@
       <!-- Aba Início -->
       <section class="a-aba" id="aba-inicio" aria-labelledby="destaque-titulo" hidden>
         <h1 class="visualmente-oculto" id="destaque-titulo">Seu andar: <span id="destaque-andar">7º andar</span></h1>
+        <a class="a-etiqueta" id="aviso-etiqueta" href="#pontuar" hidden>
+          <span class="a-etiqueta__icone" data-icone="aproximar"></span>
+          <span class="a-etiqueta__texto">Você está no <span id="aviso-etiqueta-andar">7º andar</span>.</span>
+          <span class="a-etiqueta__acao">Pontuar agora</span>
+        </a>
         <div class="a-predio" id="predio"></div>
 
         <div class="a-destaque" id="destaque">

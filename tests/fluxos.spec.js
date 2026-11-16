@@ -215,10 +215,42 @@ test.describe('app do morador', () => {
     await expect(page.locator('#aba-inicio')).toBeVisible();
   });
 
-  test('com ?andar=7 (etiqueta NFC) a folha Pontuar abre sozinha', async ({ page }) => {
+  test('com ?andar=7 (etiqueta NFC) aparece o aviso, e a folha só abre ao tocar nele', async ({ page }) => {
     await page.goto('app/?andar=7');
-    await expect(page.locator('#folha-pontuar')).toBeVisible({ timeout: 3000 });
+    const aviso = page.getByRole('link', { name: 'Você está no 7º andar. Pontuar agora' });
+    await expect(aviso).toBeVisible();
+    await page.waitForTimeout(1200);
+    await expect(page.locator('#folha-pontuar')).toBeHidden();
+    await aviso.click();
+    await expect(page.locator('#folha-pontuar')).toBeVisible();
     await expect(page).toHaveURL(/#pontuar$/);
+
+    // pontuar e concluir: a folha fecha, o aviso sai e o ?andar= também
+    await page.locator('.pontuar__botoes').getByRole('button', { name: 'Reciclável' }).click();
+    await expect(page.locator('#pessoal-descartes')).toHaveText('1');
+    await page.getByRole('button', { name: 'Concluir' }).click();
+    await expect(page.locator('#folha-pontuar')).toBeHidden();
+    await expect(aviso).toBeHidden();
+    await expect(page).not.toHaveURL(/andar=/);
+  });
+
+  test('sem a etiqueta, o Início não mostra o aviso de pontuar', async ({ page }) => {
+    await page.goto('app/?andar=7');
+    await page.goto('app/#inicio');
+    await expect(page.locator('#destaque-titulo')).toHaveText(/7º\s*andar/);
+    await expect(page.locator('#aviso-etiqueta')).toBeHidden();
+  });
+
+  test('o logo do app leva ao Início do app, e o site fica em "Como funciona"', async ({ page }) => {
+    await page.goto('app/?andar=7');
+    await page.goto('app/#inicio');
+    const logo = page.getByRole('link', { name: 'Recicla Slide, início do app' });
+    await expect(logo).toHaveAttribute('href', '#inicio');
+    await logo.click();
+    await expect(page).toHaveURL(/\/app\/#inicio$/);
+    await expect(page.locator('#aba-inicio')).toBeVisible();
+    await page.goto('app/#ranking');
+    await expect(page.getByRole('link', { name: 'Como funciona o Recicla Slide' })).toHaveAttribute('href', '../');
   });
 
   test('andar que não existe mostra aviso', async ({ page }) => {
@@ -228,6 +260,7 @@ test.describe('app do morador', () => {
 
   test('pontos no próprio nome ficam no aparelho e não mudam o andar', async ({ page }) => {
     await page.goto('app/?andar=7');
+    await page.getByRole('link', { name: /Pontuar agora/ }).click();
     await page.locator('.pontuar__botoes').getByRole('button', { name: 'Reciclável' }).click();
     await expect(page.locator('#pessoal-mes')).toHaveText('10');
     await expect(page.locator('#pessoal-descartes')).toHaveText('1');

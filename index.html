@@ -44,7 +44,7 @@
     <header class="cabecalho">
       <div class="cabecalho__pilula vidro">
         <a class="logo" href="./" aria-label="Recicla Slide, início" translate="no">Recicla Slide</a>
-        <button type="button" class="cabecalho__abrir" id="abrir-menu" aria-expanded="false" aria-controls="menu">
+        <button type="button" class="cabecalho__abrir" id="abrir-menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="menu-folha">
           <span class="cabecalho__tracos" aria-hidden="true"><span></span><span></span></span>
           <span>Menu</span>
         </button>
@@ -60,6 +60,16 @@
         </nav>
       </div>
     </header>
+
+    <!-- Menu do celular: folha com o fundo escurecido (os links vêm do menu do cabeçalho, por js/site.js) -->
+    <dialog class="s-menu" id="menu-folha" aria-labelledby="menu-folha-titulo">
+      <span class="s-menu__alca" aria-hidden="true"></span>
+      <div class="s-menu__cabeca">
+        <h2 class="s-menu__titulo" id="menu-folha-titulo">Menu</h2>
+        <button type="button" class="s-menu__fechar" id="fechar-menu" aria-label="Fechar"><span data-icone="fechar"></span></button>
+      </div>
+      <nav class="s-menu__nav" id="menu-folha-nav" aria-label="Seções da página"></nav>
+    </dialog>
 
     <main id="conteudo">
       <!-- ============================================================ -->

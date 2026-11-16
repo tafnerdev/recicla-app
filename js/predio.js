@@ -222,18 +222,52 @@ export function criarPredioSVG(opcoes) {
 /** Liga a troca para o 3D (js/predio3d.js). */
 const TRES_D_ATIVO = true;
 
-function podeUsar3D() {
-  if (!TRES_D_ATIVO) return false;
-  if (globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false;
-  if (document.documentElement.classList.contains('estavel')) return false;
-  if (new URLSearchParams(location.search).get('estavel') === '1') return false;
-  if (new URLSearchParams(location.search).get('svg') === '1') return false;
+/** Devolve o motivo para NÃO usar o 3D, ou null quando pode. */
+function motivoSemTresD() {
+  const parametros = new URLSearchParams(location.search);
+  if (!TRES_D_ATIVO) return 'desligado';
+  if (globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return 'reduzir-movimento';
+  if (document.documentElement.classList.contains('estavel') || parametros.get('estavel') === '1') return 'estavel';
+  if (parametros.get('svg') === '1') return 'svg-pedido';
   try {
-    const teste = document.createElement('canvas');
-    return Boolean(teste.getContext('webgl2') || teste.getContext('webgl'));
+    // O Three.js atual só funciona com WebGL 2.
+    if (!document.createElement('canvas').getContext('webgl2')) return 'sem-webgl2';
   } catch {
-    return false;
+    return 'sem-webgl2';
   }
+  return null;
+}
+
+const TEXTO_MOTIVO = {
+  desligado: '3D desligado no código',
+  'reduzir-movimento': '“Reduzir movimento” está ligado no aparelho',
+  estavel: 'modo estável',
+  'svg-pedido': 'pedido pelo endereço (?svg=1)',
+  'sem-webgl2': 'o navegador não tem WebGL 2',
+  'contexto-perdido': 'a placa de vídeo descartou o 3D',
+  esperando: 'esperando o prédio aparecer na tela',
+  carregando: 'carregando o 3D',
+  erro: 'erro ao carregar o 3D',
+};
+
+/** Com ?diag=1 no endereço, mostra embaixo do prédio se ele está em 3D ou SVG e por quê. */
+function mostrarDiagnostico(conteiner) {
+  if (new URLSearchParams(location.search).get('diag') !== '1') return;
+  let chip = conteiner.querySelector('.predio__diag');
+  if (!chip) {
+    chip = document.createElement('span');
+    chip.className = 'predio__diag';
+    chip.setAttribute('aria-hidden', 'true');
+    conteiner.append(chip);
+  }
+  const { modo, motivo = '', quadros } = conteiner.dataset;
+  const corte = motivo.indexOf(':');
+  const chave = corte < 0 ? motivo : motivo.slice(0, corte);
+  const valor = corte < 0 ? '' : motivo.slice(corte + 1);
+  let texto = TEXTO_MOTIVO[chave] ?? motivo;
+  if (chave === 'lento') texto = `lento: ${valor} quadros/s (mínimo 24)`;
+  if (chave === 'erro') texto = `erro ao carregar o 3D (${valor})`;
+  chip.textContent = modo === '3d' ? `3D · ${quadros ? `${quadros} quadros/s` : 'medindo'}` : `SVG · ${texto || 'sem motivo registrado'}`;
 }
 
 /**
@@ -246,11 +280,17 @@ export function montarPredio(conteiner, opcoes) {
   conteiner.classList.add('predio');
   const svg = criarPredioSVG(opcoes);
   conteiner.replaceChildren(svg.elemento);
-  const estado = { aceso: opcoes.aceso ?? null, lider: opcoes.lider ?? null, modo: opcoes.modo ?? 'lider', pontos: opcoes.pontos ?? {} };
+  const estado = { aceso: opcoes.aceso ?? null, lider: opcoes.lider ?? null, modo: opcoes.modo ?? 'lider', pontosAndares: opcoes.pontosAndares ?? {} };
   let tresD = null;
   let destruido = false;
 
-  const voltarAoSVG = () => {
+  const registrar = (motivo) => {
+    if (motivo !== undefined) conteiner.dataset.motivo = motivo;
+    mostrarDiagnostico(conteiner);
+  };
+
+  const voltarAoSVG = (motivo) => {
+    if (typeof motivo === 'string') registrar(motivo);
     if (!tresD) return;
     try {
       tresD.destruir();
@@ -260,19 +300,27 @@ export function montarPredio(conteiner, opcoes) {
     tresD = null;
     svg.elemento.removeAttribute('hidden'); // SVGElement não tem a propriedade .hidden
     conteiner.dataset.modo = 'svg';
+    registrar();
   };
 
   conteiner.dataset.modo = 'svg';
+  const semTresD = motivoSemTresD();
+  registrar(semTresD ?? 'esperando');
 
-  if (podeUsar3D()) {
+  if (!semTresD) {
     // Carrega o 3D só quando o prédio entra na tela.
     const observador = new IntersectionObserver(async ([entrada]) => {
       if (!entrada.isIntersecting) return;
       observador.disconnect();
+      registrar('carregando');
       try {
         const modulo = await import('./predio3d.js');
         if (destruido) return;
-        const instancia = await modulo.criarPredio3D(conteiner, { ...opcoes, ...estado, aoFalhar: voltarAoSVG });
+        const aoMedir = (qps) => {
+          conteiner.dataset.quadros = String(qps);
+          registrar();
+        };
+        const instancia = await modulo.criarPredio3D(conteiner, { ...opcoes, ...estado, aoFalhar: voltarAoSVG, aoMedir });
         if (destruido || !instancia) {
           instancia?.destruir();
           return;
@@ -280,9 +328,10 @@ export function montarPredio(conteiner, opcoes) {
         tresD = instancia;
         svg.elemento.setAttribute('hidden', '');
         conteiner.dataset.modo = '3d';
+        registrar('');
       } catch (erro) {
         console.warn('[Recicla Slide] prédio 3D indisponível, usando o desenho em SVG.', erro);
-        voltarAoSVG();
+        voltarAoSVG(`erro:${erro?.message ?? erro}`.slice(0, 120));
       }
     }, { rootMargin: '120px' });
     observador.observe(conteiner);

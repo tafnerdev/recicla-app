@@ -135,6 +135,84 @@
 /* Aba Início                                                          */
 /* ------------------------------------------------------------------ */
 
+/* Aviso de vidro de quem chegou pela etiqueta NFC: "Você está no 7º andar. Pontuar agora" */
+.a-etiqueta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  margin-top: 14px;
+  padding: 7px 7px 7px 14px;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  backdrop-filter: blur(24px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 16px 40px rgba(0, 0, 0, 0.4);
+  color: var(--texto);
+  font-size: 14px;
+  line-height: 19px;
+  text-decoration: none;
+  animation: etiqueta-entra var(--t-entrada) var(--ease-saida) 240ms both;
+}
+
+.a-etiqueta[hidden] {
+  display: none;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .a-etiqueta {
+    background: var(--vidro-opaco);
+  }
+}
+
+.a-etiqueta__icone {
+  flex: none;
+  display: grid;
+  color: var(--texto-2);
+}
+
+.a-etiqueta__icone svg {
+  width: 18px;
+  height: 18px;
+}
+
+.a-etiqueta__texto {
+  flex: 1;
+  min-width: 0;
+  color: var(--texto-vidro);
+}
+
+.a-etiqueta__texto span {
+  color: var(--texto);
+  font-weight: 500;
+}
+
+.a-etiqueta__acao {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--r-pilula);
+  background: var(--claro);
+  color: var(--sobre-claro);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: transform var(--t-toque) var(--ease-saida);
+}
+
+.a-etiqueta:active .a-etiqueta__acao {
+  transform: scale(0.96);
+}
+
+@keyframes etiqueta-entra {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
 .a-predio {
   position: relative;
   width: min(100%, 342px);

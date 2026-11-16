@@ -55,7 +55,7 @@ function brilho(textura, cor, opacidade) {
 
 /**
  * Cria o prédio 3D dentro do contêiner (que já tem o SVG; o SVG é escondido por quem chama).
- * opcoes: { andares, aceso, lider, modo, rotulos, interativo, pontos: {andar: pontos}, aoFalhar }
+ * opcoes: { andares, aceso, lider, modo, rotulos, interativo, pontosAndares: {andar: pontos}, aoFalhar(motivo), aoMedir(qps) }
  */
 export async function criarPredio3D(conteiner, opcoes) {
   const andares = [...opcoes.andares].sort((a, b) => a - b);
@@ -65,10 +65,11 @@ export async function criarPredio3D(conteiner, opcoes) {
     aceso: opcoes.aceso ?? null,
     lider: opcoes.lider ?? null,
     modo: opcoes.modo ?? 'lider',
-    pontos: opcoes.pontos ?? {},
+    pontosAndares: opcoes.pontosAndares ?? {},
   };
 
   // ---------------------------------------------------------------- render
+  let falhou = false; // desligado (lento, contexto perdido ou destruído)
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.setClearColor(0x000000, 0);
@@ -78,7 +79,10 @@ export async function criarPredio3D(conteiner, opcoes) {
   tela.setAttribute('role', 'img');
   tela.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
-    opcoes.aoFalhar?.();
+    // Ao desligar o 3D de propósito (lento ou saindo da tela), o contexto também se perde: não é falha.
+    if (falhou) return;
+    falhou = true;
+    opcoes.aoFalhar?.('contexto-perdido');
   });
 
   const cena = new THREE.Scene();
@@ -201,7 +205,7 @@ export async function criarPredio3D(conteiner, opcoes) {
   // ---------------------------------------------------------------- estado visual
   function aplicarEstado() {
     tela.setAttribute('aria-label', descreverPredio(estado, andares));
-    const valores = Object.values(estado.pontos ?? {}).map(Number);
+    const valores = Object.values(estado.pontosAndares ?? {}).map(Number).filter(Number.isFinite);
     const maxPontos = Math.max(0, ...valores);
     const minPontos = Math.min(maxPontos, ...valores);
     const faixa = Math.max(1, maxPontos - minPontos);
@@ -209,7 +213,7 @@ export async function criarPredio3D(conteiner, opcoes) {
       const aceso = andar === estado.aceso;
       const lider = estado.modo === 'morador' && andar === estado.lider && !aceso;
       // Emissão bem fraca: de 0,03 (menos pontos do prédio) a 0,2 (mais pontos), num verde atenuado.
-      const pontosAndar = Number(estado.pontos?.[andar]) || 0;
+      const pontosAndar = Number(estado.pontosAndares?.[andar]) || 0;
       const fracao = maxPontos > 0 ? (pontosAndar - minPontos) / faixa : 0;
       if (aceso) malha.material.emissive.setHex(VERDE);
       else if (lider) malha.material.emissive.setHex(0xffffff);
@@ -301,8 +305,15 @@ export async function criarPredio3D(conteiner, opcoes) {
   let visivel = true;
   let ultimo = performance.now();
   let relogio = 0; // tempo do balanço, em segundos
-  let contagem = { inicio: 0, quadros: 0, feita: false };
-  let falhou = false;
+  // Medição de desempenho: ignora os primeiros quadros (compilação na placa de vídeo),
+  // mede 1 s de desenho de verdade e recomeça se o desenho pausar (aba trocada, prédio
+  // fora da tela, aba do navegador oculta). Telas limitadas a 30 Hz passam.
+  const QUADROS_AQUECIMENTO = 12;
+  const MINIMO_QPS = 24;
+  let medicao = { aquecidos: 0, inicio: 0, quadros: 0, anterior: 0, feita: false, reinicios: 0 };
+  const recomecarMedicao = () => {
+    if (!medicao.feita) medicao = { ...medicao, aquecidos: 0, inicio: 0, quadros: 0, anterior: 0 };
+  };
 
   const vetor = new THREE.Vector3();
   function posicionarRotulo(elemento, andar, texto) {
@@ -368,16 +379,31 @@ export async function criarPredio3D(conteiner, opcoes) {
       else if (rotulos.lider) rotulos.lider.hidden = true;
     }
 
-    // Desempenho: se o primeiro segundo ficar abaixo de 30 quadros, volta ao SVG.
-    if (!contagem.feita) {
-      if (!contagem.inicio) contagem.inicio = agora;
-      contagem.quadros += 1;
-      if (agora - contagem.inicio >= 1000) {
-        contagem.feita = true;
-        if (contagem.quadros < 30) {
-          falhou = true;
-          opcoes.aoFalhar?.();
-          return;
+    // Desempenho: abaixo de 24 quadros por segundo, volta ao SVG.
+    if (!medicao.feita) {
+      const intervalo = medicao.anterior ? agora - medicao.anterior : 0;
+      medicao.anterior = agora;
+      if (intervalo > 300 && medicao.reinicios < 3) {
+        // um engasgo isolado da página (não do 3D): mede de novo
+        medicao.reinicios += 1;
+        medicao.inicio = 0;
+        medicao.quadros = 0;
+      } else if (medicao.aquecidos < QUADROS_AQUECIMENTO) {
+        medicao.aquecidos += 1;
+      } else if (!medicao.inicio) {
+        medicao.inicio = agora;
+      } else {
+        medicao.quadros += 1;
+        const passou = agora - medicao.inicio;
+        if (passou >= 1000) {
+          medicao.feita = true;
+          const qps = Math.round((medicao.quadros * 1000) / passou);
+          opcoes.aoMedir?.(qps);
+          if (qps < MINIMO_QPS) {
+            falhou = true;
+            opcoes.aoFalhar?.(`lento:${qps}`);
+            return;
+          }
         }
       }
     }
@@ -397,6 +423,7 @@ export async function criarPredio3D(conteiner, opcoes) {
     } else {
       cancelAnimationFrame(quadro);
       quadro = 0;
+      recomecarMedicao();
     }
   });
   observadorTela.observe(conteiner);
@@ -404,8 +431,8 @@ export async function criarPredio3D(conteiner, opcoes) {
     if (document.hidden) {
       cancelAnimationFrame(quadro);
       quadro = 0;
-      // a contagem de quadros recomeça quando a aba voltar
-      if (!contagem.feita) contagem = { inicio: 0, quadros: 0, feita: false };
+      // a medição recomeça quando a aba voltar
+      recomecarMedicao();
     } else {
       ultimo = performance.now();
       pedirQuadro();

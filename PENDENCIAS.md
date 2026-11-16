@@ -76,3 +76,7 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
 4. **Three.js fixo na versão 0.180.0.** As versões a partir da 0.187 não trazem mais o arquivo minificado `three.module.min.js` que o prompt pede.
 5. **Prédio 3D testado no Chrome deste PC** (WebGL ligado, cerca de 175 quadros por segundo). Abra o telão no computador do palco antes do dia. Se ficar lento, ele volta sozinho para o SVG, e `?estavel=1` desliga o 3D de vez.
 6. **Telão sem "Últimos descartes" e sem o cartão "Na frente"**, como pedido: o prédio e a lista contam isso.
+
+## 7. `prompt-app.md` (sistema de verdade)
+
+1. **Conferir o prédio 3D no seu celular** (Etapa 0). Abra `https://tafnerdev.github.io/recicla-app/app/?diag=1` e me diga o que aparece embaixo do prédio e o modelo do celular. No emulador ele carrega; os detalhes estão no `ETAPAS.md`.

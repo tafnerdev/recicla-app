@@ -43,7 +43,7 @@ As capturas ficam em [`docs/redesign/`](docs/redesign/). As referências aprovad
 
 **Telas**
 - **App:** a página longa virou duas abas, Início (`#inicio`) e Ranking (`#ranking`), mais a folha Pontuar (`#pontuar`), com uma barra de navegação de vidro.
-  - Com `?andar=7`, a folha abre sozinha depois de 600 ms.
+  - Com `?andar=7`, a folha abria sozinha depois de 600 ms. Na Etapa 0 do `prompt-app.md` isso virou um aviso "Pontuar agora" no topo do Início (veja `ETAPAS.md`).
   - A folha prende o foco e fecha com Esc, com toque no fundo, com "Concluir" ou com o botão voltar do navegador.
   - Trocar de andar virou uma folha também.
 - **Telão:**
@@ -103,7 +103,7 @@ Na pasta do projeto, rode `npm run servir` e abra `http://localhost:8080/` no Ch
 4. Role até "Escolha um andar e faça um descarte". Com o 7º andar escolhido, toque 5 vezes em "Reciclável": a linha sobe para o 3º lugar.
 
 **App (`/app/?andar=7`)**
-1. A folha "Qual boca você usou?" abre sozinha. Toque em "Reciclável": os números contam e aparece o aviso no topo.
+1. Toque no aviso "Você está no 7º andar. Pontuar agora" para abrir "Qual boca você usou?". Toque em "Reciclável": os números contam e aparece o aviso no topo.
 2. Toque em "Concluir". Na aba Início, compare com `referencia-app-inicio.png`: prédio com o 7º aceso, 290 pontos e "Faltam 5 descartes".
 3. Toque em "Ranking" na barra e compare com `referencia-app-ranking.png`. Use o voltar do navegador para retornar à aba Início.
 4. Toque no chip "7º andar" no topo para trocar de andar.

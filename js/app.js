@@ -39,6 +39,7 @@ const estado = {
   pessoal: null,
   meuAndar: null,
   vindoDaEtiqueta: false,
+  focoAntesDaFolha: null,
   aba: 'inicio',
   empilhouFolha: false,
   linhas: new Map(),
@@ -76,7 +77,7 @@ async function iniciar() {
     andares: estado.edificio.andares,
     aceso: estado.meuAndar,
     lider: liderUnico()?.andar ?? null,
-    pontos: pontosPorAndar(),
+    pontosAndares: pontosPorAndar(),
     modo: 'morador',
     rotulos: true,
     pontos: 'app',
@@ -91,12 +92,8 @@ async function iniciar() {
   aplicarRota({ entrada: true });
 
   if (!estado.meuAndar || alerta) abrirEscolha(alerta);
-  else if (estado.vindoDaEtiqueta && location.hash !== '#pontuar') {
-    // Quem encostou na etiqueta: a folha abre sozinha.
-    setTimeout(() => {
-      if (!document.querySelector('dialog[open]')) location.hash = 'pontuar';
-    }, 600);
-  }
+  // Quem encostou na etiqueta vê o Início com um aviso "Pontuar agora" (a folha não abre sozinha).
+  atualizarAvisoEtiqueta();
 
   dados.aoMudar(aoMudarPlacar);
   dados.aoMudarPessoal((pessoal) => {
@@ -120,6 +117,14 @@ async function resolverAndar() {
   }
   const texto = parametro.trim() === '' ? 'O link não diz qual é o andar.' : `O ${/^\d+$/.test(parametro) ? `${parametro}º andar` : `andar “${parametro}”`} não existe no ${estado.edificio.nome}.`;
   return `${texto} Escolha o seu andar abaixo.`;
+}
+
+/** Aviso de vidro no topo do Início para quem chegou pela etiqueta NFC (?andar=7). */
+function atualizarAvisoEtiqueta() {
+  const aviso = $('aviso-etiqueta');
+  const mostrar = Boolean(estado.vindoDaEtiqueta && estado.meuAndar);
+  if (mostrar) $('aviso-etiqueta-andar').textContent = nomeAndar(estado.meuAndar);
+  aviso.hidden = !mostrar;
 }
 
 function preencherTextosFixos() {
@@ -187,8 +192,25 @@ function aplicarRota({ entrada = false, vindoDeDentro = false } = {}) {
       abrirFolha(folhaPontuar);
     }
   } else if (folhaPontuar.open) {
-    fecharFolha(folhaPontuar, () => $('nav-pontuar').focus());
+    fecharFolha(folhaPontuar, devolverFoco);
   }
+}
+
+/** Depois de fechar a folha Pontuar, o foco volta a quem a abriu (ou ao item da barra). */
+function devolverFoco() {
+  const antes = estado.focoAntesDaFolha;
+  estado.focoAntesDaFolha = null;
+  const visivel = antes?.isConnected && antes.getClientRects().length > 0;
+  (visivel ? antes : $('nav-pontuar')).focus();
+}
+
+/** Já pontuou pela etiqueta: o ?andar= sai do endereço (inclusive ao voltar no histórico). */
+function limparAndarDaUrl() {
+  if (estado.vindoDaEtiqueta) return;
+  const url = new URL(location.href);
+  if (!url.searchParams.has('andar')) return;
+  url.searchParams.delete('andar');
+  history.replaceState(history.state, '', url);
 }
 
 /** Fecha a folha Pontuar pelo botão, Esc ou toque no fundo, mantendo o histórico coerente. */
@@ -198,13 +220,15 @@ function pedirFechamentoPontuar() {
     history.back(); // o hashchange fecha a folha
   } else {
     history.replaceState(null, '', `${location.pathname}${location.search}#${estado.aba}`);
-    fecharFolha($('folha-pontuar'), () => $('nav-pontuar').focus());
+    fecharFolha($('folha-pontuar'), devolverFoco);
   }
 }
 
 function abrirFolha(folha) {
   folha.classList.remove('fechando');
-  if (!folha.open) folha.showModal();
+  if (folha.open) return;
+  if (folha.id === 'folha-pontuar') estado.focoAntesDaFolha = document.activeElement;
+  folha.showModal();
 }
 
 function fecharFolha(folha, depois) {
@@ -289,6 +313,9 @@ async function escolherAndar(andar) {
     history.replaceState(null, '', url);
   }
   if (estado.aba !== 'inicio') location.hash = 'inicio';
+  // Trocou de andar à mão: já não está mais na frente da etiqueta.
+  estado.vindoDaEtiqueta = false;
+  atualizarAvisoEtiqueta();
   renderizar({ animar: false });
   renderizarPessoal(false);
   fecharEscolha(() => {
@@ -326,7 +353,7 @@ function renderizar({ animar }) {
   renderizarDestaque(animar);
   renderizarPremio();
   atualizarHora();
-  estado.predio?.atualizar({ aceso: estado.meuAndar, lider: liderUnico()?.andar ?? null, pontos: pontosPorAndar() });
+  estado.predio?.atualizar({ aceso: estado.meuAndar, lider: liderUnico()?.andar ?? null, pontosAndares: pontosPorAndar() });
 }
 
 function renderizarDestaque(animar) {
@@ -535,11 +562,8 @@ async function pontuarPessoal(tipo, botao) {
       duration: 1100,
       id: 'brilho',
     });
-    if (vinhaDaEtiqueta) {
-      const url = new URL(location.href);
-      url.searchParams.delete('andar');
-      history.replaceState(history.state, '', url);
-    }
+    if (vinhaDaEtiqueta) limparAndarDaUrl();
+    atualizarAvisoEtiqueta();
   } catch (erro) {
     console.error(erro);
     estado.vindoDaEtiqueta = vinhaDaEtiqueta;
@@ -557,6 +581,17 @@ async function pontuarPessoal(tipo, botao) {
 
 function ligarEventos() {
   addEventListener('hashchange', () => aplicarRota({ vindoDeDentro: true }));
+  // Voltar no histórico entre endereços que mudam mais do que o # (depois de tirar o ?andar=)
+  // não dispara hashchange, só popstate. A rota é a mesma; aplicar duas vezes não faz mal.
+  addEventListener('popstate', () => {
+    limparAndarDaUrl();
+    aplicarRota({ vindoDeDentro: true });
+  });
+
+  // Logo: leva ao Início do app (no Início, volta ao topo)
+  $('logo-app').addEventListener('click', () => {
+    if (lerRota().aba === 'inicio' && !lerRota().folha) scrollTo({ top: 0, behavior: semMovimento() ? 'instant' : 'smooth' });
+  });
 
   // Folha Pontuar
   const folhaPontuar = $('folha-pontuar');

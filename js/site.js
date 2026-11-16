@@ -17,6 +17,7 @@ import {
   pulsar,
   reduzMovimento,
   reordenarComAnimacao,
+  semMovimento,
   rotuloDescartes,
   rotuloPontos,
 } from './comum.js';
@@ -33,23 +34,68 @@ for (const caixa of document.querySelectorAll('[data-icone]')) caixa.innerHTML =
 
 function ligarMenu() {
   const botao = $('abrir-menu');
-  const menu = $('menu');
-  const definir = (aberto) => {
-    botao.setAttribute('aria-expanded', String(aberto));
-    menu.classList.toggle('aberto', aberto);
+  const folha = $('menu-folha');
+  const navFolha = $('menu-folha-nav');
+  const raiz = document.documentElement;
+
+  // Os links da folha são os mesmos do menu do cabeçalho.
+  const lista = document.querySelector('#menu ul').cloneNode(true);
+  const contato = document.querySelector('#menu .menu__cta').cloneNode(true);
+  contato.classList.add('botao--grande', 'botao--bloco');
+  navFolha.replaceChildren(lista, contato);
+
+  const abrir = () => {
+    if (folha.open) return;
+    folha.classList.remove('fechando');
+    raiz.classList.add('menu-aberto'); // o fundo não rola
+    folha.showModal();
+    botao.setAttribute('aria-expanded', 'true');
   };
-  botao.addEventListener('click', () => definir(botao.getAttribute('aria-expanded') !== 'true'));
-  menu.addEventListener('click', (e) => {
-    if (e.target.closest('a')) definir(false);
-  });
-  addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && botao.getAttribute('aria-expanded') === 'true') {
-      definir(false);
-      botao.focus();
+
+  const fechar = (depois) => {
+    if (!folha.open || folha.classList.contains('fechando')) return;
+    botao.setAttribute('aria-expanded', 'false');
+    const terminar = () => {
+      folha.classList.remove('fechando');
+      folha.close();
+      raiz.classList.remove('menu-aberto');
+      depois?.();
+    };
+    if (semMovimento()) {
+      terminar();
+      return;
     }
+    folha.classList.add('fechando');
+    setTimeout(terminar, 220);
+  };
+
+  botao.addEventListener('click', abrir);
+  $('fechar-menu').addEventListener('click', () => fechar());
+  folha.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    fechar();
   });
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.cabecalho')) definir(false);
+  folha.addEventListener('click', (e) => {
+    // toque no fundo escurecido
+    if (e.target === folha) {
+      const r = folha.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) fechar();
+      return;
+    }
+    const link = e.target.closest('a');
+    if (!link) return;
+    const destino = link.getAttribute('href');
+    if (!destino.startsWith('#')) return; // outra página: segue normalmente
+    e.preventDefault();
+    // Fecha primeiro (destrava a rolagem) e só depois vai até a seção.
+    fechar(() => {
+      if (location.hash === destino) document.querySelector(destino)?.scrollIntoView();
+      else location.hash = destino;
+    });
+  });
+  // Virou tela larga com a folha aberta: fecha.
+  matchMedia('(min-width: 900px)').addEventListener('change', (e) => {
+    if (e.matches) fechar();
   });
 }
 
@@ -122,7 +168,7 @@ async function ligarPredio() {
   const predio = montarPredio(caixa, {
     andares: edificio.andares,
     aceso: lider,
-    pontos: Object.fromEntries(placar.ranking.map((i) => [i.andar, i.pontos])),
+    pontosAndares: Object.fromEntries(placar.ranking.map((i) => [i.andar, i.pontos])),
     modo: 'lider',
     pontos: 'site',
     traco: 0.7,

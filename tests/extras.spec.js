@@ -46,6 +46,50 @@ test.describe('sensor pela porta serial', () => {
     await expect(predio.locator('svg.predio-svg')).toHaveAttribute('aria-label', /7º andar, o seu, está aceso/);
   });
 
+  test('trocar de aba logo depois de abrir não derruba o 3D', async ({ page }) => {
+    await page.goto('app/?andar=7');
+    await page.goto('app/#inicio');
+    await page.waitForFunction(() => document.querySelector('#predio canvas'));
+    await page.evaluate(() => (location.hash = 'ranking'));
+    await page.waitForTimeout(1500);
+    await page.evaluate(() => (location.hash = 'inicio'));
+    await expect(page.locator('#predio')).toHaveAttribute('data-quadros', /\d+/, { timeout: 8000 });
+    await expect(page.locator('#predio')).toHaveAttribute('data-modo', '3d');
+  });
+
+  test('tela limitada a 30 quadros por segundo continua em 3D; abaixo de 24, volta ao SVG e diz por quê', async ({ page, context }) => {
+    // Imita telas que limitam o desenho (economia de bateria): 30 Hz e depois 12 Hz.
+    const limitar = (hz) => {
+      const original = window.requestAnimationFrame.bind(window);
+      let proximo = 0;
+      window.requestAnimationFrame = (cb) =>
+        original(function espera(t) {
+          if (t < proximo - 2) return original(espera);
+          proximo = Math.max(t, proximo) + 1000 / hz;
+          cb(t);
+        });
+    };
+    await page.addInitScript(limitar, 30);
+    await page.goto('app/?andar=7');
+    await page.goto('app/#inicio');
+    await expect(page.locator('#predio')).toHaveAttribute('data-quadros', /\d+/, { timeout: 8000 });
+    await expect(page.locator('#predio')).toHaveAttribute('data-modo', '3d');
+
+    const lenta = await context.newPage();
+    await lenta.addInitScript(limitar, 12);
+    await lenta.goto('app/?diag=1#inicio');
+    await expect(lenta.locator('#predio')).toHaveAttribute('data-motivo', /^lento:/, { timeout: 10000 });
+    await expect(lenta.locator('#predio')).toHaveAttribute('data-modo', 'svg');
+    await expect(lenta.locator('.predio__diag')).toContainText('SVG · lento');
+  });
+
+  test('com "reduzir movimento", o prédio fica em SVG e registra o motivo', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('app/?andar=7&diag=1');
+    await expect(page.locator('#predio')).toHaveAttribute('data-motivo', 'reduzir-movimento');
+    await expect(page.locator('.predio__diag')).toContainText('Reduzir movimento');
+  });
+
   test('com WebGL, o prédio do app vira 3D com a mesma descrição', async ({ page }) => {
     await page.goto('app/?andar=7');
     await page.goto('app/#inicio');
@@ -143,6 +187,49 @@ test.describe('página inicial', () => {
     await expect(botao).toHaveAttribute('aria-expanded', 'false');
     await expect(page).toHaveURL(/#perguntas$/);
     await expect(page.getByRole('heading', { name: 'Perguntas frequentes' })).toBeInViewport();
+  });
+
+  for (const largura of [390, 768]) {
+    test(`menu do celular (${largura} px) abre como folha, trava o fundo e fecha com Esc e no fundo`, async ({ page }) => {
+      await page.setViewportSize({ width: largura, height: 900 });
+      await page.goto('./');
+      await page.evaluate(() => scrollTo(0, 700));
+      const botao = page.getByRole('button', { name: 'Menu' });
+      await botao.click();
+      const folha = page.getByRole('dialog', { name: 'Menu' });
+      await expect(folha).toBeVisible();
+      await page.waitForTimeout(600); // fim da entrada
+      // a folha fica inteira na tela, encostada embaixo
+      const caixa = await folha.boundingBox();
+      expect(caixa.y + caixa.height).toBeLessThanOrEqual(900);
+      expect(caixa.x).toBeGreaterThanOrEqual(0);
+      expect(caixa.x + caixa.width).toBeLessThanOrEqual(largura);
+      await expect(page.locator('html')).toHaveClass(/menu-aberto/);
+      // o fundo não rola
+      const antes = await page.evaluate(() => scrollY);
+      await page.mouse.move(largura / 2, 60);
+      await page.mouse.wheel(0, 500);
+      await page.waitForTimeout(200);
+      expect(await page.evaluate(() => scrollY)).toBe(antes);
+      // Esc fecha e o foco volta ao botão
+      await page.keyboard.press('Escape');
+      await expect(folha).toBeHidden();
+      await expect(botao).toBeFocused();
+      await expect(page.locator('html')).not.toHaveClass(/menu-aberto/);
+      // toque no fundo escurecido também fecha
+      await botao.click();
+      await expect(folha).toBeVisible();
+      await page.mouse.click(largura / 2, 30);
+      await expect(folha).toBeHidden();
+      await expect(botao).toHaveAttribute('aria-expanded', 'false');
+    });
+  }
+
+  test('no computador, os links ficam no cabeçalho e o botão Menu não aparece', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('./');
+    await expect(page.getByRole('button', { name: 'Menu' })).toBeHidden();
+    await expect(page.getByRole('navigation', { name: 'Seções da página' }).getByRole('link', { name: 'Perguntas' })).toBeVisible();
   });
 
   test('botões da abertura levam ao ranking e ao contato', async ({ page }) => {
