@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Ranking do prédio | Recicla Slide</title>
+    <meta name="description" content="Ranking dos andares do Edifício Exemplo, pontos do seu andar no mês, prêmio do mês e seus pontos no próprio nome." />
+    <meta name="theme-color" content="#071B16" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="manifest" href="../manifest.webmanifest" />
+    <link rel="icon" href="../icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Recicla" />
+    <link rel="preload" href="../fonts/rubik-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="../fonts/nunito-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/app.css" />
+    <script type="module" src="../js/app.js"></script>
+    <script type="module" src="../js/pwa.js"></script>
+  </head>
+  <body class="tela-app">
+    <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+    <header class="topo">
+      <div class="topo__linha contem">
+        <a class="logo" href="../" aria-label="Recicla Slide, página inicial">Recicla Slide</a>
+        <p class="topo__predio" id="nome-predio">Edifício Exemplo</p>
+        <button type="button" class="botao botao--fantasma topo__instalar" data-instalar hidden>Instalar</button>
+      </div>
+    </header>
+
+    <main id="conteudo" class="contem app">
+      <!-- Carregando: esqueleto no formato do conteúdo final -->
+      <div class="app__carregando" id="carregando" aria-busy="true">
+        <p class="visualmente-oculto" role="status">Carregando o placar do prédio…</p>
+        <div class="esqueleto esq-destaque"></div>
+        <div class="esqueleto esq-cartao"></div>
+        <div class="esq-lista">
+          <div class="esqueleto esq-linha"></div>
+          <div class="esqueleto esq-linha"></div>
+          <div class="esqueleto esq-linha"></div>
+          <div class="esqueleto esq-linha"></div>
+          <div class="esqueleto esq-linha"></div>
+        </div>
+      </div>
+
+      <div id="erro" class="cartao app__erro" hidden></div>
+
+      <div class="app__grade" id="painel" hidden>
+        <div class="app__coluna">
+          <!-- Escolha do andar (sem ?andar= e sem andar guardado, ou ao trocar) -->
+          <section class="cartao escolher" id="escolher" aria-labelledby="escolher-titulo" hidden>
+            <p class="escolher__alerta" id="escolher-alerta" role="alert" hidden></p>
+            <h1 class="escolher__titulo" id="escolher-titulo">Qual é o seu andar?</h1>
+            <p class="escolher__texto">
+              Escolha uma vez e o app lembra neste aparelho. A etiqueta NFC da lixeira já abre no andar certo.
+            </p>
+            <div class="escolher__grade" id="escolher-grade"></div>
+            <button type="button" class="botao botao--fantasma escolher__cancelar" id="escolher-cancelar" hidden>Manter o andar atual</button>
+          </section>
+
+          <!-- Destaque do andar do morador -->
+          <section class="moldura destaque" id="destaque" aria-labelledby="destaque-titulo" hidden>
+            <div class="miolo destaque__miolo">
+              <div class="destaque__cabeca">
+                <p class="destaque__rotulo">Seu andar</p>
+                <button type="button" class="destaque__trocar" id="trocar-andar">Trocar</button>
+              </div>
+              <h1 class="destaque__titulo" id="destaque-titulo">
+                <span class="numero" id="destaque-andar">7º</span> andar
+              </h1>
+              <p class="destaque__posicao" id="destaque-posicao"></p>
+
+              <div class="destaque__pontos">
+                <span class="numero destaque__valor" id="destaque-pontos" data-valor="0">0</span>
+                <span class="destaque__unidade" id="destaque-unidade">pontos em novembro</span>
+                <span class="destaque__mais numero" id="destaque-mais" aria-hidden="true">+10</span>
+              </div>
+
+              <dl class="destaque__tipos">
+                <div class="destaque__tipo">
+                  <dt><span class="marca-tipo" aria-hidden="true">R</span>Reciclável</dt>
+                  <dd><span class="numero" id="destaque-r">0</span> descartes</dd>
+                </div>
+                <div class="destaque__tipo">
+                  <dt><span class="marca-tipo marca-tipo--organico" aria-hidden="true">O</span>Orgânico</dt>
+                  <dd><span class="numero" id="destaque-o">0</span> descartes</dd>
+                </div>
+              </dl>
+
+              <p class="destaque__meta" id="destaque-meta"></p>
+            </div>
+          </section>
+
+          <!-- Contador pessoal: só neste aparelho, sem conta -->
+          <section class="cartao pontuar" id="pontuar" aria-labelledby="pontuar-titulo" hidden>
+            <div class="pontuar__cabeca">
+              <span class="pontuar__icone" data-icone="nfc"></span>
+              <div>
+                <h2 id="pontuar-titulo">Pontue no seu nome</h2>
+                <p class="pontuar__ola" id="pontuar-ola" hidden></p>
+              </div>
+            </div>
+            <p class="pontuar__texto" id="pontuar-texto">Encostou o celular na etiqueta da lixeira? Toque na boca que você usou.</p>
+
+            <div class="pontuar__botoes">
+              <button type="button" class="botao botao--grande" data-tipo="reciclavel">
+                <span class="marca-tipo" aria-hidden="true">R</span>Reciclável
+              </button>
+              <button type="button" class="botao botao--organico botao--grande" data-tipo="organico">
+                <span class="marca-tipo marca-tipo--organico" aria-hidden="true">O</span>Orgânico
+              </button>
+            </div>
+
+            <dl class="pontuar__resumo">
+              <div>
+                <dt id="pessoal-rotulo-mes">Seus pontos em novembro</dt>
+                <dd class="numero" id="pessoal-mes" data-valor="0">0</dd>
+              </div>
+              <div>
+                <dt>Seus descartes</dt>
+                <dd class="numero" id="pessoal-descartes">0</dd>
+              </div>
+              <div>
+                <dt>Desde o início</dt>
+                <dd class="numero" id="pessoal-total">0</dd>
+              </div>
+            </dl>
+
+            <p class="pontuar__nota">
+              Fica só neste celular, sem conta e sem senha. Não muda os pontos do andar: quem conta para o andar é o sensor da lixeira.
+            </p>
+
+            <details class="pontuar__mais">
+              <summary>Seu nome e seus dados</summary>
+              <form class="pontuar__form" id="form-nome">
+                <div class="campo">
+                  <label for="campo-nome">Como você quer ser chamado (opcional)</label>
+                  <input id="campo-nome" name="nome" type="text" maxlength="40" autocomplete="given-name" enterkeyhint="done" />
+                  <p class="campo__ajuda">Aparece só para você, neste aparelho.</p>
+                </div>
+                <div class="pontuar__form-acoes">
+                  <button type="submit" class="botao">Salvar nome</button>
+                  <button type="button" class="botao botao--perigo" id="zerar-pessoal">Apagar meus pontos</button>
+                </div>
+              </form>
+            </details>
+          </section>
+
+          <!-- Prêmio do mês -->
+          <section class="cartao premio" id="premio" aria-labelledby="premio-titulo" hidden>
+            <div class="premio__cabeca">
+              <span class="premio__icone" data-icone="trofeu"></span>
+              <h2 id="premio-titulo">Prêmio de <span id="premio-mes">novembro</span></h2>
+              <span class="etiqueta etiqueta--exemplo" id="premio-exemplo" hidden>Exemplo</span>
+            </div>
+            <p class="premio__nome" id="premio-nome"></p>
+            <p class="premio__descricao" id="premio-descricao"></p>
+            <p class="premio__lider" id="premio-lider"></p>
+          </section>
+        </div>
+
+        <!-- Ranking dos andares -->
+        <section class="cartao ranking" id="ranking" aria-labelledby="ranking-titulo">
+          <div class="ranking__cabeca">
+            <h2 id="ranking-titulo">Ranking de <span id="ranking-mes">novembro</span></h2>
+            <p class="ranking__total" id="ranking-total"></p>
+            <p class="ranking__legenda" aria-hidden="true">
+              <span class="legenda legenda--r">Reciclável</span>
+              <span class="legenda legenda--o">Orgânico</span>
+              <span class="legenda legenda--pontos">pontos</span>
+            </p>
+          </div>
+          <ol class="ranking__lista" id="ranking-lista" role="list"></ol>
+          <div class="ranking__vazio" id="ranking-vazio" hidden></div>
+          <p class="ranking__rodape">
+            <span id="atualizado">Atualizado agora</span>
+            <span aria-hidden="true">·</span>
+            <span id="regra-pontos">Cada descarte vale 10 pontos</span>
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="rodape-app contem">
+      <a href="../">Como funciona o Recicla Slide</a>
+      <p class="rodape-app__dica" id="dica-ios" hidden>
+        No iPhone, toque em Compartilhar e depois em "Adicionar à Tela de Início" para instalar.
+      </p>
+    </footer>
+  </body>
+</html>

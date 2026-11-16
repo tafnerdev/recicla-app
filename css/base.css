@@ -205,6 +205,11 @@ ol[role='list'] {
   border-radius: 6px;
 }
 
+/* Títulos que recebem foco por código (tabindex="-1") não mostram contorno */
+[tabindex='-1']:focus {
+  outline: none;
+}
+
 ::selection {
   background: var(--verde-escuro);
   color: var(--texto);

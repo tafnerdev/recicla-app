@@ -22,19 +22,21 @@ const TABLET = { width: 768, height: 1024 };
 const COMPUTADOR = { width: 1440, height: 900 };
 const PROJETOR = { width: 1920, height: 1080 };
 
+const URL_DADOS = `${BASE}js/dados.js`;
+
 async function zerar(page) {
-  await page.evaluate(async () => {
-    const dados = await import(new URL('js/dados.js', document.baseURI).href);
+  await page.evaluate(async (url) => {
+    const dados = await import(url);
     await dados.zerarPlacar();
-  });
+  }, URL_DADOS);
   await page.reload();
 }
 
 async function descartes(page, lista) {
-  await page.evaluate(async (itens) => {
-    const dados = await import(new URL('js/dados.js', document.baseURI).href);
+  await page.evaluate(async ([url, itens]) => {
+    const dados = await import(url);
     for (const [andar, tipo] of itens) await dados.registrarDescarte(andar, tipo, 'demo');
-  }, lista);
+  }, [URL_DADOS, lista]);
 }
 
 const CAPTURAS = [

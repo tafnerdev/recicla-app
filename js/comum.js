@@ -224,7 +224,8 @@ export function textoErroCarregar(erro) {
   if (location.protocol === 'file:') {
     return 'Abra pelo servidor local (npm run servir) ou pelo endereço publicado. Com duplo clique no arquivo, o navegador bloqueia os dados.';
   }
-  return `Não foi possível carregar o placar. ${erro?.message ?? ''}`.trim();
+  const codigo = /HTTP (\d+)/.exec(erro?.message ?? '')?.[1];
+  return `O placar não carregou${codigo ? ` (o servidor respondeu com erro ${codigo})` : ''}. Confira a conexão e tente de novo.`;
 }
 
 /* ------------------------------------------------------------------ */
