@@ -426,6 +426,62 @@ export async function restaurarExemplo() {
 }
 
 /**
+ * Placar de faz de conta, só na memória desta página. Serve à demonstração da
+ * página inicial: usa os mesmos dados de exemplo e o mesmo cálculo de ranking,
+ * mas não grava nada e não mexe no placar das outras telas.
+ */
+export async function criarSimulacao() {
+  await iniciar();
+  const estado = {
+    versao: 1,
+    atualizadoEm: new Date().toISOString(),
+    andares: contagensDoExemplo(),
+    historico: [],
+  };
+  const ouvintes = new Set();
+  const mudar = (evento) => {
+    estado.versao += 1;
+    estado.atualizadoEm = evento.em;
+    const placar = { ...montarPlacar(estado), evento };
+    avisar(ouvintes, placar);
+    return placar;
+  };
+  return {
+    pontosPorDescarte: { ...config.pontosPorDescarte },
+    async obterPlacar() {
+      return montarPlacar(estado);
+    },
+    async registrarDescarte(andar, tipo) {
+      const numero = Number(andar);
+      if (!existeAndar(numero)) throw new RangeError(`O andar ${andar} não existe neste prédio.`);
+      if (!TIPOS.includes(tipo)) throw new TypeError(`Tipo de descarte inválido: ${tipo}`);
+      estado.andares[numero][tipo] += 1;
+      const evento = {
+        id: novoId(),
+        tipo: 'descarte',
+        andar: numero,
+        descarte: tipo,
+        pontos: config.pontosPorDescarte[tipo],
+        origem: 'simulacao',
+        em: new Date().toISOString(),
+      };
+      estado.historico.unshift(evento);
+      estado.historico.length = Math.min(estado.historico.length, LIMITE_HISTORICO);
+      return mudar(evento);
+    },
+    async restaurar() {
+      estado.andares = contagensDoExemplo();
+      estado.historico = [];
+      return mudar({ id: novoId(), tipo: 'restaurado', em: new Date().toISOString() });
+    },
+    aoMudar(callback) {
+      ouvintes.add(callback);
+      return () => ouvintes.delete(callback);
+    },
+  };
+}
+
+/**
  * Avisa sempre que o placar mudar, nesta aba ou em outra do mesmo navegador.
  * Devolve uma função para parar de ouvir.
  */
