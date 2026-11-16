@@ -435,6 +435,9 @@ function renderizarPessoal(animar) {
 async function pontuarPessoal(tipo, botao) {
   const botoes = document.querySelectorAll('.pontuar__botoes .botao');
   for (const b of botoes) b.disabled = true;
+  const vinhaDaEtiqueta = estado.vindoDaEtiqueta;
+  // Já pontuou pela etiqueta: o texto volta ao normal e um recarregamento não sugere de novo.
+  estado.vindoDaEtiqueta = false;
   try {
     const resumo = await dados.registrarDescartePessoal(tipo, estado.meuAndar);
     estado.pessoal = resumo;
@@ -442,9 +445,7 @@ async function pontuarPessoal(tipo, botao) {
     const pontos = estado.edificio.pontosPorDescarte[tipo];
     avisar(`+${pontos} pontos no seu nome (${tipo === 'organico' ? 'orgânico' : 'reciclável'}). Obrigado por separar.`);
     pulsar(botao, [{ transform: 'scale(1)' }, { transform: 'scale(1.04)' }, { transform: 'scale(1)' }], { duration: 420, id: 'toque' });
-    if (estado.vindoDaEtiqueta) {
-      // Já pontuou pela etiqueta: um recarregamento não deve sugerir de novo.
-      estado.vindoDaEtiqueta = false;
+    if (vinhaDaEtiqueta) {
       const url = new URL(location.href);
       url.searchParams.delete('andar');
       history.replaceState(null, '', url);
@@ -452,6 +453,7 @@ async function pontuarPessoal(tipo, botao) {
     }
   } catch (erro) {
     console.error(erro);
+    estado.vindoDaEtiqueta = vinhaDaEtiqueta;
     avisar('Não deu para registrar. Tente de novo.', { tipo: 'erro' });
   } finally {
     setTimeout(() => {

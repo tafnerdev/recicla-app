@@ -83,6 +83,48 @@ const CAPTURAS = [
       await page.waitForTimeout(300);
     },
   },
+  {
+    nome: 'estado-menu',
+    url: '',
+    tamanhos: [CELULAR],
+    inteira: false,
+    depois: async (page) => {
+      await page.getByRole('button', { name: 'Menu' }).click();
+      await page.waitForTimeout(400);
+    },
+  },
+  {
+    nome: 'estado-dialogo',
+    url: 'demo/',
+    tamanhos: [CELULAR, COMPUTADOR],
+    inteira: false,
+    depois: async (page) => {
+      await page.getByRole('button', { name: 'Zerar placar' }).click();
+      await page.waitForTimeout(400);
+    },
+  },
+  {
+    nome: 'estado-pessoal',
+    url: 'app/?andar=7',
+    tamanhos: [CELULAR],
+    inteira: false,
+    depois: async (page) => {
+      await page.locator('.pontuar__botoes .botao').first().click();
+      await page.locator('#pontuar').scrollIntoViewIfNeeded();
+      await page.waitForTimeout(500);
+    },
+  },
+  {
+    nome: 'estado-nome',
+    url: 'app/?andar=7',
+    tamanhos: [CELULAR],
+    inteira: false,
+    depois: async (page) => {
+      await page.locator('summary', { hasText: 'Seu nome e seus dados' }).click();
+      await page.locator('#form-nome').scrollIntoViewIfNeeded();
+      await page.waitForTimeout(300);
+    },
+  },
   { nome: 'app', url: 'app/?andar=7', tamanhos: [CELULAR, TABLET, COMPUTADOR], inteira: true },
   { nome: 'app-sem-andar', url: 'app/', tamanhos: [CELULAR, COMPUTADOR], inteira: true },
   { nome: 'app-andar-invalido', url: 'app/?andar=42', tamanhos: [CELULAR], inteira: true },

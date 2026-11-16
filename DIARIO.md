@@ -18,3 +18,4 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 07:32 | README.md com como rodar, testar, roteiro do palco, atalhos, plano B e organização do código. |
 | 16/11 07:38 | Polimento ciclo 1: auditoria automática (contraste, foco, nomes, títulos: tudo ok), alvos de toque de 44 px, quebra das perguntas, botões do celular com largura igual, seletor de andar 5+5 e painel em 2 colunas no tablet. |
 | 16/11 07:41 | Polimento ciclo 2: concordância (falta/faltam), telão sem avisos no projetor, destaque parado com movimento reduzido, limite de 10 linhas no telão, menu com seção atual, imagem de compartilhamento e ajustes de acessibilidade. |
+| 16/11 07:43 | Polimento ciclo 3: revisão quadro a quadro das animações do telão; corrigida a curva das animações com vários quadros (selo "subiu" sumia cedo); texto do histórico vazio do painel. |

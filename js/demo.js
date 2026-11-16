@@ -242,7 +242,7 @@ function ligarEventos() {
   $('d-zerar').addEventListener('click', async () => {
     const ok = await confirmar({
       titulo: 'Zerar o placar?',
-      texto: 'Todos os andares voltam para zero ponto. Isso não dá para desfazer, mas você pode voltar aos dados de exemplo depois.',
+      texto: 'Todos os andares voltam a zero. Isso não dá para desfazer, mas depois você pode voltar aos dados de exemplo.',
       confirmar: 'Zerar placar',
       perigo: true,
     });

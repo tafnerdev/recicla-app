@@ -618,6 +618,7 @@ a.logo:hover {
 /* ------------------------------------------------------------------ */
 
 dialog.dialogo {
+  margin: auto; /* o reset de margem tiraria a centralização nativa do <dialog> */
   width: min(100% - 2 * var(--margem), 440px);
   padding: var(--e-6);
   border: 1px solid var(--borda-forte);
