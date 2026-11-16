@@ -540,7 +540,7 @@ a.logo:hover {
 }
 
 .aviso .botao {
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 var(--e-4);
   margin-left: auto;
   font-size: 0.875rem;
