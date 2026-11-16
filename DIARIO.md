@@ -24,3 +24,4 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 07:47 | Polimento ciclo 6: telão em TV em pé (1080x1920) com líder, feed e totais empilhados e feed de altura fixa para o ranking não pular; seções do site conferidas no tablet. |
 | 16/11 07:48 | Polimento ciclo 7: validação de ids, referências ARIA, âncoras e links internos (sem problemas); tirado o "sem pontos" repetido nos cartões do painel zerado. |
 | 16/11 07:48 | Polimento ciclo 8: texto conferido contra o briefing; "1 sensor por boca" virou "1 sensor em cada lixeira" (o briefing não diz quantos sensores; o exemplo do ESP32 explica a escolha). |
+| 16/11 07:52 | Polimento ciclo 9: rodada completa (auditoria, capturas, testes); o "+10" do telão virou um selo com fundo próprio para não se misturar à barra; "Subiu!" virou "Subiu de posição." |

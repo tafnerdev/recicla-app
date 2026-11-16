@@ -94,11 +94,11 @@ function ligarRevelacao() {
         ease: 'expo.out',
         stagger: 0.08,
         overwrite: true,
-        clearProps: 'transform',
+        // Sem clearProps: apagar o transform inline traria de volta o translateY do CSS.
       }),
   });
-  // Quem chega por um link #ancora não pode encontrar conteúdo invisível.
-  addEventListener('hashchange', () => ScrollTrigger.refresh());
+  // Fontes e conteúdo carregado depois (a demonstração do ranking) mudam a altura da página.
+  document.fonts?.ready.then(() => ScrollTrigger.refresh());
 }
 
 /* ------------------------------------------------------------------ */
@@ -311,8 +311,13 @@ async function ligarDemoRanking() {
       atualizarLinhaRanking(linha, item, { maximo, animar, minha: item.andar === escolhido, rotulo: 'Escolhido' });
       return linha;
     });
-    if (!lista.children.length) lista.append(...ordem);
-    else reordenarComAnimacao(lista, ordem, { duracao: 760 });
+    if (!lista.children.length) {
+      lista.append(...ordem);
+      // A lista mudou a altura da página: recalcula onde cada revelação começa.
+      window.ScrollTrigger?.refresh();
+    } else {
+      reordenarComAnimacao(lista, ordem, { duracao: 760 });
+    }
     status.innerHTML = descrever();
   }
 

@@ -71,6 +71,16 @@ test.describe('página inicial', () => {
     await expect(page.locator('.d-andar[data-andar="7"] .d-andar__pontos .numero')).toHaveText('290');
   });
 
+  test('link do menu rola até a seção e o conteúdo aparece no lugar certo', async ({ page }) => {
+    await page.goto('./');
+    await page.getByRole('navigation', { name: 'Seções da página' }).getByRole('link', { name: 'Perguntas' }).click();
+    await expect(page.getByRole('heading', { name: 'Perguntas frequentes' })).toBeInViewport();
+    const primeira = page.locator('.pergunta').first();
+    await expect(primeira).toHaveCSS('opacity', '1');
+    // depois de revelado, nada fica deslocado
+    await expect(primeira).toHaveCSS('transform', /^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
+  });
+
   test('menu do celular abre e fecha', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('./');
