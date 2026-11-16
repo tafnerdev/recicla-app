@@ -171,15 +171,10 @@ test.describe('PWA', () => {
 
   test('funciona sem internet depois da primeira visita', async ({ page, context }) => {
     await page.goto('./');
-    await page.evaluate(async () => {
-      const registro = await navigator.serviceWorker.ready;
-      return registro.active?.state;
-    });
-    // espera o cache terminar de ser preenchido
+    // O service worker só fica "activated" depois que o cache inteiro foi preenchido (install).
     await expect
-      .poll(async () => page.evaluate(async () => (await caches.keys()).length), { timeout: 15_000 })
-      .toBeGreaterThan(0);
-    await page.waitForTimeout(500);
+      .poll(async () => page.evaluate(async () => (await navigator.serviceWorker.ready).active?.state), { timeout: 20_000 })
+      .toBe('activated');
 
     await context.setOffline(true);
     await page.goto('app/?andar=7');
