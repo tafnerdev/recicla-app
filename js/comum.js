@@ -161,9 +161,21 @@ let caixaAvisos = null;
 
 function obterCaixaAvisos() {
   if (caixaAvisos?.isConnected) return caixaAvisos;
-  caixaAvisos = el('div', { class: 'avisos', role: 'status', 'aria-live': 'polite' });
+  // popover="manual": fica na camada superior, por cima de uma folha (<dialog> modal) aberta.
+  caixaAvisos = el('div', { class: 'avisos', role: 'status', 'aria-live': 'polite', popover: 'manual' });
   document.body.append(caixaAvisos);
   return caixaAvisos;
+}
+
+/** Traz a caixa de avisos para o topo da camada superior (acima de folhas abertas depois dela). */
+function trazerAvisosParaFrente(caixa) {
+  if (typeof caixa.showPopover !== 'function') return;
+  try {
+    if (caixa.matches(':popover-open')) caixa.hidePopover();
+    caixa.showPopover();
+  } catch {
+    /* navegador sem popover: a caixa fica no fluxo normal, com position: fixed */
+  }
 }
 
 /** Prepara a região de avisos cedo, para o leitor de tela anunciar o primeiro aviso. */
@@ -201,6 +213,7 @@ export function avisar(mensagem, opcoes = {}) {
     );
   }
   while (caixa.children.length >= 3) caixa.firstElementChild.remove();
+  trazerAvisosParaFrente(caixa);
   caixa.append(aviso);
   setTimeout(fechar, opcoes.duracao ?? (opcoes.acao ? 6000 : 4000));
   return fechar;

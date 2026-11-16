@@ -135,6 +135,7 @@ function preencherTextosFixos() {
 
 function mostrarErro(erro) {
   $('carregando').hidden = true;
+  document.querySelector('.a-barra').hidden = true; // sem placar, as abas não levam a nada
   const caixa = $('erro');
   caixa.hidden = false;
   mostrarEstado(caixa, {

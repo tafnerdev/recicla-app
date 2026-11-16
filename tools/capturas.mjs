@@ -110,9 +110,10 @@ const CAPTURAS = [
     tamanhos: [CELULAR],
     inteira: false,
     depois: async (page) => {
+      // a folha Pontuar abre sozinha com ?andar=7
+      await page.locator('#folha-pontuar').waitFor({ state: 'visible' });
       await page.locator('.pontuar__botoes .botao-tipo').first().click();
-      await page.locator('#pontuar').scrollIntoViewIfNeeded();
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(700);
     },
   },
   {
@@ -121,6 +122,7 @@ const CAPTURAS = [
     tamanhos: [CELULAR],
     inteira: false,
     depois: async (page) => {
+      await page.locator('#folha-pontuar').waitFor({ state: 'visible' });
       await page.locator('summary', { hasText: 'Seu nome e seus dados' }).click();
       await page.locator('#form-nome').scrollIntoViewIfNeeded();
       await page.waitForTimeout(300);

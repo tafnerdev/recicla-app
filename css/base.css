@@ -835,8 +835,16 @@ button.chip--vidro:active {
 /* Aviso (toast)                                                       */
 /* ------------------------------------------------------------------ */
 
-.avisos {
+.avisos,
+.avisos[popover] {
   position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  overflow: visible;
   left: 50%;
   bottom: calc(24px + env(safe-area-inset-bottom) + var(--folga-avisos, 0px));
   z-index: var(--z-aviso);
@@ -846,6 +854,23 @@ button.chip--vidro:active {
   width: min(100% - 2 * var(--margem), 440px);
   transform: translateX(-50%);
   pointer-events: none;
+}
+
+/* Com uma folha aberta, o aviso aparece no topo, longe do conteúdo da folha */
+body:has(dialog[open]) .avisos {
+  top: calc(16px + env(safe-area-inset-top));
+  bottom: auto;
+}
+
+.avisos[popover]:not(:popover-open) {
+  display: none;
+}
+
+/* Sem suporte a popover, a caixa aparece no fluxo normal (position: fixed) */
+@supports not selector(:popover-open) {
+  .avisos[popover] {
+    display: grid;
+  }
 }
 
 .aviso {
