@@ -68,7 +68,7 @@ test.describe('página inicial', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText('O lixo desce pelo tobogã.');
     const linha7 = page.locator('#demo-lista .linha[data-andar="7"] .linha__valor');
     await expect(linha7).toHaveText('290');
-    const botao = page.locator('.controle__botoes').getByRole('button', { name: 'Reciclável' });
+    const botao = page.locator('.controle__botoes').getByRole('button', { name: /Reciclável/ });
     for (let i = 0; i < 5; i += 1) await botao.click();
     await expect(linha7).toHaveText('340');
     await expect(page.locator('#demo-status')).toContainText('3º lugar');

@@ -8,7 +8,7 @@
       name="description"
       content="Lixeira de duas bocas em cada andar, tubos-tobogã até o térreo e um sensor que transforma cada descarte em pontos para o andar. Para prédios novos de médio e alto padrão."
     />
-    <meta name="theme-color" content="#071B16" />
+    <meta name="theme-color" content="#050807" />
     <meta name="color-scheme" content="dark" />
     <meta property="og:title" content="Recicla Slide" />
     <meta property="og:description" content="O lixo desce pelo tobogã. O andar sobe no ranking." />
@@ -24,21 +24,25 @@
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="preload" href="fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="fonts/rubik-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="fonts/nunito-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/site.css" />
     <script src="js/vendor/gsap.min.js" defer></script>
-    <script src="js/vendor/MotionPathPlugin.min.js" defer></script>
     <script src="js/vendor/ScrollTrigger.min.js" defer></script>
     <script type="module" src="js/site.js"></script>
     <script type="module" src="js/pwa.js"></script>
   </head>
   <body class="tela-site">
+    <div class="luzes luzes--derivam" aria-hidden="true">
+      <div class="luz s-luz-1"></div>
+      <div class="luz s-luz-2"></div>
+    </div>
+
     <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
 
     <header class="cabecalho">
-      <div class="cabecalho__pilula contem">
+      <div class="cabecalho__pilula vidro">
         <a class="logo" href="./" aria-label="Recicla Slide, início" translate="no">Recicla Slide</a>
         <button type="button" class="cabecalho__abrir" id="abrir-menu" aria-expanded="false" aria-controls="menu">
           <span class="cabecalho__tracos" aria-hidden="true"><span></span><span></span></span>
@@ -62,146 +66,45 @@
       <!-- Abertura                                                      -->
       <!-- ============================================================ -->
       <section class="heroi" aria-labelledby="heroi-titulo">
-        <div class="heroi__grade contem">
-          <div class="heroi__texto">
-            <p class="selo">Para prédios novos</p>
-            <h1 id="heroi-titulo" class="heroi__titulo">
-              O lixo desce pelo tobogã. <span class="destaque-verde">O andar sobe no ranking.</span>
-            </h1>
-            <p class="heroi__sub">
-              Cada andar tem uma lixeira de duas bocas ligada ao térreo por tubos. Cada descarte vale pontos para o andar.
-            </p>
-            <div class="heroi__acoes">
-              <a class="botao botao--grande" href="#contato">Fale com a gente</a>
-              <a class="botao botao--grande botao--fantasma" href="#ranking">
-                Ver o ranking
-                <span class="botao__circulo" data-icone="seta"></span>
-              </a>
-            </div>
+        <div class="heroi__texto">
+          <p class="selo">Para prédios novos</p>
+          <h1 id="heroi-titulo" class="heroi__titulo">
+            O lixo desce pelo tobogã. <span>O andar sobe no ranking.</span>
+          </h1>
+          <p class="heroi__sub">
+            Cada andar tem uma lixeira de duas bocas ligada ao térreo por tubos. Cada descarte vale pontos para o andar.
+          </p>
+          <div class="heroi__acoes">
+            <a class="botao botao--grande" href="#contato">Fale com a gente</a>
+            <a class="botao botao--grande botao--vidro" href="#ranking">
+              Ver o ranking
+              <span data-icone="setaBaixo"></span>
+            </a>
           </div>
-
-          <figure class="heroi__figura">
-            <svg class="tobogan" id="tobogan" viewBox="0 0 520 600" role="img" aria-labelledby="tobogan-titulo tobogan-desc">
-              <title id="tobogan-titulo">Corte de um prédio com o Recicla Slide</title>
-              <desc id="tobogan-desc">
-                Em cada um dos seis andares há uma lixeira com duas bocas. O reciclável desce por um tubo verde e o orgânico por um
-                tubo laranja até duas centrais no térreo. A cada descarte, o andar ganha 10 pontos.
-              </desc>
-              <defs>
-                <linearGradient id="g-fachada" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#14392F" />
-                  <stop offset="1" stop-color="#0F2C25" />
-                </linearGradient>
-              </defs>
-
-              <path d="M 0 560 H 520" stroke="#24493E" stroke-width="2" />
-              <rect x="20" y="28" width="340" height="532" rx="18" fill="url(#g-fachada)" stroke="#2C564A" stroke-width="2" />
-
-              <!-- realce de cada andar (aparece por opacidade quando o andar pontua) -->
-              <g class="tobogan__faixas">
-                <rect data-andar="6" x="22" y="52" width="336" height="70" />
-                <rect data-andar="5" x="22" y="122" width="336" height="70" />
-                <rect data-andar="4" x="22" y="192" width="336" height="70" />
-                <rect data-andar="3" x="22" y="262" width="336" height="70" />
-                <rect data-andar="2" x="22" y="332" width="336" height="70" />
-                <rect data-andar="1" x="22" y="402" width="336" height="70" />
-              </g>
-
-              <path d="M20 122H360M20 192H360M20 262H360M20 332H360M20 402H360M20 472H360" stroke="#24493E" stroke-width="2" />
-
-              <g class="tobogan__janelas">
-                <rect x="80" y="70" width="40" height="34" rx="6" />
-                <rect class="acesa" x="132" y="70" width="40" height="34" rx="6" />
-                <rect x="184" y="70" width="40" height="34" rx="6" />
-                <rect class="acesa" x="80" y="140" width="40" height="34" rx="6" />
-                <rect x="132" y="140" width="40" height="34" rx="6" />
-                <rect x="184" y="140" width="40" height="34" rx="6" />
-                <rect x="80" y="210" width="40" height="34" rx="6" />
-                <rect x="132" y="210" width="40" height="34" rx="6" />
-                <rect class="acesa" x="184" y="210" width="40" height="34" rx="6" />
-                <rect x="80" y="280" width="40" height="34" rx="6" />
-                <rect class="acesa" x="132" y="280" width="40" height="34" rx="6" />
-                <rect x="184" y="280" width="40" height="34" rx="6" />
-                <rect class="acesa" x="80" y="350" width="40" height="34" rx="6" />
-                <rect x="132" y="350" width="40" height="34" rx="6" />
-                <rect class="acesa" x="184" y="350" width="40" height="34" rx="6" />
-                <rect x="80" y="420" width="40" height="34" rx="6" />
-                <rect class="acesa" x="132" y="420" width="40" height="34" rx="6" />
-                <rect x="184" y="420" width="40" height="34" rx="6" />
-                <rect class="porta" x="150" y="500" width="56" height="60" rx="8" />
-              </g>
-
-              <g class="tobogan__rotulos" fill="#8FAA9F">
-                <text x="40" y="94">6º</text>
-                <text x="40" y="164">5º</text>
-                <text x="40" y="234">4º</text>
-                <text x="40" y="304">3º</text>
-                <text x="40" y="374">2º</text>
-                <text x="40" y="444">1º</text>
-                <text x="40" y="522">T</text>
-              </g>
-
-              <g class="tobogan__lixeiras">
-                <g transform="translate(0 52)"><rect x="258" y="24" width="64" height="40" rx="9" /><rect class="boca boca--r" x="266" y="31" width="20" height="7" rx="3.5" /><rect class="boca boca--o" x="294" y="31" width="20" height="7" rx="3.5" /></g>
-                <g transform="translate(0 122)"><rect x="258" y="24" width="64" height="40" rx="9" /><rect class="boca boca--r" x="266" y="31" width="20" height="7" rx="3.5" /><rect class="boca boca--o" x="294" y="31" width="20" height="7" rx="3.5" /></g>
-                <g transform="translate(0 192)"><rect x="258" y="24" width="64" height="40" rx="9" /><rect class="boca boca--r" x="266" y="31" width="20" height="7" rx="3.5" /><rect class="boca boca--o" x="294" y="31" width="20" height="7" rx="3.5" /></g>
-                <g transform="translate(0 262)"><rect x="258" y="24" width="64" height="40" rx="9" /><rect class="boca boca--r" x="266" y="31" width="20" height="7" rx="3.5" /><rect class="boca boca--o" x="294" y="31" width="20" height="7" rx="3.5" /></g>
-                <g transform="translate(0 332)"><rect x="258" y="24" width="64" height="40" rx="9" /><rect class="boca boca--r" x="266" y="31" width="20" height="7" rx="3.5" /><rect class="boca boca--o" x="294" y="31" width="20" height="7" rx="3.5" /></g>
-                <g transform="translate(0 402)"><rect x="258" y="24" width="64" height="40" rx="9" /><rect class="boca boca--r" x="266" y="31" width="20" height="7" rx="3.5" /><rect class="boca boca--o" x="294" y="31" width="20" height="7" rx="3.5" /></g>
-              </g>
-
-              <rect class="tobogan__poco" x="380" y="64" width="114" height="432" rx="16" />
-
-              <!-- ramais e tubos: casca larga e translúcida, núcleo fino -->
-              <g class="tubo tubo--o">
-                <path class="tubo__casca" d="M 322 104 L 450 104 Q 462 104 462 116 M 322 174 L 450 174 Q 462 174 462 186 M 322 244 L 450 244 Q 462 244 462 256 M 322 314 L 450 314 Q 462 314 462 326 M 322 384 L 450 384 Q 462 384 462 396 M 322 454 L 450 454 Q 462 454 462 466" />
-                <path class="tubo__casca" d="M 462 100 L 462 116 C 471 139 453 163 462 186 C 471 209 453 233 462 256 C 471 279 453 303 462 326 C 471 349 453 373 462 396 C 471 419 453 443 462 466 L 462 502" />
-                <path class="tubo__nucleo" d="M 322 104 L 450 104 Q 462 104 462 116 M 322 174 L 450 174 Q 462 174 462 186 M 322 244 L 450 244 Q 462 244 462 256 M 322 314 L 450 314 Q 462 314 462 326 M 322 384 L 450 384 Q 462 384 462 396 M 322 454 L 450 454 Q 462 454 462 466" />
-                <path class="tubo__nucleo" d="M 462 100 L 462 116 C 471 139 453 163 462 186 C 471 209 453 233 462 256 C 471 279 453 303 462 326 C 471 349 453 373 462 396 C 471 419 453 443 462 466 L 462 502" />
-              </g>
-              <g class="tubo tubo--r">
-                <path class="tubo__casca" d="M 322 88 L 400 88 Q 412 88 412 100 M 322 158 L 400 158 Q 412 158 412 170 M 322 228 L 400 228 Q 412 228 412 240 M 322 298 L 400 298 Q 412 298 412 310 M 322 368 L 400 368 Q 412 368 412 380 M 322 438 L 400 438 Q 412 438 412 450" />
-                <path class="tubo__casca" d="M 412 84 L 412 100 C 421 123 403 147 412 170 C 421 193 403 217 412 240 C 421 263 403 287 412 310 C 421 333 403 357 412 380 C 421 403 403 427 412 450 L 412 502" />
-                <path class="tubo__nucleo" d="M 322 88 L 400 88 Q 412 88 412 100 M 322 158 L 400 158 Q 412 158 412 170 M 322 228 L 400 228 Q 412 228 412 240 M 322 298 L 400 298 Q 412 298 412 310 M 322 368 L 400 368 Q 412 368 412 380 M 322 438 L 400 438 Q 412 438 412 450" />
-                <path class="tubo__nucleo" d="M 412 84 L 412 100 C 421 123 403 147 412 170 C 421 193 403 217 412 240 C 421 263 403 287 412 310 C 421 333 403 357 412 380 C 421 403 403 427 412 450 L 412 502" />
-              </g>
-
-              <!-- centrais no térreo -->
-              <g class="central central--r" id="central-r">
-                <rect x="390" y="504" width="44" height="54" rx="9" />
-                <text x="412" y="538">R</text>
-              </g>
-              <g class="central central--o" id="central-o">
-                <rect x="440" y="504" width="44" height="54" rx="9" />
-                <text x="462" y="538">O</text>
-              </g>
-              <text class="tobogan__legenda" x="437" y="586">centrais no térreo</text>
-
-              <!-- itens descendo e "+10" (criados pelo site.js) -->
-              <g id="tobogan-itens"></g>
-              <g id="tobogan-pontos"></g>
-            </svg>
-
-            <div class="heroi__evento" id="heroi-evento" aria-hidden="true">
-              <span class="marca-tipo" id="heroi-evento-marca">R</span>
-              <span><strong id="heroi-evento-andar">5º andar</strong> ganhou <span id="heroi-evento-pontos">10 pontos</span></span>
-            </div>
-          </figure>
         </div>
+
+        <figure class="heroi__figura">
+          <div class="heroi__predio" id="s-predio"></div>
+          <p class="heroi__evento" id="heroi-evento" aria-hidden="true">
+            <span class="ponto ponto--brilho" id="heroi-evento-ponto"></span>
+            <span><span class="heroi__evento-andar" id="heroi-evento-andar">5º andar</span> <span class="heroi__evento-texto">ganhou 10 pontos</span></span>
+          </p>
+        </figure>
       </section>
 
       <!-- ============================================================ -->
       <!-- O que é                                                       -->
       <!-- ============================================================ -->
-      <section class="oque" aria-labelledby="oque-titulo">
-        <div class="contem oque__grade">
+      <section class="secao oque" aria-labelledby="oque-titulo">
+        <div class="contem">
           <h2 id="oque-titulo" class="visualmente-oculto">O que é o Recicla Slide</h2>
           <p class="oque__manifesto" data-revelar>
             O Recicla Slide leva a coleta seletiva para dentro de cada andar. A lixeira separa o
-            <span class="destaque-verde">reciclável</span> do <span class="destaque-laranja">orgânico</span>, os tubos levam tudo até o
+            <span class="oque__tipo"><span class="ponto" aria-hidden="true"></span>reciclável</span> do
+            <span class="oque__tipo"><span class="ponto ponto--o" aria-hidden="true"></span>orgânico</span>, os tubos levam tudo até o
             térreo e o placar transforma a separação numa disputa amigável entre vizinhos.
           </p>
-          <ul class="oque__kit" role="list" aria-label="O que vem no sistema" data-revelar-grupo>
+          <ul class="oque__kit" role="list" aria-label="O que vem no sistema">
             <li data-revelar><span class="oque__kit-num numero" aria-hidden="true">2</span><span>bocas na lixeira de cada andar</span></li>
             <li data-revelar><span class="oque__kit-num numero" aria-hidden="true">2</span><span>tubos-tobogã até as centrais do térreo</span></li>
             <li data-revelar><span class="oque__kit-num numero" aria-hidden="true">1</span><span>sensor em cada lixeira, que conta cada descarte</span></li>
@@ -213,79 +116,39 @@
       <!-- ============================================================ -->
       <!-- Como funciona                                                 -->
       <!-- ============================================================ -->
-      <section class="passos" id="como-funciona" aria-labelledby="passos-titulo">
+      <section class="secao passos" id="como-funciona" aria-labelledby="passos-titulo">
         <div class="contem">
           <h2 id="passos-titulo" class="secao__titulo" data-revelar>Como funciona</h2>
-          <ol class="passos__lista" role="list" data-revelar-grupo>
+          <ol class="passos__lista" role="list">
             <li class="passo" data-revelar>
-              <div class="passo__visual" aria-hidden="true">
-                <svg viewBox="0 0 120 90">
-                  <rect x="22" y="22" width="76" height="56" rx="12" fill="#18402F" stroke="#2C564A" stroke-width="2" />
-                  <rect x="32" y="32" width="24" height="9" rx="4.5" fill="#8BD17C" />
-                  <rect x="64" y="32" width="24" height="9" rx="4.5" fill="#F2A541" />
-                  <path d="M44 6v16M76 6v16" stroke="#628C7E" stroke-width="2" stroke-dasharray="3 4" stroke-linecap="round" />
-                </svg>
-              </div>
-              <span class="passo__numero" aria-hidden="true"><span class="numero">1</span></span>
+              <span class="passo__numero numero" aria-hidden="true">1</span>
               <h3>Separe no seu andar</h3>
               <p>A lixeira do andar tem duas bocas, uma para reciclável e outra para orgânico. Ninguém precisa descer com sacola.</p>
             </li>
             <li class="passo" data-revelar>
-              <div class="passo__visual" aria-hidden="true">
-                <svg viewBox="0 0 120 90">
-                  <path d="M40 4 C 52 22 28 40 40 58 S 28 76 40 88" fill="none" stroke="#8BD17C" stroke-opacity=".25" stroke-width="12" stroke-linecap="round" />
-                  <path d="M40 4 C 52 22 28 40 40 58 S 28 76 40 88" fill="none" stroke="#8BD17C" stroke-width="3" stroke-linecap="round" />
-                  <path d="M80 4 C 92 22 68 40 80 58 S 68 76 80 88" fill="none" stroke="#F2A541" stroke-opacity=".25" stroke-width="12" stroke-linecap="round" />
-                  <path d="M80 4 C 92 22 68 40 80 58 S 68 76 80 88" fill="none" stroke="#F2A541" stroke-width="3" stroke-linecap="round" />
-                  <circle cx="44" cy="40" r="6" fill="#B6EAA8" />
-                  <circle cx="76" cy="62" r="6" fill="#F2A541" />
-                </svg>
-              </div>
-              <span class="passo__numero" aria-hidden="true"><span class="numero">2</span></span>
+              <span class="passo__numero numero" aria-hidden="true">2</span>
               <h3>Desce pelo tobogã</h3>
               <p>Cada boca leva a um tubo próprio. O lixo escorrega até as centrais do térreo, já separado.</p>
             </li>
             <li class="passo" data-revelar>
-              <div class="passo__visual" aria-hidden="true">
-                <svg viewBox="0 0 120 90">
-                  <rect x="18" y="30" width="44" height="44" rx="10" fill="#18402F" stroke="#2C564A" stroke-width="2" />
-                  <circle cx="40" cy="52" r="8" fill="none" stroke="#8BD17C" stroke-width="3" />
-                              <path d="M28 18a18 18 0 0 1 24 0" fill="none" stroke="#8BD17C" stroke-width="3" stroke-linecap="round" stroke-opacity=".6" />
-                  <text x="72" y="58" fill="#F2A541" font-family="Rubik, sans-serif" font-weight="800" font-size="24">+10</text>
-                </svg>
-              </div>
-              <span class="passo__numero" aria-hidden="true"><span class="numero">3</span></span>
+              <span class="passo__numero numero" aria-hidden="true">3</span>
               <h3>O sensor conta</h3>
               <p>O sensor da lixeira registra cada descarte e por qual boca ele passou. Cada um vale 10 pontos para o andar.</p>
             </li>
             <li class="passo" data-revelar>
-              <div class="passo__visual" aria-hidden="true">
-                <svg viewBox="0 0 120 90">
-                  <rect x="14" y="16" width="70" height="12" rx="6" fill="#F2A541" />
-                  <rect x="14" y="38" width="56" height="12" rx="6" fill="#8BD17C" />
-                  <rect x="14" y="60" width="40" height="12" rx="6" fill="#8BD17C" fill-opacity=".55" />
-                  <g fill="none" stroke="#F2A541" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M93 14h20v9a10 10 0 0 1-20 0z" />
-                    <path d="M93 17h-4a5 5 0 0 0 5 8" />
-                    <path d="M113 17h4a5 5 0 0 1-5 8" />
-                    <path d="M103 33v7" />
-                    <path d="M97 44h12" />
-                  </g>
-                </svg>
-              </div>
-              <span class="passo__numero" aria-hidden="true"><span class="numero">4</span></span>
+              <span class="passo__numero numero" aria-hidden="true">4</span>
               <h3>O andar campeão ganha</h3>
               <p>O ranking aparece no app e no telão do prédio. No fim do mês, o andar em primeiro leva o prêmio.</p>
             </li>
           </ol>
 
           <div class="passos__nfc" data-revelar>
-            <span class="passos__nfc-icone" data-icone="nfc"></span>
+            <span class="passos__nfc-icone" data-icone="aproximar"></span>
             <p>
               <strong>Quer pontuar no próprio nome?</strong> Encoste o celular na etiqueta NFC da lixeira. O app abre já no seu andar, sem
               cadastro e sem senha.
             </p>
-            <a class="botao botao--fantasma" href="app/?andar=4">Ver o app</a>
+            <a class="botao botao--vidro" href="app/?andar=4">Ver o app</a>
           </div>
         </div>
       </section>
@@ -293,41 +156,51 @@
       <!-- ============================================================ -->
       <!-- Ranking funcionando                                           -->
       <!-- ============================================================ -->
-      <section class="ranking-demo" id="ranking" aria-labelledby="ranking-titulo">
-        <div class="contem ranking-demo__grade">
-          <div class="ranking-demo__texto">
-            <p class="selo">Experimente</p>
+      <section class="secao ranking-demo" id="ranking" aria-labelledby="ranking-titulo">
+        <div class="contem">
+          <div class="ranking-demo__cabeca">
+            <p class="selo" data-revelar>Experimente</p>
             <h2 id="ranking-titulo" class="secao__titulo" data-revelar>Escolha um andar e faça um descarte</h2>
-            <p class="ranking-demo__sub" data-revelar>
+            <p class="secao__sub" data-revelar>
               É o mesmo placar do app e do telão, com os dados de exemplo do Edifício Exemplo. Aqui é só uma simulação: nada muda no
               placar de verdade.
             </p>
+          </div>
 
-            <div class="controle" data-revelar>
+          <div class="ranking-demo__painel vidro" data-revelar>
+            <div class="controle">
               <fieldset class="controle__andares">
                 <legend>Andar</legend>
                 <div class="controle__opcoes" id="demo-andares"></div>
               </fieldset>
               <div class="controle__botoes">
-                <button type="button" class="botao botao--grande" data-tipo="reciclavel" disabled>
-                  <span class="marca-tipo" aria-hidden="true">R</span>Reciclável
+                <button type="button" class="botao-tipo" data-tipo="reciclavel" disabled>
+                  <span class="botao-tipo__brilho" aria-hidden="true"></span>
+                  <span class="ponto ponto--grande ponto--brilho" aria-hidden="true"></span>
+                  <span class="botao-tipo__textos">
+                    <span class="botao-tipo__nome">Reciclável</span>
+                    <span class="botao-tipo__sub">+10 para o andar</span>
+                  </span>
                 </button>
-                <button type="button" class="botao botao--grande botao--organico" data-tipo="organico" disabled>
-                  <span class="marca-tipo marca-tipo--organico" aria-hidden="true">O</span>Orgânico
+                <button type="button" class="botao-tipo" data-tipo="organico" disabled>
+                  <span class="botao-tipo__brilho" aria-hidden="true"></span>
+                  <span class="ponto ponto--o ponto--grande ponto--brilho" aria-hidden="true"></span>
+                  <span class="botao-tipo__textos">
+                    <span class="botao-tipo__nome">Orgânico</span>
+                    <span class="botao-tipo__sub">+10 para o andar</span>
+                  </span>
                 </button>
               </div>
               <p class="controle__status" id="demo-status" role="status" aria-live="polite">Carregando o placar de exemplo…</p>
               <button type="button" class="controle__reiniciar" id="demo-reiniciar" hidden>Voltar ao placar inicial</button>
             </div>
-          </div>
 
-          <div class="ranking-demo__painel moldura" data-revelar>
-            <div class="miolo ranking-demo__miolo">
-              <div class="ranking-demo__cabeca">
-                <p class="ranking-demo__predio">Edifício Exemplo <span class="etiqueta etiqueta--exemplo">Exemplo</span></p>
-                <p class="ranking__legenda" aria-hidden="true">
-                  <span class="legenda legenda--r">Reciclável</span>
-                  <span class="legenda legenda--o">Orgânico</span>
+            <div class="ranking-demo__placar">
+              <div class="ranking-demo__topo">
+                <p class="ranking-demo__predio">Edifício Exemplo <span class="chip">Exemplo</span></p>
+                <p class="legenda" aria-hidden="true">
+                  <span class="legenda__item"><span class="ponto"></span>Reciclável</span>
+                  <span class="legenda__item"><span class="ponto ponto--o"></span>Orgânico</span>
                 </p>
               </div>
               <ol class="ranking-demo__lista" id="demo-lista" role="list" aria-label="Ranking dos andares (simulação)"></ol>
@@ -339,13 +212,13 @@
       <!-- ============================================================ -->
       <!-- Para quem é                                                   -->
       <!-- ============================================================ -->
-      <section class="para-quem" id="para-quem" aria-labelledby="para-quem-titulo">
+      <section class="secao para-quem" id="para-quem" aria-labelledby="para-quem-titulo">
         <div class="contem">
           <h2 id="para-quem-titulo" class="secao__titulo" data-revelar>Para quem é</h2>
           <p class="secao__sub" data-revelar>Prédios novos de médio e alto padrão, do projeto à rotina dos moradores.</p>
 
           <div class="para-quem__grade">
-            <article class="publico publico--construtora" data-revelar>
+            <article class="publico" data-revelar>
               <p class="publico__quem">Construtoras</p>
               <h3>Um diferencial que já sai da planta</h3>
               <p>Os tubos entram no projeto como qualquer outra instalação, e o prédio é entregue com o placar funcionando.</p>
@@ -356,7 +229,7 @@
               </ul>
             </article>
 
-            <article class="publico publico--condominio" data-revelar>
+            <article class="publico" data-revelar>
               <p class="publico__quem">Condomínios</p>
               <h3>Coleta seletiva que dá vontade de usar</h3>
               <p>Ninguém desce com sacola, o lixo chega separado às centrais e o ranking dá motivo para separar direito.</p>
@@ -373,14 +246,14 @@
       <!-- ============================================================ -->
       <!-- Perguntas frequentes                                          -->
       <!-- ============================================================ -->
-      <section class="perguntas" id="perguntas" aria-labelledby="perguntas-titulo">
+      <section class="secao perguntas" id="perguntas" aria-labelledby="perguntas-titulo">
         <div class="contem perguntas__grade">
           <div class="perguntas__lado">
             <h2 id="perguntas-titulo" class="secao__titulo" data-revelar>Perguntas frequentes</h2>
             <p class="secao__sub" data-revelar>Não achou o que procurava? <a href="#contato">Fale com a gente.</a></p>
           </div>
 
-          <div class="perguntas__lista" data-revelar-grupo>
+          <div class="perguntas__lista">
             <details class="pergunta" data-revelar>
               <summary>Funciona em prédio que já está pronto?</summary>
               <div class="pergunta__resposta">
@@ -440,20 +313,16 @@
       <!-- ============================================================ -->
       <!-- Contato                                                       -->
       <!-- ============================================================ -->
-      <section class="contato" id="contato" aria-labelledby="contato-titulo">
+      <section class="secao contato" id="contato" aria-labelledby="contato-titulo">
         <div class="contem contato__caixa" data-revelar>
           <h2 id="contato-titulo" class="contato__titulo">Quer o Recicla Slide no seu próximo prédio?</h2>
           <p class="contato__texto">Conte quantos andares o prédio tem e em que fase está o projeto.</p>
           <!-- CONTATO DE EXEMPLO: troque o e-mail abaixo (três lugares neste bloco) pelo contato real do grupo. -->
-          <div class="contato__acoes">
-            <a class="botao botao--grande" href="mailto:contato@example.com?subject=Recicla%20Slide" id="contato-link">Fale com a gente</a>
-            <button type="button" class="botao botao--grande botao--fantasma" id="contato-copiar" data-email="contato@example.com">
-              Copiar e-mail
-            </button>
-          </div>
+          <a class="botao botao--grande" href="mailto:contato@example.com?subject=Recicla%20Slide" id="contato-link">Fale com a gente</a>
           <p class="contato__email">
             <span>contato@example.com</span>
-            <span class="etiqueta etiqueta--exemplo">Contato de exemplo</span>
+            <span class="chip">Contato de exemplo</span>
+            <button type="button" class="botao botao--vidro contato__copiar" id="contato-copiar" data-email="contato@example.com">Copiar e-mail</button>
           </p>
         </div>
       </section>
@@ -462,6 +331,7 @@
     <footer class="rodape">
       <div class="contem rodape__grade">
         <a class="logo" href="./" translate="no">Recicla Slide</a>
+        <p class="rodape__nota">O Edifício Exemplo, seus números e o prêmio do mês são fictícios, só para demonstração.</p>
         <nav aria-label="Telas do sistema">
           <ul role="list" class="rodape__links">
             <li><a href="app/">App do morador</a></li>
@@ -469,9 +339,6 @@
             <li><a href="demo/">Painel de demonstração</a></li>
           </ul>
         </nav>
-        <p class="rodape__nota">
-          O Edifício Exemplo, seus números e o prêmio do mês são fictícios, só para demonstração.
-        </p>
       </div>
     </footer>
   </body>

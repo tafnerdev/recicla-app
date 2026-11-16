@@ -7,7 +7,7 @@
  *
  * Ao publicar uma versão nova, mude VERSAO. As telas avisam "Nova versão disponível".
  */
-const VERSAO = 'recicla-v1';
+const VERSAO = 'recicla-v2';
 const ESPERA_REDE = 2500;
 
 const ARQUIVOS = [
@@ -30,12 +30,12 @@ const ARQUIVOS = [
   'js/telao.js',
   'js/demo.js',
   'js/serial.js',
+  'js/predio.js',
   'js/pwa.js',
   'js/vendor/gsap.min.js',
   'js/vendor/ScrollTrigger.min.js',
-  'js/vendor/MotionPathPlugin.min.js',
   'fonts/rubik-latin.woff2',
-  'fonts/nunito-sans-latin.woff2',
+  'fonts/geist-latin.woff2',
   'icons/icon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',

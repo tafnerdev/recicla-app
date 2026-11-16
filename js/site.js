@@ -1,14 +1,16 @@
 /**
  * Recicla Slide: página inicial (/).
- * Menu, revelação na rolagem, tobogã animado da abertura e a demonstração do ranking.
+ * Menu, revelação na rolagem, o prédio da abertura (com um laço de demonstração)
+ * e a demonstração do ranking.
  */
-import { criarSimulacao, obterEdificio } from './dados.js';
+import { criarSimulacao, obterEdificio, obterPlacar } from './dados.js';
 import {
   atualizarLinhaRanking,
   avisar,
   criarLinhaRanking,
   el,
   icone,
+  marcarDescarte,
   nomeAndar,
   ordinal,
   prepararAvisos,
@@ -18,10 +20,9 @@ import {
   rotuloDescartes,
   rotuloPontos,
 } from './comum.js';
+import { montarPredio } from './predio.js';
 
 const $ = (id) => document.getElementById(id);
-const NS = 'http://www.w3.org/2000/svg';
-const COR = { reciclavel: '#8BD17C', organico: '#F2A541' };
 
 prepararAvisos();
 for (const caixa of document.querySelectorAll('[data-icone]')) caixa.innerHTML = icone(caixa.dataset.icone);
@@ -87,14 +88,14 @@ function ligarRevelacao() {
     gsap.to(lote, {
       opacity: 1,
       y: 0,
-      duration: 0.8,
+      duration: 0.48,
       ease: 'expo.out',
-      stagger: 0.08,
+      stagger: 0.06,
       overwrite: true,
       // Sem clearProps: apagar o transform inline traria de volta o translateY do CSS.
     });
   ScrollTrigger.batch('[data-revelar]', {
-    start: 'top 88%',
+    start: 'top 90%',
     once: true,
     onEnter: revelar,
     // Quem rola rápido para baixo e volta também encontra o conteúdo.
@@ -105,146 +106,72 @@ function ligarRevelacao() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Tobogã da abertura                                                  */
+/* O prédio da abertura                                                */
 /* ------------------------------------------------------------------ */
 
-const GEO = {
-  entrada: (k) => 96 + 70 * k, // altura do ramal da lixeira do andar k (k = 0 é o 6º andar)
-  topo: (k) => 52 + 70 * k,
-  amplitude: 9,
-  faixas: { reciclavel: { x: 412, dy: -8 }, organico: { x: 462, dy: 8 } },
-  fundo: 530,
-};
-
-/** Caminho que o item faz: sai da lixeira, entra no tubo e desce até a central. */
-function caminhoItem(k, tipo) {
-  const { x, dy } = GEO.faixas[tipo];
-  const y = GEO.entrada(k) + dy;
-  const a = GEO.amplitude;
-  let d = `M 322 ${y} L ${x - 12} ${y} Q ${x} ${y} ${x} ${y + 12}`;
-  for (let i = k; i < 5; i += 1) {
-    const j = GEO.entrada(i) + dy + 12;
-    d += ` C ${x + a} ${j + 23} ${x - a} ${j + 47} ${x} ${j + 70}`;
+async function ligarPredio() {
+  const caixa = $('s-predio');
+  let edificio;
+  let placar;
+  try {
+    [edificio, placar] = await Promise.all([obterEdificio(), obterPlacar()]);
+  } catch {
+    return; // sem dados, o espaço fica vazio e o texto da abertura continua
   }
-  return `${d} L ${x} ${GEO.fundo}`;
-}
+  const lider = placar.ranking[0]?.pontos > 0 ? placar.ranking[0].andar : null;
+  const predio = montarPredio(caixa, {
+    andares: edificio.andares,
+    aceso: lider,
+    modo: 'lider',
+    pontos: 'site',
+    traco: 0.7,
+    largura: null,
+    interativo: true,
+  });
 
-function ligarTobogan() {
-  const svg = $('tobogan');
-  if (!svg) return;
-  const camadaItens = $('tobogan-itens');
-  const camadaPontos = $('tobogan-pontos');
-  const { gsap, MotionPathPlugin } = window;
-
-  if (!gsap || !MotionPathPlugin || reduzMovimento()) {
-    desenharParado(camadaItens);
-    return;
-  }
-  gsap.registerPlugin(MotionPathPlugin);
-
+  // Laço de demonstração: um ponto de luz desce a cada poucos segundos e o chip conta
+  // qual andar ganhou pontos. Para quando a abertura sai da tela. Sem movimento: parado.
+  if (reduzMovimento()) return;
+  const cartao = $('heroi-evento');
+  const pontoCor = $('heroi-evento-ponto');
+  const andarTexto = $('heroi-evento-andar');
   let visivel = false;
   let relogio = 0;
+  let ultimo = null;
+
+  const soltar = () => {
+    const andares = edificio.andares;
+    let andar = andares[Math.floor(Math.random() * andares.length)];
+    if (andar === ultimo) andar = andares[(andares.indexOf(andar) + 3) % andares.length];
+    ultimo = andar;
+    const tipo = Math.random() < 0.58 ? 'reciclavel' : 'organico';
+    predio.soltarLuz(andar, tipo, {
+      aoChegar: () => {
+        andarTexto.textContent = nomeAndar(andar);
+        pontoCor.classList.toggle('ponto--o', tipo === 'organico');
+        pulsar(cartao, [{ opacity: 0.4, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], {
+          duration: 480,
+          id: 'evento',
+        });
+      },
+    });
+  };
   const agendar = (espera) => {
     clearTimeout(relogio);
     if (!visivel || document.hidden) return;
     relogio = setTimeout(() => {
       soltar();
-      agendar(gsap.utils.random(1100, 1900));
+      agendar(3200 + Math.random() * 1600);
     }, espera);
   };
   new IntersectionObserver(
     ([entrada]) => {
       visivel = entrada.isIntersecting;
-      agendar(450);
+      agendar(900);
     },
     { threshold: 0.2 },
-  ).observe(svg);
-  document.addEventListener('visibilitychange', () => agendar(450));
-
-  let ultimoAndar = null;
-  function soltar() {
-    let k = Math.floor(Math.random() * 6);
-    if (6 - k === ultimoAndar) k = (k + 2) % 6; // evita o mesmo andar duas vezes seguidas
-    const andar = 6 - k;
-    ultimoAndar = andar;
-    const tipo = Math.random() < 0.56 ? 'reciclavel' : 'organico';
-    const { dy } = GEO.faixas[tipo];
-
-    const item = document.createElementNS(NS, 'circle');
-    item.setAttribute('r', '6.5');
-    item.setAttribute('fill', COR[tipo]);
-    camadaItens.append(item);
-
-    const queda = 0.75 + 0.26 * (5 - k);
-    gsap
-      .timeline({ onComplete: () => item.remove() })
-      .set(item, { x: 322, y: GEO.entrada(k) + dy, opacity: 0, scale: 0.3, transformOrigin: '50% 50%' })
-      .to(item, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)' })
-      .add(() => pontuar(k, andar, tipo))
-      .to(item, { motionPath: { path: caminhoItem(k, tipo) }, duration: queda, ease: 'power2.in' })
-      .add(() => chegar(tipo), `-=0.08`)
-      .to(item, { opacity: 0, scale: 0.5, duration: 0.18 }, '>-0.04');
-  }
-
-  function pontuar(k, andar, tipo) {
-    const faixa = svg.querySelector(`.tobogan__faixas rect[data-andar="${andar}"]`);
-    faixa.dataset.tipo = tipo;
-    gsap.fromTo(faixa, { opacity: 0.16 }, { opacity: 0, duration: 1.4, ease: 'power2.out', overwrite: true });
-
-    const mais = document.createElementNS(NS, 'text');
-    mais.setAttribute('class', 'tobogan__mais');
-    mais.setAttribute('fill', COR[tipo]);
-    mais.setAttribute('x', '290');
-    mais.setAttribute('y', String(GEO.topo(k) + 19));
-    mais.setAttribute('text-anchor', 'middle');
-    mais.textContent = '+10';
-    camadaPontos.append(mais);
-    gsap.fromTo(
-      mais,
-      { opacity: 0, y: 10 },
-      {
-        keyframes: [
-          { opacity: 1, y: -4, duration: 0.35, ease: 'back.out(2)' },
-          { opacity: 0, y: -22, duration: 0.7, ease: 'power1.in', delay: 0.35 },
-        ],
-        onComplete: () => mais.remove(),
-      },
-    );
-
-    const cartao = $('heroi-evento');
-    $('heroi-evento-andar').textContent = nomeAndar(andar);
-    const marca = $('heroi-evento-marca');
-    marca.textContent = tipo === 'organico' ? 'O' : 'R';
-    marca.classList.toggle('marca-tipo--organico', tipo === 'organico');
-    gsap.fromTo(cartao, { opacity: 0, y: 10, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'expo.out', overwrite: true });
-  }
-
-  function chegar(tipo) {
-    const central = $(tipo === 'organico' ? 'central-o' : 'central-r');
-    gsap.fromTo(central, { scaleY: 0.9, scaleX: 1.05 }, { scaleY: 1, scaleX: 1, duration: 0.6, ease: 'elastic.out(1, 0.45)', overwrite: true });
-  }
-}
-
-/** Sem animação: alguns itens parados no meio dos tubos mostram o caminho. */
-function desenharParado(camada) {
-  const posicoes = [
-    [0, 'reciclavel', 0.55],
-    [2, 'organico', 0.4],
-    [3, 'reciclavel', 0.7],
-    [1, 'organico', 0.8],
-  ];
-  for (const [k, tipo, fracao] of posicoes) {
-    const caminho = document.createElementNS(NS, 'path');
-    caminho.setAttribute('d', caminhoItem(k, tipo));
-    const ponto = caminho.getPointAtLength(caminho.getTotalLength() * fracao);
-    const item = document.createElementNS(NS, 'circle');
-    item.setAttribute('r', '6.5');
-    item.setAttribute('cx', ponto.x.toFixed(1));
-    item.setAttribute('cy', ponto.y.toFixed(1));
-    item.setAttribute('fill', COR[tipo]);
-    camada.append(item);
-  }
-  $('heroi-evento').classList.add('visivel');
+  ).observe(caixa);
+  document.addEventListener('visibilitychange', () => agendar(900));
 }
 
 /* ------------------------------------------------------------------ */
@@ -255,7 +182,7 @@ async function ligarDemoRanking() {
   const lista = $('demo-lista');
   const status = $('demo-status');
   const opcoes = $('demo-andares');
-  const botoes = [...document.querySelectorAll('.controle__botoes .botao')];
+  const botoes = [...document.querySelectorAll('.controle__botoes .botao-tipo')];
   const reiniciar = $('demo-reiniciar');
 
   let simulacao;
@@ -274,12 +201,15 @@ async function ligarDemoRanking() {
   let escolhido = edificio.andares.includes(7) ? 7 : edificio.andares[0];
   const linhas = new Map();
   const pontosPorDescarte = Math.max(edificio.pontosPorDescarte.reciclavel, edificio.pontosPorDescarte.organico);
+  for (const botao of botoes) {
+    botao.querySelector('.botao-tipo__sub').textContent = `+${edificio.pontosPorDescarte[botao.dataset.tipo]} para o andar`;
+  }
 
   opcoes.replaceChildren(
     ...edificio.andares.map((andar) =>
       el(
         'label',
-        { class: 'chip' },
+        { class: 'chip-andar' },
         el('input', { type: 'radio', name: 'demo-andar', value: andar, checked: andar === escolhido, 'aria-label': nomeAndar(andar) }),
         el('span', { 'aria-hidden': 'true' }, ordinal(andar)),
       ),
@@ -304,14 +234,15 @@ async function ligarDemoRanking() {
   }
 
   function renderizar(animar) {
-    const maximo = Math.max(1, ...placar.ranking.map((i) => i.pontos));
+    const lider = placar.ranking[0];
+    const totalLider = lider.reciclavel + lider.organico;
     const ordem = placar.ranking.map((item) => {
       let linha = linhas.get(item.andar);
       if (!linha) {
         linha = criarLinhaRanking(item.andar);
         linhas.set(item.andar, linha);
       }
-      atualizarLinhaRanking(linha, item, { maximo, animar, minha: item.andar === escolhido, rotulo: 'Escolhido' });
+      atualizarLinhaRanking(linha, item, { totalLider, animar, minha: item.andar === escolhido, rotulo: 'escolhido' });
       return linha;
     });
     if (!lista.children.length) {
@@ -330,11 +261,7 @@ async function ligarDemoRanking() {
     renderizar(true);
     const evento = novo.evento;
     if (evento?.tipo === 'descarte') {
-      const brilho = linhas.get(evento.andar)?.querySelector('.linha__brilho');
-      if (brilho) {
-        brilho.dataset.tipo = evento.descarte;
-        pulsar(brilho, [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 0 }], { duration: 1000, id: 'brilho' });
-      }
+      marcarDescarte(linhas.get(evento.andar), evento.pontos);
       const depois = novo.ranking.find((i) => i.andar === escolhido)?.posicao;
       if (antes && depois && depois < antes) {
         status.innerHTML = `<strong>Subiu de posição.</strong> ${descrever()}`;
@@ -350,7 +277,13 @@ async function ligarDemoRanking() {
 
   for (const botao of botoes) {
     botao.disabled = false;
-    botao.addEventListener('click', () => simulacao.registrarDescarte(escolhido, botao.dataset.tipo));
+    botao.addEventListener('click', () => {
+      simulacao.registrarDescarte(escolhido, botao.dataset.tipo);
+      pulsar(botao.querySelector('.botao-tipo__brilho'), [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 0 }], {
+        duration: 1100,
+        id: 'brilho',
+      });
+    });
   }
   reiniciar.addEventListener('click', () => simulacao.restaurar());
 
@@ -381,14 +314,8 @@ ligarMenu();
 ligarSecaoAtual();
 ligarContato();
 ligarDemoRanking();
+ligarPredio();
 
-// GSAP e plugins chegam com "defer"; módulos rodam depois deles, mas confere por garantia.
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    ligarRevelacao();
-    ligarTobogan();
-  });
-} else {
-  ligarRevelacao();
-  ligarTobogan();
-}
+// GSAP e ScrollTrigger chegam com "defer"; módulos rodam depois deles, mas confere por garantia.
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ligarRevelacao);
+else ligarRevelacao();

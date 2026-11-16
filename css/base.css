@@ -119,7 +119,8 @@ html {
 
 body {
   min-height: 100dvh;
-  background: var(--fundo);
+  /* transparente: o fundo fica no html, e a luz ambiente (z-index -1) aparece por cima dele */
+  background: transparent;
   color: var(--texto);
   font-family: var(--fonte);
   font-size: 17px;
