@@ -10,3 +10,4 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 07:02 | /app pronto: ranking, destaque do andar, prêmio, contador pessoal, seletor de andar e estados de carregamento, vazio e erro. |
 | 16/11 07:11 | /telao pronto: palco 16:9 (e vertical), animação de pontos e de subida, celebração de novo líder, tela cheia, estados e sensor serial com `?sensor=1`. |
 | 16/11 07:14 | /demo pronto: descarte por andar, desfazer, automático, restaurar, zerar com confirmação, atalhos de teclado e últimos descartes. |
+| 16/11 07:27 | Página inicial pronta: tobogã animado, o que é, 4 passos, ranking funcionando na página, para quem é, perguntas e contato de exemplo. |

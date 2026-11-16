@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script>
+      // A 404 pode abrir em qualquer endereço; a base faz os links e estilos funcionarem
+      // tanto no GitHub Pages (/recicla-app/) quanto na raiz do servidor local.
+      (function () {
+        var m = location.pathname.match(/^\/recicla-app\//);
+        var base = document.createElement('base');
+        base.href = m ? '/recicla-app/' : '/';
+        document.head.appendChild(base);
+      })();
+    </script>
+    <title>Página não encontrada | Recicla Slide</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#071B16" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="stylesheet" href="css/base.css" />
+    <style>
+      .p404 {
+        display: grid;
+        place-items: center;
+        min-height: 100dvh;
+        padding: var(--e-6) var(--margem);
+      }
+
+      .p404__caixa {
+        display: grid;
+        justify-items: start;
+        gap: var(--e-4);
+        width: min(100%, 560px);
+      }
+
+      .p404__codigo {
+        color: var(--verde);
+        font-family: var(--fonte-titulo);
+        font-weight: 800;
+        font-size: 1rem;
+      }
+
+      .p404 h1 {
+        font-size: clamp(2rem, 1.4rem + 2.6vw, 3rem);
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+      }
+
+      .p404 p {
+        color: var(--texto-2);
+      }
+
+      .p404__links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--e-3);
+        margin-top: var(--e-3);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="p404">
+      <div class="p404__caixa">
+        <a class="logo" href="./">Recicla Slide</a>
+        <p class="p404__codigo">Erro 404</p>
+        <h1>Esta página não existe.</h1>
+        <p>O endereço pode ter sido digitado errado. Escolha uma das telas abaixo.</p>
+        <div class="p404__links">
+          <a class="botao" href="./">Página inicial</a>
+          <a class="botao botao--fantasma" href="app/">App do morador</a>
+          <a class="botao botao--fantasma" href="telao/">Telão</a>
+          <a class="botao botao--fantasma" href="demo/">Painel</a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
