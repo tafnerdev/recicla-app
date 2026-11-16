@@ -854,16 +854,12 @@
   }
 
   .t-lado {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto;
-  }
-
-  .t-lider {
-    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
   }
 
   .t-feed {
-    height: 300px;
+    height: 270px; /* altura fixa: o ranking não pula quando os descartes chegam */
   }
 
   .t-rodape {

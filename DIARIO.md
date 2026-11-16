@@ -20,3 +20,4 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 07:41 | Polimento ciclo 2: concordância (falta/faltam), telão sem avisos no projetor, destaque parado com movimento reduzido, limite de 10 linhas no telão, menu com seção atual, imagem de compartilhamento e ajustes de acessibilidade. |
 | 16/11 07:43 | Polimento ciclo 3: revisão quadro a quadro das animações do telão; corrigida a curva das animações com vários quadros (selo "subiu" sumia cedo); texto do histórico vazio do painel. |
 | 16/11 07:45 | Polimento ciclo 4: diálogo de confirmação centralizado no celular (bug do reset de margem), texto do diálogo de zerar, texto do app depois de pontuar, capturas de estados e conferência do caminho dos itens no tobogã. |
+| 16/11 07:45 | Polimento ciclo 5: revisão de código (sem imports sobrando nem console.log), nome acessível "Trocar de andar", teste dos descartes automáticos (23 testes) e peso das páginas (165 a 342 KB sem compressão). |

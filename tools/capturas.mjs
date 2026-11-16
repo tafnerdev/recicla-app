@@ -58,7 +58,7 @@ const CAPTURAS = [
   {
     nome: 'secoes',
     url: '',
-    tamanhos: [COMPUTADOR, CELULAR],
+    tamanhos: [COMPUTADOR, TABLET, CELULAR],
     secoes: ['.oque', '#como-funciona', '#ranking', '#para-quem', '#perguntas', '#contato', '.rodape'],
     depois: rolarAteOFim,
   },
@@ -132,6 +132,7 @@ const CAPTURAS = [
   { nome: 'app-erro', url: 'app/?andar=7', tamanhos: [CELULAR], inteira: true, falharDados: true },
   { nome: 'telao', url: 'telao/', tamanhos: [PROJETOR, COMPUTADOR, TABLET, CELULAR], inteira: false },
   { nome: 'telao-sensor', url: 'telao/?sensor=1', tamanhos: [PROJETOR], inteira: false },
+  { nome: 'telao-tv-em-pe', url: 'telao/', tamanhos: [{ width: 1080, height: 1920 }], inteira: false },
   {
     nome: 'telao-subindo',
     url: 'telao/',
