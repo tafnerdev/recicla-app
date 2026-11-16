@@ -13,3 +13,4 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 07:27 | Página inicial pronta: tobogã animado, o que é, 4 passos, ranking funcionando na página, para quem é, perguntas e contato de exemplo. |
 | 16/11 07:29 | PWA: manifest, ícones gerados do SVG, service worker com uso offline, aviso de versão nova, botão de instalar e página 404. |
 | 16/11 07:30 | Testes automatizados: 22 testes passando (fluxos principais, sensor, página inicial, offline, manifest, 404). |
+| 16/11 07:32 | Hardware em docs/: protocolo e uso do sensor serial, exemplo para ESP32 e guia da etiqueta NFC. |
