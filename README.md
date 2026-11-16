@@ -2,13 +2,15 @@
 
 Site e app web (PWA) do Recicla Slide, para o demo day de 1º de dezembro de 2026.
 
-O Recicla Slide é um sistema para prédios novos. Em cada andar há uma lixeira com duas bocas (reciclável e orgânico), ligadas por dois tubos-tobogã às centrais do térreo. Um sensor em cada boca conta os descartes. Cada descarte vale 10 pontos para o andar, e o andar campeão do mês ganha um prêmio.
+O Recicla Slide é um sistema para prédios novos. Em cada andar há uma lixeira com duas bocas (reciclável e orgânico), ligadas por dois tubos-tobogã às centrais do térreo. Um sensor conta os descartes. Cada descarte vale 10 pontos para o andar, e o andar campeão do mês ganha um prêmio.
+
+**Visual:** vidro, luz e letra fina. Fundo quase preto, letra Geist fina e grande, vidro só no que flutua e a cor aparecendo só como luz e como dado (verde = reciclável, laranja = orgânico). No centro de tudo está o prédio com os dois tubos de luz, em 3D onde o aparelho aguenta. As regras estão em [`DESIGN.md`](DESIGN.md) e o que mudou no redesign em [`RESUMO-REDESIGN.md`](RESUMO-REDESIGN.md).
 
 | Tela | Endereço | Para quê |
 |---|---|---|
 | Site | `/` | Apresentação: o que é, como funciona, ranking ao vivo, para quem é, perguntas e contato |
-| App do morador | `/app/?andar=7` | Ranking, seu andar, prêmio do mês e pontos no próprio nome. O `?andar=7` é o link da etiqueta NFC |
-| Telão | `/telao/` | Ranking em tela cheia para projetor ou TV, com animação a cada descarte |
+| App do morador | `/app/?andar=7` | Abas Início (`#inicio`) e Ranking (`#ranking`) e a folha Pontuar (`#pontuar`). O `?andar=7` é o link da etiqueta NFC e abre a folha sozinho |
+| Telão | `/telao/` | Prédio com o líder aceso e o ranking em tela cheia, para projetor ou TV. `?estavel=1` para TV que pisca |
 | Painel | `/demo/` | Registrar descartes à mão, desfazer, zerar e voltar ao exemplo. É o plano B do palco |
 
 Tudo é HTML, CSS e JavaScript puros, sem etapa de build. Os números do "Edifício Exemplo" são fictícios.
@@ -31,13 +33,28 @@ Abra `http://localhost:8080/`. O terminal mostra os endereços das quatro telas.
 
 ```bash
 npm install     # só na primeira vez: instala o Playwright (dependência de desenvolvimento)
-npm test        # 27 testes, usando o Chrome já instalado
+npm test        # 33 testes, usando o Chrome já instalado
 npm run capturas  # capturas de todas as telas em capturas/ (fora do git)
 ```
 
-Os testes cobrem: registrar descarte, desfazer, atalhos de teclado e descartes automáticos no painel; placar atualizando em outra aba (telão e app), subida na lista e novo líder; zerar e cancelar, voltar ao exemplo; abrir com `?andar=7`, escolher e trocar de andar, andar inexistente, contador pessoal e erro de carregamento no app; linhas do sensor; demonstração, menu, links e revelação na rolagem da página inicial; rolagem horizontal; uso sem internet, manifest e página 404.
+Os testes cobrem: registrar descarte, desfazer, atalhos de teclado e descartes automáticos no painel; placar atualizando em outra aba (telão e app), subida na lista e novo líder; zerar e cancelar, voltar ao exemplo; abrir com `?andar=7` (e a folha Pontuar abrindo sozinha), abas pelo endereço, folha abrindo e fechando (Esc, Concluir, voltar), escolher e trocar de andar, andar inexistente, contador pessoal e erro de carregamento no app; prédio em SVG sem WebGL e em 3D com WebGL; telão em `?estavel=1` sem desfoque, sem canvas e sem animação; linhas do sensor; demonstração, menu, links e revelação na rolagem da página inicial; rolagem horizontal; uso sem internet, manifest e página 404.
 
-Outras ferramentas: `node tools/auditoria.mjs` (contraste, foco, nomes e alvos de toque), `node tools/og.mjs` (imagem de compartilhamento) e `npm run icones` (ícones da PWA).
+Outras ferramentas: `node tools/auditoria.mjs` (contraste, foco, nomes e alvos de toque), `node tools/og.mjs` (imagem de compartilhamento), `npm run icones` (ícones da PWA) e `node tools/capturas-referencia.mjs` (capturas das telas aprovadas da pasta `referencia/`, que fica fora do git).
+
+## O prédio: 3D ou SVG
+
+O prédio é montado por `js/predio.js`. Primeiro aparece sempre o desenho em SVG, gerado para o número de andares dos dados. Depois, quando o prédio entra na tela, ele troca sozinho pelo 3D (`js/predio3d.js`, com Three.js) **somente se** todas estas condições valerem:
+
+- o navegador tem WebGL;
+- "reduzir movimento" está desligado no sistema;
+- a tela não está no modo estável (`?estavel=1`);
+- o 3D carregou sem erro e o primeiro segundo passou de 30 quadros por segundo.
+
+Qualquer falha volta para o SVG, sem mensagem. Os dois mostram a mesma coisa: o andar do morador (no app) ou o líder (no telão e no site) aceso, e um ponto de luz descendo pelo tubo certo a cada descarte. No app e no site dá para arrastar o prédio 3D para girar. Para ver o SVG de propósito, abra qualquer tela com `?svg=1`.
+
+## Modo estável do telão (`?estavel=1`)
+
+Para TVs que piscam com animação contínua (como a da escola): abra `.../telao/?estavel=1`. Nesse modo não há desfoque (o vidro vira cinza escuro opaco), não há WebGL (o prédio fica em SVG), a luz ambiente fica parada e os números trocam direto, sem contagem. As posições trocam com um corte seco, e a linha que pontuou fica 2 segundos um pouco mais clara. Combina com o sensor: `.../telao/?estavel=1&sensor=1`.
 
 ## Apresentar no dia
 
@@ -52,10 +69,11 @@ Outras ferramentas: `node tools/auditoria.mjs` (contraste, foco, nomes e alvos d
 
 ### Roteiro sugerido (2 minutos)
 
-1. **Site**: mostre o tobogã da abertura e role até "Escolha um andar e faça um descarte".
-2. **Telão**: registre 5 descartes no 7º andar (pelo sensor ou pelo painel). A cada um, a linha brilha e sobe o "+10". No quinto, o 7º andar (340 pontos) passa o 2º andar e sobe para 3º lugar.
-3. Registre 3 descartes no 8º andar: ele chega a 420 pontos, passa o 4º andar e aparece a celebração de **novo líder** com o prêmio do mês.
-4. **App**: no celular, encoste na etiqueta NFC (ou abra `.../app/?andar=7`). Mostre o destaque do andar e o "Pontue no seu nome".
+1. **Site**: mostre o prédio da abertura (os pontos de luz descendo pelos tubos) e role até "Escolha um andar e faça um descarte".
+2. **Telão**: registre 5 descartes no 7º andar (pelo sensor ou pelo painel). A cada um, o ponto de luz desce pelo tubo, o número conta e aparece um "+10" discreto. No quinto, o 7º andar (340 pontos) desliza para o 3º lugar.
+3. Registre 3 descartes no 8º andar: ele chega a 420 pontos, passa o 4º andar, acende no prédio e entra a folha de **novo líder** por 4 segundos.
+4. **App**: no celular, encoste na etiqueta NFC (ou abra `.../app/?andar=7`). A folha "Qual boca você usou?" abre sozinha; depois mostre as abas Início e Ranking.
+5. Se a TV piscar: troque para `.../telao/?estavel=1`.
 
 ### Atalhos do painel
 
@@ -76,6 +94,7 @@ O botão **Descartes automáticos** faz um descarte aleatório a cada 4 segundos
 | Placar bagunçado | Painel > **Voltar aos dados de exemplo**. |
 | Descarte errado | Painel > **Desfazer** (ou tecla `Z`). |
 | O telão não atualiza | Confira se o telão e o painel estão no mesmo navegador. Recarregar o telão não perde nada. |
+| A TV pisca ou o computador está lento | Abra o telão com `?estavel=1`. |
 
 ## Como o código está organizado
 
@@ -83,17 +102,19 @@ O botão **Descartes automáticos** faz um descarte aleatório a cada 4 segundos
 index.html            site
 app/ telao/ demo/     as três telas do sistema (cada uma com index.html)
 404.html              página de endereço inexistente
-css/base.css          tokens do DESIGN.md e componentes compartilhados
+css/base.css          variáveis do DESIGN.md e componentes compartilhados (vidro, botões, barra, linha do ranking)
 css/*.css             estilos de cada tela
 js/dados.js           módulo ÚNICO de dados (toda leitura e escrita passa por aqui)
-js/comum.js           peças de interface compartilhadas (formatação, avisos, animação FLIP, linha do ranking)
+js/comum.js           peças de interface compartilhadas (formatação, ícones, avisos, animação FLIP, linha do ranking)
+js/predio.js          o prédio em SVG e a escolha entre SVG e 3D
+js/predio3d.js        o prédio em 3D (Three.js)
 js/app.js telao.js demo.js site.js   uma por tela
 js/serial.js          leitura do sensor pela Web Serial
 js/pwa.js  sw.js      instalação e uso offline
-js/vendor/            GSAP 3.15 copiado para dentro do projeto
-fonts/                Rubik e Nunito Sans (woff2, licença OFL)
+js/vendor/            GSAP 3.15 e Three.js 0.180 copiados para dentro do projeto
+fonts/                Geist (texto) e Rubik (só o logo), woff2 com licença OFL
 data/edificio-exemplo.json   prédio, prêmio e contagens de exemplo
-docs/                 sensor, ESP32 e etiqueta NFC
+docs/                 sensor, ESP32, etiqueta NFC e capturas do redesign (docs/redesign/)
 tests/                testes Playwright
 tools/                servidor local, capturas e gerador de ícones
 ```
@@ -117,6 +138,6 @@ Veja `PENDENCIAS.md` para os comandos exatos. Depois de publicado:
 
 ## Créditos e licenças
 
-- Fontes [Rubik](https://fonts.google.com/specimen/Rubik) e [Nunito Sans](https://fonts.google.com/specimen/Nunito+Sans), licença SIL Open Font License 1.1 (`fonts/`).
-- [GSAP](https://gsap.com) 3.15, licença "Standard No Charge" (`js/vendor/LEIA-ME.md`).
+- Fontes [Geist](https://vercel.com/font) e [Rubik](https://fonts.google.com/specimen/Rubik), licença SIL Open Font License 1.1 (`fonts/`).
+- [GSAP](https://gsap.com) 3.15, licença "Standard No Charge", e [Three.js](https://threejs.org) 0.180, licença MIT (`js/vendor/LEIA-ME.md`).
 - Identidade visual: `DESIGN.md`. O logo é provisório: o ponto verde antes do nome.

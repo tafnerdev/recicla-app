@@ -49,3 +49,18 @@ Conferir teclado, foco visível, "reduzir movimento", contraste AA, rolagem hori
 - [x] Conferir `gh auth status` (gh não instalado, sem login)
 - [x] Publicar no GitHub Pages ou deixar os comandos em `PENDENCIAS.md` (comandos deixados)
 - [x] `RESUMO.md`
+
+## 9. Redesign "vidro, luz e letra fina" (prompt.md, branch `redesign`)
+- [x] 1. Preparação: branch, capturas de antes e das referências, DESIGN.md novo
+- [x] 2. Base: Geist, variáveis, componentes e luz ambiente
+- [x] 3. Prédio em SVG (`js/predio.js`)
+- [x] 4. App: abas, barra de vidro, folha Pontuar, folha de andar e estados
+- [x] 5. Telão: layout novo, novo líder, modo estável e TV em pé
+- [x] 6. Site: abertura e todas as seções
+- [x] 7. Painel e 404
+- [x] 8. Prédio em 3D (`js/predio3d.js`) com quedas para o SVG
+- [x] 9. Refração do vidro (bônus): testada e desligada
+- [x] 10. PWA, testes e auditoria
+- [x] 11. Polimento: três ciclos seguidos sem nada relevante
+- [x] 12. Documentação e `RESUMO-REDESIGN.md`
+- [x] 13. Publicação: `gh` ausente; comandos em `PENDENCIAS.md`

@@ -4,11 +4,18 @@ Tudo aqui depende de você. Em cada item eu escolhi a opção mais segura e segu
 
 ## 1. Publicar no GitHub Pages (não foi feito)
 
-Conferi com `gh auth status`: o **GitHub CLI (`gh`) não está instalado** neste PC, então não há login no GitHub. Como combinado, não tentei autenticar nem publicar. O código está pronto, testado e com todos os commits no ramo `main` desta pasta.
+Conferi de novo com `gh auth status` no fim do redesign (16/11): o **GitHub CLI (`gh`) continua não instalado** neste PC, então não há login no GitHub. Como combinado, não tentei autenticar nem publicar.
+
+O visual novo está na branch **`redesign`** (pronta, testada, com um commit por etapa). A `main` ainda tem o visual antigo. O passo 0 abaixo junta as duas.
 
 Rode no **PowerShell**, um bloco de cada vez:
 
 ```powershell
+# 0. Juntar o redesign na main (a main só avança; nada se perde)
+cd "C:\caminho\da\pasta\Recicla Slide"
+git checkout main
+git merge --ff-only redesign
+
 # 1. Instalar o GitHub CLI (só na primeira vez). Depois feche e abra o PowerShell.
 winget install --id GitHub.cli -e
 
@@ -28,7 +35,7 @@ gh api "repos/{owner}/{repo}/pages" --jq .html_url
 
 Depois, abra e confira as quatro telas: `.../recicla-app/`, `.../recicla-app/app/?andar=7`, `.../recicla-app/telao/` e `.../recicla-app/demo/`.
 
-**Sem instalar o `gh`:** crie em github.com um repositório público chamado `recicla-app`, **sem** README. Depois rode:
+**Sem instalar o `gh`:** faça o passo 0 acima, crie em github.com um repositório público chamado `recicla-app`, **sem** README, e rode:
 
 ```powershell
 cd "C:\caminho\da\pasta\Recicla Slide"
@@ -85,3 +92,18 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
 
 - A skill `review-animations` citada no pedido não existe em `.claude/skills` nem entre as skills instaladas neste PC. Para revisar as animações usei a `emilkowalski-motion`, as skills de GSAP e uma revisão quadro a quadro do telão e da abertura (registrada no `DIARIO.md`).
 - Dependências: só o Playwright (desenvolvimento) e o GSAP copiado para `js/vendor/`. As fontes foram baixadas uma vez do Google Fonts e ficam no projeto.
+
+## 6. Redesign (vidro, luz e letra fina)
+
+1. **Textos novos que a estrutura nova pediu.** Mantive todos os textos de antes. Entraram só estes, porque as telas novas precisavam deles:
+   - App sem andar escolhido: "Escolha o seu andar para ver os pontos dele e pontuar no seu nome." e o botão "Escolher meu andar".
+   - App: botão "Instalar o app" (antes "Instalar"), agora no fim da aba Ranking.
+   - Demonstração do site: "+10 para o andar" embaixo de "Reciclável" e "Orgânico" (na folha do app é "+10 no seu nome", como na referência).
+   - 404: "Esse andar não existe." (pedido no prompt), "O endereço pode ter sido digitado errado. Volte ao início ou escolha uma das telas." e "Voltar ao início".
+   - Ranking do app: "279 descartes no prédio. Cada um vale 10 pontos." (da referência).
+   - A folha Pontuar não mostra mais o número "Desde o início" (a referência mostra só os pontos do mês e os descartes). O dado continua guardado no aparelho.
+2. **Barra de proporção no Início do app.** Lá ela mostra a divisão do próprio andar (reciclável e orgânico somando 100%), como na referência. No ranking, no telão e no site ela segue a regra do prompt (descartes do tipo divididos pelo total de descartes do líder).
+3. **Painel e o limite de quatro vidros.** O painel tem 20 botões de vidro (seção 7.4 do prompt). Para respeitar o limite de vidros visíveis, os botões têm a aparência de vidro, mas sem desfoque (`backdrop-filter`).
+4. **Three.js fixo na versão 0.180.0.** As versões a partir da 0.187 não trazem mais o arquivo minificado `three.module.min.js` que o prompt pede.
+5. **Prédio 3D testado no Chrome deste PC** (WebGL ligado, cerca de 175 quadros por segundo). Abra o telão no computador do palco antes do dia. Se ficar lento, ele volta sozinho para o SVG, e `?estavel=1` desliga o 3D de vez.
+6. **Telão sem "Últimos descartes" e sem o cartão "Na frente"**, como pedido: o prédio e a lista contam isso.

@@ -56,3 +56,5 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 10:38 | Redesign, polimento ciclo 7: todas as telas em 768 px conferidas. Nada relevante; ciclo limpo 1 de 3. |
 | 16/11 10:38 | Redesign, polimento ciclo 8: "reduzir movimento" em execução (prédio em SVG parado, sem canvas, sem animação, conteúdo visível, novo líder parado). Ciclo limpo 2 de 3. |
 | 16/11 10:38 | Redesign, polimento ciclo 9: cada teste repetido 3 vezes, 99 de 99. Ciclo limpo 3 de 3: polimento do redesign encerrado. |
+| 16/11 10:39 | Redesign etapa 12: README (visual novo, 3D ou SVG, modo estável, roteiro do palco), PENDENCIAS (passo de juntar a branch redesign na main e decisões do redesign) e capturas de antes, depois e referência em docs/redesign/. |
+| 16/11 10:40 | Redesign etapa 13: `gh auth status` de novo, `gh` continua não instalado. Não tentei autenticar; comandos (inclusive juntar a branch redesign na main) em PENDENCIAS.md. RESUMO-REDESIGN.md escrito. |
