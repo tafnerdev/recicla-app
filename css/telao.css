@@ -468,7 +468,13 @@
 .t-erro .botao {
   min-height: 72px;
   padding: 0 40px;
+  gap: 14px;
   font-size: 28px;
+}
+
+.t-erro .botao svg {
+  width: 28px;
+  height: 28px;
 }
 
 /* Sem dados (erro ao carregar): o aviso ocupa a largura toda */

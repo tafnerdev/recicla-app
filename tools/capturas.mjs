@@ -130,6 +130,7 @@ const CAPTURAS = [
   },
   // Abas e folha do app, no tamanho das referências (o ?andar=7 grava o andar e depois a aba abre sem ele)
   { nome: 'app-inicio', url: 'app/?andar=7', tamanhos: [CELULAR], inteira: false, preparar: (page) => page.goto(`${BASE}app/#inicio`) },
+  { nome: 'app-ranking-vazio', url: 'app/?andar=7', tamanhos: [CELULAR], inteira: false, preparar: async (page) => { await zerar(page); await page.goto(`${BASE}app/#ranking`); } },
   { nome: 'app-ranking', url: 'app/?andar=7', tamanhos: [CELULAR], inteira: false, preparar: (page) => page.goto(`${BASE}app/#ranking`) },
   { nome: 'app-pontuar', url: 'app/?andar=7', tamanhos: [CELULAR], inteira: false, preparar: (page) => page.goto(`${BASE}app/#pontuar`) },
   { nome: 'app', url: 'app/?andar=7', tamanhos: [CELULAR, TABLET, COMPUTADOR], inteira: true },
