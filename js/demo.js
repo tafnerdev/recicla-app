@@ -121,7 +121,7 @@ function renderizar() {
     const cartao = estado.cartoes.get(item.andar);
     if (!cartao) continue;
     cartao.dataset.posicao = String(item.posicao ?? '');
-    cartao.querySelector('.d-andar__posicao').textContent = item.posicao ? `${ordinal(item.posicao)} lugar` : 'sem pontos';
+    cartao.querySelector('.d-andar__posicao').textContent = item.posicao ? `${ordinal(item.posicao)} lugar` : '';
     cartao.querySelector('.d-andar__pontos .numero').textContent = formatarNumero(item.pontos);
   }
   $('d-vazio').hidden = totais.pontos !== 0;
