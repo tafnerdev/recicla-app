@@ -310,10 +310,15 @@ export function animarNumero(elemento, para, opcoes = {}) {
 export function pulsar(elemento, quadros, opcoes = {}) {
   if (!elemento || reduzMovimento()) return null;
   for (const a of elemento.getAnimations()) if (a.id === opcoes.id) a.cancel();
-  const animacao = elemento.animate(quadros, {
+  const curva = opcoes.easing ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
+  // Com mais de dois quadros, a curva vale para cada trecho, e não para o todo:
+  // senão as pausas no meio da animação ficam distorcidas (o fim chega cedo).
+  const variosQuadros = quadros.length > 2;
+  const lista = variosQuadros ? quadros.map((q) => ({ easing: curva, ...q })) : quadros;
+  const animacao = elemento.animate(lista, {
     duration: 600,
-    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
     ...opcoes,
+    easing: variosQuadros ? 'linear' : curva,
   });
   if (opcoes.id) animacao.id = opcoes.id;
   return animacao;
