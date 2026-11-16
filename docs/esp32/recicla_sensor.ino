@@ -3,7 +3,8 @@
   ======================================================
 
   O que faz
-    Cada boca da lixeira tem um sensor. Quando algo passa pela boca, o ESP32
+    Neste exemplo, a lixeira usa um sensor simples em cada boca (é o jeito mais
+    barato de saber o tipo do descarte). Quando algo passa pela boca, o ESP32
     manda uma linha pela USB (porta serial) para o telão:
       R,7   descarte reciclável no 7º andar
       O,7   descarte orgânico no 7º andar

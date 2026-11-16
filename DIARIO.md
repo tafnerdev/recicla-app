@@ -22,3 +22,4 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 07:45 | Polimento ciclo 4: diálogo de confirmação centralizado no celular (bug do reset de margem), texto do diálogo de zerar, texto do app depois de pontuar, capturas de estados e conferência do caminho dos itens no tobogã. |
 | 16/11 07:45 | Polimento ciclo 5: revisão de código (sem imports sobrando nem console.log), nome acessível "Trocar de andar", teste dos descartes automáticos (23 testes) e peso das páginas (165 a 342 KB sem compressão). |
 | 16/11 07:47 | Polimento ciclo 6: telão em TV em pé (1080x1920) com líder, feed e totais empilhados e feed de altura fixa para o ranking não pular; seções do site conferidas no tablet. |
+| 16/11 07:48 | Polimento ciclo 7: validação de ids, referências ARIA, âncoras e links internos (sem problemas); tirado o "sem pontos" repetido nos cartões do painel zerado. |
