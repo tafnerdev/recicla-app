@@ -1,30 +1,35 @@
 /**
  * Recicla Slide: app do morador (/app).
+ * Duas abas (#inicio, #ranking) e a folha "Pontuar" (#pontuar), no mesmo arquivo.
  * O andar vem pela URL (?andar=7, o link da etiqueta NFC) ou fica guardado no aparelho.
  */
 import * as dados from './dados.js';
 import {
   animarNumero,
+  ajustarBarra,
   atualizarLinhaRanking,
-  criarLinhaRanking,
   avisar,
   confirmar,
+  criarLinhaRanking,
   el,
   formatarNumero,
   icone,
+  marcarDescarte,
   mostrarEstado,
   nomeAndar,
   nomeMes,
   ordinal,
   prepararAvisos,
   pulsar,
-  reduzMovimento,
   reordenarComAnimacao,
   rotuloDescartes,
   rotuloPontos,
+  semMovimento,
   tempoRelativo,
   textoErroCarregar,
+  vibrar,
 } from './comum.js';
+import { montarPredio } from './predio.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -34,8 +39,10 @@ const estado = {
   pessoal: null,
   meuAndar: null,
   vindoDaEtiqueta: false,
-  escolhendo: false,
+  aba: 'inicio',
+  empilhouFolha: false,
   linhas: new Map(),
+  predio: null,
 };
 
 const mes = nomeMes();
@@ -65,16 +72,30 @@ async function iniciar() {
   const alerta = await resolverAndar();
   preencherTextosFixos();
   montarEscolha();
+  estado.predio = montarPredio($('predio'), {
+    andares: estado.edificio.andares,
+    aceso: estado.meuAndar,
+    lider: liderUnico()?.andar ?? null,
+    modo: 'morador',
+    rotulos: true,
+    pontos: 'app',
+    interativo: true,
+    largura: null,
+  });
   renderizar({ animar: false });
   renderizarPessoal(false);
   ligarEventos();
 
   $('carregando').hidden = true;
-  const painel = $('painel');
-  painel.hidden = false;
-  painel.classList.add('entrou');
+  aplicarRota({ entrada: true });
 
   if (!estado.meuAndar || alerta) abrirEscolha(alerta);
+  else if (estado.vindoDaEtiqueta && location.hash !== '#pontuar') {
+    // Quem encostou na etiqueta: a folha abre sozinha.
+    setTimeout(() => {
+      if (!document.querySelector('dialog[open]')) location.hash = 'pontuar';
+    }, 600);
+  }
 
   dados.aoMudar(aoMudarPlacar);
   dados.aoMudarPessoal((pessoal) => {
@@ -104,15 +125,11 @@ function preencherTextosFixos() {
   const { edificio } = estado;
   $('nome-predio').textContent = edificio.nome;
   $('ranking-mes').textContent = mes;
-  $('premio-mes').textContent = mes;
   $('destaque-unidade').textContent = `pontos em ${mes}`;
-  $('pessoal-rotulo-mes').textContent = `Seus pontos em ${mes}`;
-  const { reciclavel, organico } = edificio.pontosPorDescarte;
-  $('regra-pontos').textContent =
-    reciclavel === organico
-      ? `Cada descarte vale ${reciclavel} pontos`
-      : `Reciclável vale ${reciclavel} e orgânico vale ${organico} pontos`;
-  $('destaque-mais').textContent = `+${reciclavel}`;
+  $('pessoal-rotulo-mes').textContent = `seus pontos em ${mes}`;
+  for (const botao of document.querySelectorAll('.pontuar__botoes .botao-tipo')) {
+    botao.querySelector('[data-mais]').textContent = `+${edificio.pontosPorDescarte[botao.dataset.tipo]} no seu nome`;
+  }
 }
 
 function mostrarErro(erro) {
@@ -124,6 +141,92 @@ function mostrarErro(erro) {
     titulo: 'Não deu para abrir o placar',
     texto: textoErroCarregar(erro),
     acao: { rotulo: 'Tentar de novo', icone: 'atualizar', aoClicar: () => location.reload() },
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Abas e folha pelo endereço (#inicio, #ranking, #pontuar)            */
+/* ------------------------------------------------------------------ */
+
+function lerRota() {
+  const h = location.hash.replace('#', '');
+  if (h === 'ranking') return { aba: 'ranking', folha: false };
+  if (h === 'pontuar') return { aba: estado.aba, folha: true };
+  return { aba: 'inicio', folha: false };
+}
+
+function mostrarAba(aba, entrada) {
+  const mudou = aba !== estado.aba || entrada;
+  estado.aba = aba;
+  document.body.dataset.aba = aba;
+  for (const nome of ['inicio', 'ranking']) {
+    const secao = $(`aba-${nome}`);
+    secao.hidden = nome !== aba;
+    if (nome === aba && mudou) {
+      secao.classList.remove('entrou');
+      void secao.offsetWidth; // reinicia a entrada
+      secao.classList.add('entrou');
+    }
+  }
+  for (const item of document.querySelectorAll('.a-barra__item[data-aba]')) {
+    if (item.dataset.aba === aba) item.setAttribute('aria-current', 'page');
+    else item.removeAttribute('aria-current');
+  }
+  if (mudou && !entrada) scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function aplicarRota({ entrada = false, vindoDeDentro = false } = {}) {
+  const { aba, folha } = lerRota();
+  mostrarAba(aba, entrada);
+  const folhaPontuar = $('folha-pontuar');
+  if (folha && estado.meuAndar) {
+    if (!folhaPontuar.open) {
+      estado.empilhouFolha = vindoDeDentro;
+      abrirFolha(folhaPontuar);
+    }
+  } else if (folhaPontuar.open) {
+    fecharFolha(folhaPontuar, () => $('nav-pontuar').focus());
+  }
+}
+
+/** Fecha a folha Pontuar pelo botão, Esc ou toque no fundo, mantendo o histórico coerente. */
+function pedirFechamentoPontuar() {
+  if (estado.empilhouFolha) {
+    estado.empilhouFolha = false;
+    history.back(); // o hashchange fecha a folha
+  } else {
+    history.replaceState(null, '', `${location.pathname}${location.search}#${estado.aba}`);
+    fecharFolha($('folha-pontuar'), () => $('nav-pontuar').focus());
+  }
+}
+
+function abrirFolha(folha) {
+  folha.classList.remove('fechando');
+  if (!folha.open) folha.showModal();
+}
+
+function fecharFolha(folha, depois) {
+  if (!folha.open || folha.classList.contains('fechando')) return;
+  const terminar = () => {
+    folha.classList.remove('fechando');
+    folha.close();
+    depois?.();
+  };
+  if (semMovimento()) {
+    terminar();
+    return;
+  }
+  folha.classList.add('fechando');
+  setTimeout(terminar, 220);
+}
+
+/** Clique no fundo escurecido (fora da folha) fecha. */
+function aoClicarFora(folha, fechar) {
+  folha.addEventListener('click', (e) => {
+    if (e.target !== folha) return;
+    const r = folha.getBoundingClientRect();
+    const fora = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    if (fora) fechar();
   });
 }
 
@@ -147,15 +250,13 @@ function montarEscolha() {
             'aria-label': nomeAndar(andar),
             onclick: () => escolherAndar(andar),
           },
-          el('span', { class: 'numero' }, andar === 0 ? 'T' : ordinal(andar)),
-          el('small', {}, andar === 0 ? 'térreo' : 'andar'),
+          andar === 0 ? 'T' : ordinal(andar),
         ),
       ),
   );
 }
 
 function abrirEscolha(alerta = null) {
-  estado.escolhendo = true;
   const aviso = $('escolher-alerta');
   aviso.hidden = !alerta;
   aviso.textContent = alerta ?? '';
@@ -163,19 +264,19 @@ function abrirEscolha(alerta = null) {
     botao.setAttribute('aria-pressed', String(Number(botao.dataset.andar) === estado.meuAndar));
   }
   $('escolher-cancelar').hidden = !estado.meuAndar;
-  $('escolher').hidden = false;
-  $('destaque').hidden = true;
-  $('pontuar').hidden = true;
+  const folha = $('escolher');
+  abrirFolha(folha);
   const titulo = $('escolher-titulo');
   titulo.tabIndex = -1;
-  titulo.focus({ preventScroll: false });
+  titulo.focus({ preventScroll: true });
 }
 
-function fecharEscolha() {
-  estado.escolhendo = false;
-  $('escolher').hidden = true;
-  renderizar({ animar: false });
-  renderizarPessoal(false);
+function fecharEscolha(depois) {
+  fecharFolha($('escolher'), () => {
+    renderizar({ animar: false });
+    renderizarPessoal(false);
+    depois?.();
+  });
 }
 
 async function escolherAndar(andar) {
@@ -185,10 +286,14 @@ async function escolherAndar(andar) {
     url.searchParams.set('andar', String(andar));
     history.replaceState(null, '', url);
   }
-  fecharEscolha();
-  const titulo = $('destaque-titulo');
-  titulo.tabIndex = -1;
-  titulo.focus();
+  if (estado.aba !== 'inicio') location.hash = 'inicio';
+  renderizar({ animar: false });
+  renderizarPessoal(false);
+  fecharEscolha(() => {
+    const titulo = $('destaque-titulo');
+    titulo.tabIndex = -1;
+    titulo.focus();
+  });
   avisar(`Pronto. Este aparelho agora mostra o ${nomeAndar(andar)}.`);
 }
 
@@ -198,6 +303,11 @@ async function escolherAndar(andar) {
 
 function itemDoAndar(andar, placar = estado.placar) {
   return placar.ranking.find((i) => i.andar === andar) ?? null;
+}
+
+function liderUnico(placar = estado.placar) {
+  const primeiros = placar?.ranking.filter((i) => i.posicao === 1) ?? [];
+  return primeiros.length === 1 ? primeiros[0] : null;
 }
 
 function pontosPorDescarte() {
@@ -210,21 +320,27 @@ function renderizar({ animar }) {
   renderizarDestaque(animar);
   renderizarPremio();
   atualizarHora();
+  estado.predio?.atualizar({ aceso: estado.meuAndar, lider: liderUnico()?.andar ?? null });
 }
 
 function renderizarDestaque(animar) {
-  const destaque = $('destaque');
   const andar = estado.meuAndar;
-  if (!andar || estado.escolhendo) {
-    destaque.hidden = true;
+  const chip = $('trocar-andar');
+  $('destaque').hidden = !andar;
+  $('sem-andar').hidden = Boolean(andar);
+  if (!andar) {
+    chip.hidden = true;
+    $('destaque-andar').textContent = 'nenhum';
     return;
   }
-  destaque.hidden = false;
+  chip.hidden = false;
+  $('chip-andar').textContent = nomeAndar(andar);
+  chip.setAttribute('aria-label', `Trocar de andar. Andar atual: ${ordinal(andar)}`);
+  $('destaque-andar').textContent = nomeAndar(andar);
+
   const { ranking, totais } = estado.placar;
   const item = itemDoAndar(andar);
 
-  $('destaque-andar').textContent = andar === 0 ? 'Térreo' : ordinal(andar);
-  $('destaque-titulo').lastChild.textContent = andar === 0 ? '' : ' andar';
   if (animar) animarNumero($('destaque-pontos'), item.pontos);
   else {
     $('destaque-pontos').dataset.valor = String(item.pontos);
@@ -232,6 +348,8 @@ function renderizarDestaque(animar) {
   }
   $('destaque-r').textContent = formatarNumero(item.reciclavel);
   $('destaque-o').textContent = formatarNumero(item.organico);
+  const descartes = item.reciclavel + item.organico;
+  ajustarBarra($('destaque-barra'), descartes ? item.reciclavel / descartes : 0, descartes ? item.organico / descartes : 0);
 
   const posicao = $('destaque-posicao');
   const meta = $('destaque-meta');
@@ -252,7 +370,7 @@ function renderizarDestaque(animar) {
   } else if (item.posicao === 1) {
     posicao.innerHTML = `${lugar}. Seu andar está na frente do prédio.`;
   } else {
-    posicao.innerHTML = `${lugar} entre ${ranking.length} andares.`;
+    posicao.innerHTML = `${lugar} entre ${ranking.length} andares`;
   }
 
   if (item.posicao === 1 && !empatados.length) {
@@ -284,15 +402,16 @@ function renderizarRanking(animar) {
   const lista = $('ranking-lista');
   const vazio = $('ranking-vazio');
   const { ranking, totais } = estado.placar;
-
-  $('ranking-total').textContent = totais.descartes ? `${rotuloDescartes(totais.descartes)} no prédio` : '';
+  const { reciclavel, organico } = estado.edificio.pontosPorDescarte;
+  const regra = reciclavel === organico ? `Cada um vale ${reciclavel} pontos.` : `Reciclável vale ${reciclavel} e orgânico vale ${organico} pontos.`;
+  $('ranking-total').textContent = `${rotuloDescartes(totais.descartes)} no prédio. ${regra}`;
 
   if (totais.pontos === 0) {
     lista.hidden = true;
     vazio.hidden = false;
     mostrarEstado(vazio, {
       tipo: 'vazio',
-      nivel: 'h3',
+      nivel: 'h2',
       icone: 'lixeira',
       titulo: 'Placar zerado',
       texto: `Ninguém descartou ainda em ${mes}. O primeiro descarte coloca o andar na frente.`,
@@ -302,14 +421,15 @@ function renderizarRanking(animar) {
   lista.hidden = false;
   vazio.hidden = true;
 
-  const maximo = Math.max(1, ...ranking.map((i) => i.pontos));
+  const lider = ranking[0];
+  const totalLider = lider.reciclavel + lider.organico;
   const linhas = ranking.map((item) => {
     let linha = estado.linhas.get(item.andar);
     if (!linha) {
       linha = criarLinhaRanking(item.andar);
       estado.linhas.set(item.andar, linha);
     }
-    atualizarLinhaRanking(linha, item, { maximo, animar, minha: item.andar === estado.meuAndar });
+    atualizarLinhaRanking(linha, item, { totalLider, animar, minha: item.andar === estado.meuAndar });
     return linha;
   });
 
@@ -320,32 +440,9 @@ function renderizarRanking(animar) {
 function renderizarPremio() {
   const { premio } = estado.edificio;
   const caixa = $('premio');
-  if (!premio.titulo) {
-    caixa.hidden = true;
-    return;
-  }
-  caixa.hidden = false;
+  caixa.hidden = !premio.titulo;
   $('premio-nome').textContent = premio.titulo;
-  $('premio-descricao').textContent = premio.descricao;
   $('premio-exemplo').hidden = !premio.exemplo;
-
-  const { ranking, totais } = estado.placar;
-  const hoje = new Date();
-  const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
-  const fecha = `O mês fecha em ${ultimoDia} de ${mes}.`;
-  const lider = $('premio-lider');
-  if (totais.pontos === 0) {
-    lider.textContent = `Nenhum andar pontuou ainda. ${fecha}`;
-    return;
-  }
-  const primeiros = ranking.filter((i) => i.posicao === 1);
-  if (primeiros.length > 1) {
-    lider.innerHTML = `Hoje, empatados na frente: <strong>${primeiros.map((i) => ordinal(i.andar)).join(' e ')} andares</strong>. ${fecha}`;
-  } else {
-    const [primeiro] = primeiros;
-    const eu = primeiro.andar === estado.meuAndar;
-    lider.innerHTML = `Hoje na frente: <strong>${eu ? 'o seu andar' : `o ${nomeAndar(primeiro.andar)}`}</strong>, com ${rotuloPontos(primeiro.pontos)}. ${fecha}`;
-  }
 }
 
 function atualizarHora() {
@@ -363,29 +460,21 @@ function aoMudarPlacar(placar) {
   if (!evento) return;
 
   if (evento.tipo === 'descarte') {
-    const brilho = estado.linhas.get(evento.andar)?.querySelector('.linha__brilho');
-    if (brilho) {
-      brilho.dataset.tipo = evento.descarte;
-      pulsar(brilho, [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 0 }], { duration: 1100, id: 'brilho' });
-    }
+    marcarDescarte(estado.linhas.get(evento.andar), evento.pontos);
+    estado.predio?.soltarLuz(evento.andar, evento.descarte);
 
-    if (evento.andar === estado.meuAndar && !$('destaque').hidden) {
+    if (evento.andar === estado.meuAndar) {
       const mais = $('destaque-mais');
       mais.textContent = `+${evento.pontos}`;
-      mais.style.color = evento.descarte === 'organico' ? 'var(--laranja)' : 'var(--verde-claro)';
-      pulsar(
-        mais,
-        [
-          { opacity: 0, transform: 'translateY(8px) scale(0.8)' },
-          { opacity: 1, transform: 'translateY(-14px) scale(1.05)', offset: 0.35 },
-          { opacity: 0, transform: 'translateY(-34px) scale(1)' },
-        ],
-        { duration: 1100, id: 'mais' },
-      );
-      if (reduzMovimento()) {
+      if (semMovimento()) {
         mais.style.opacity = '1';
         clearTimeout(estado.relogioMais);
-        estado.relogioMais = setTimeout(() => (mais.style.opacity = ''), 1600);
+        estado.relogioMais = setTimeout(() => (mais.style.opacity = ''), 1200);
+      } else {
+        pulsar(mais, [{ opacity: 0 }, { opacity: 1, offset: 0.12 }, { opacity: 1, offset: 0.7 }, { opacity: 0 }], {
+          duration: 1600,
+          id: 'mais',
+        });
       }
       const depois = itemDoAndar(estado.meuAndar);
       if (antes?.posicao && depois?.posicao && depois.posicao < antes.posicao) {
@@ -404,52 +493,46 @@ function aoMudarPlacar(placar) {
 /* ------------------------------------------------------------------ */
 
 function renderizarPessoal(animar) {
-  const caixa = $('pontuar');
-  if (!estado.meuAndar || estado.escolhendo) {
-    caixa.hidden = true;
-    return;
-  }
-  caixa.hidden = false;
-  caixa.classList.toggle('vindo-da-etiqueta', estado.vindoDaEtiqueta);
-  $('pontuar-texto').textContent = estado.vindoDaEtiqueta
-    ? `Você encostou na etiqueta do ${nomeAndar(estado.meuAndar)}. Qual boca você usou?`
-    : 'Encostou o celular na etiqueta da lixeira? Toque na boca que você usou.';
+  if (estado.meuAndar) $('pontuar-texto').textContent = `Etiqueta do ${nomeAndar(estado.meuAndar)}`;
 
-  const { nome, mes: doMes, total } = estado.pessoal;
+  const { nome, mes: doMes } = estado.pessoal;
   const ola = $('pontuar-ola');
   ola.hidden = !nome;
   ola.textContent = nome ? `Olá, ${nome}.` : '';
   const campo = $('campo-nome');
   if (document.activeElement !== campo) campo.value = nome;
 
-  const valorMes = $('pessoal-mes');
-  if (animar) animarNumero(valorMes, doMes.pontos);
-  else {
-    valorMes.dataset.valor = String(doMes.pontos);
-    valorMes.textContent = formatarNumero(doMes.pontos);
+  for (const [id, valor] of [['pessoal-mes', doMes.pontos], ['pessoal-descartes', doMes.descartes]]) {
+    const no = $(id);
+    if (animar) animarNumero(no, valor);
+    else {
+      no.dataset.valor = String(valor);
+      no.textContent = formatarNumero(valor);
+    }
   }
-  $('pessoal-descartes').textContent = formatarNumero(doMes.descartes);
-  $('pessoal-total').textContent = formatarNumero(total.pontos);
 }
 
 async function pontuarPessoal(tipo, botao) {
-  const botoes = document.querySelectorAll('.pontuar__botoes .botao');
+  const botoes = document.querySelectorAll('.pontuar__botoes .botao-tipo');
   for (const b of botoes) b.disabled = true;
   const vinhaDaEtiqueta = estado.vindoDaEtiqueta;
-  // Já pontuou pela etiqueta: o texto volta ao normal e um recarregamento não sugere de novo.
+  // Já pontuou pela etiqueta: um recarregamento não deve sugerir de novo.
   estado.vindoDaEtiqueta = false;
   try {
     const resumo = await dados.registrarDescartePessoal(tipo, estado.meuAndar);
     estado.pessoal = resumo;
     renderizarPessoal(true);
+    vibrar();
     const pontos = estado.edificio.pontosPorDescarte[tipo];
     avisar(`+${pontos} pontos no seu nome (${tipo === 'organico' ? 'orgânico' : 'reciclável'}). Obrigado por separar.`);
-    pulsar(botao, [{ transform: 'scale(1)' }, { transform: 'scale(1.04)' }, { transform: 'scale(1)' }], { duration: 420, id: 'toque' });
+    pulsar(botao.querySelector('.botao-tipo__brilho'), [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 0 }], {
+      duration: 1100,
+      id: 'brilho',
+    });
     if (vinhaDaEtiqueta) {
       const url = new URL(location.href);
       url.searchParams.delete('andar');
-      history.replaceState(null, '', url);
-      $('pontuar').classList.remove('vindo-da-etiqueta');
+      history.replaceState(history.state, '', url);
     }
   } catch (erro) {
     console.error(erro);
@@ -467,16 +550,39 @@ async function pontuarPessoal(tipo, botao) {
 /* ------------------------------------------------------------------ */
 
 function ligarEventos() {
-  $('trocar-andar').addEventListener('click', () => abrirEscolha());
-  $('escolher-cancelar').addEventListener('click', () => {
-    fecharEscolha();
-    $('trocar-andar').focus();
-  });
+  addEventListener('hashchange', () => aplicarRota({ vindoDeDentro: true }));
 
-  for (const botao of document.querySelectorAll('.pontuar__botoes .botao')) {
+  // Folha Pontuar
+  const folhaPontuar = $('folha-pontuar');
+  folhaPontuar.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    pedirFechamentoPontuar();
+  });
+  aoClicarFora(folhaPontuar, pedirFechamentoPontuar);
+  $('concluir').addEventListener('click', pedirFechamentoPontuar);
+  $('nav-pontuar').addEventListener('click', (e) => {
+    if (!estado.meuAndar) {
+      e.preventDefault();
+      abrirEscolha();
+    }
+  });
+  for (const botao of document.querySelectorAll('.pontuar__botoes .botao-tipo')) {
     botao.addEventListener('click', () => pontuarPessoal(botao.dataset.tipo, botao));
   }
 
+  // Folha de escolher o andar
+  const folhaEscolher = $('escolher');
+  const fecharEscolhaSemTrocar = () => fecharEscolha(() => (estado.meuAndar ? $('trocar-andar') : $('escolher-andar-botao')).focus());
+  folhaEscolher.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    fecharEscolhaSemTrocar();
+  });
+  aoClicarFora(folhaEscolher, fecharEscolhaSemTrocar);
+  $('escolher-cancelar').addEventListener('click', fecharEscolhaSemTrocar);
+  $('trocar-andar').addEventListener('click', () => abrirEscolha());
+  $('escolher-andar-botao').addEventListener('click', () => abrirEscolha());
+
+  // Nome e dados
   $('form-nome').addEventListener('submit', async (e) => {
     e.preventDefault();
     const nome = $('campo-nome').value;

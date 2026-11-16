@@ -110,7 +110,7 @@ const CAPTURAS = [
     tamanhos: [CELULAR],
     inteira: false,
     depois: async (page) => {
-      await page.locator('.pontuar__botoes .botao').first().click();
+      await page.locator('.pontuar__botoes .botao-tipo').first().click();
       await page.locator('#pontuar').scrollIntoViewIfNeeded();
       await page.waitForTimeout(500);
     },
@@ -126,6 +126,10 @@ const CAPTURAS = [
       await page.waitForTimeout(300);
     },
   },
+  // Abas e folha do app, no tamanho das referências (o ?andar=7 grava o andar e depois a aba abre sem ele)
+  { nome: 'app-inicio', url: 'app/?andar=7', tamanhos: [CELULAR], inteira: false, preparar: (page) => page.goto(`${BASE}app/#inicio`) },
+  { nome: 'app-ranking', url: 'app/?andar=7', tamanhos: [CELULAR], inteira: false, preparar: (page) => page.goto(`${BASE}app/#ranking`) },
+  { nome: 'app-pontuar', url: 'app/?andar=7', tamanhos: [CELULAR], inteira: false, preparar: (page) => page.goto(`${BASE}app/#pontuar`) },
   { nome: 'app', url: 'app/?andar=7', tamanhos: [CELULAR, TABLET, COMPUTADOR], inteira: true },
   { nome: 'app-sem-andar', url: 'app/', tamanhos: [CELULAR, COMPUTADOR], inteira: true },
   { nome: 'app-andar-invalido', url: 'app/?andar=42', tamanhos: [CELULAR], inteira: true },

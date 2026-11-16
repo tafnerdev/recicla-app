@@ -143,8 +143,8 @@ test.describe('app do morador', () => {
     await expect(page.locator('#destaque-posicao')).toContainText('4º lugar');
     const minha = page.locator('.linha[aria-current="true"]');
     await expect(minha).toHaveAttribute('data-andar', '7');
-    await expect(minha).toContainText('Seu andar');
-    await expect(page.locator('#pontuar-texto')).toContainText('etiqueta do 7º andar');
+    await expect(minha).toContainText('você');
+    await expect(page.locator('#pontuar-texto')).toContainText('Etiqueta do 7º andar');
 
     // sem o parâmetro, o aparelho lembra do andar
     await page.goto('app/');
@@ -174,6 +174,52 @@ test.describe('app do morador', () => {
     await expect(page).toHaveURL(/andar=2/);
   });
 
+  test('as abas trocam pelo endereço e pelo botão voltar', async ({ page }) => {
+    await page.goto('app/?andar=7');
+    await page.goto('app/#ranking');
+    await expect(page.locator('#aba-ranking')).toBeVisible();
+    await expect(page.locator('#aba-inicio')).toBeHidden();
+    const barra = page.getByRole('navigation', { name: 'Principal' });
+    await expect(barra.getByRole('link', { name: 'Ranking' })).toHaveAttribute('aria-current', 'page');
+    await barra.getByRole('link', { name: 'Início' }).click();
+    await expect(page.locator('#aba-inicio')).toBeVisible();
+    await expect(page).toHaveURL(/#inicio$/);
+    await page.goBack();
+    await expect(page.locator('#aba-ranking')).toBeVisible();
+  });
+
+  test('a folha Pontuar abre pela barra e fecha com Esc, Concluir e voltar', async ({ page }) => {
+    await page.goto('app/?andar=7');
+    await page.goto('app/#inicio');
+    const folha = page.locator('#folha-pontuar');
+    const pontuar = page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Pontuar' });
+
+    await pontuar.click();
+    await expect(folha).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Qual boca você usou?' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(folha).toBeHidden();
+    await expect(page).not.toHaveURL(/#pontuar/);
+    await expect(pontuar).toBeFocused();
+
+    await pontuar.click();
+    await expect(folha).toBeVisible();
+    await page.getByRole('button', { name: 'Concluir' }).click();
+    await expect(folha).toBeHidden();
+
+    await pontuar.click();
+    await expect(folha).toBeVisible();
+    await page.goBack();
+    await expect(folha).toBeHidden();
+    await expect(page.locator('#aba-inicio')).toBeVisible();
+  });
+
+  test('com ?andar=7 (etiqueta NFC) a folha Pontuar abre sozinha', async ({ page }) => {
+    await page.goto('app/?andar=7');
+    await expect(page.locator('#folha-pontuar')).toBeVisible({ timeout: 3000 });
+    await expect(page).toHaveURL(/#pontuar$/);
+  });
+
   test('andar que não existe mostra aviso', async ({ page }) => {
     await page.goto('app/?andar=42');
     await expect(page.locator('#escolher-alerta')).toContainText('O 42º andar não existe no Edifício Exemplo');
@@ -186,7 +232,7 @@ test.describe('app do morador', () => {
     await expect(page.locator('#pessoal-descartes')).toHaveText('1');
     await expect(page.locator('#destaque-pontos')).toHaveText('290');
     // depois de pontuar pela etiqueta, o ?andar sai da URL
-    await expect(page).toHaveURL(/\/app\/$/);
+    await expect(page).not.toHaveURL(/andar=/);
 
     await page.locator('summary', { hasText: 'Seu nome e seus dados' }).click();
     await page.getByLabel('Seu nome ou apelido (opcional)').fill('Ana');

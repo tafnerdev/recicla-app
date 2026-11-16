@@ -600,6 +600,7 @@ ol[role='list'] {
 
 .barra {
   position: relative;
+  display: block;
   height: 4px;
   border-radius: 2px;
   background: var(--trilho);
@@ -715,6 +716,7 @@ button.chip--vidro:active {
 }
 
 .linha__corpo {
+  display: block;
   min-width: 0;
 }
 
