@@ -188,6 +188,12 @@ dd {
   text-wrap: pretty;
 }
 
+/* Nada de negrito 700 ou 800 fora do logo: ênfase é peso 500 */
+strong,
+b {
+  font-weight: 500;
+}
+
 ul[role='list'],
 ol[role='list'] {
   list-style: none;
