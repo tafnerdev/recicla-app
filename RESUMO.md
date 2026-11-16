@@ -4,16 +4,16 @@ Site e app web (PWA) do Recicla Slide, prontos para o demo day de 1º de dezembr
 
 ## Endereço publicado
 
-**Ainda não foi publicado.** O GitHub CLI (`gh`) não está instalado neste PC, então não há login no GitHub. Como combinado, não tentei autenticar. Os comandos exatos estão no item 1 do [PENDENCIAS.md](PENDENCIAS.md) e levam uns 5 minutos.
+**Publicado em 16/11** (veja o item 1 do PENDENCIAS.md). Na época deste resumo ainda não estava: O GitHub CLI (`gh`) não está instalado neste PC, então não há login no GitHub. Como combinado, não tentei autenticar. Os comandos exatos estão no item 1 do [PENDENCIAS.md](PENDENCIAS.md) e levam uns 5 minutos.
 
 Depois de publicado, os endereços serão:
 
 | Tela | Endereço |
 |---|---|
-| Site | `https://SEU-USUARIO.github.io/recicla-app/` |
-| App do morador | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=7` |
-| Telão | `https://SEU-USUARIO.github.io/recicla-app/telao/` |
-| Painel | `https://SEU-USUARIO.github.io/recicla-app/demo/` |
+| Site | `https://tafnerdev.github.io/recicla-app/` |
+| App do morador | `https://tafnerdev.github.io/recicla-app/app/?andar=7` |
+| Telão | `https://tafnerdev.github.io/recicla-app/telao/` |
+| Painel | `https://tafnerdev.github.io/recicla-app/demo/` |
 
 ## O que foi feito
 

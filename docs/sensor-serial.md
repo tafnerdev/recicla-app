@@ -23,7 +23,7 @@ O código que interpreta as linhas está em `js/serial.js` (`interpretarLinha`) 
 1. Grave o exemplo `docs/esp32/recicla_sensor.ino` no ESP32 (ou qualquer placa que mande as linhas acima).
 2. Ligue a placa no computador do telão com um cabo USB **de dados**.
 3. Abra o telão no **Chrome ou no Edge do computador** com `?sensor=1`:
-   - publicado: `https://SEU-USUARIO.github.io/recicla-app/telao/?sensor=1`
+   - publicado: `https://tafnerdev.github.io/recicla-app/telao/?sensor=1`
    - local: `http://localhost:8080/telao/?sensor=1` (com `npm run servir`)
 4. Clique em **Conectar sensor** e escolha a porta da placa. Ela costuma aparecer como "USB Serial", "CP210x" ou "CH340".
 5. O selo no topo muda para **Sensor conectado**. Cada descarte faz a linha do andar brilhar e subir no ranking.

@@ -10,7 +10,7 @@ Um registro do tipo **URL** com o endereço do app e o número do andar:
 https://tafnerdev.github.io/recicla-app/app/?andar=7
 ```
 
-Troque `tafnerdev` pelo usuário do GitHub onde o site foi publicado e `7` pelo andar da lixeira. Uma etiqueta por andar:
+Troque o `7` pelo andar da lixeira. Uma etiqueta por andar:
 
 | Andar | Endereço |
 |---|---|
