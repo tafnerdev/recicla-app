@@ -17,3 +17,9 @@ Tudo aqui depende de você. Em cada item eu escolhi a opção mais segura e segu
 
 4. **Prêmio do mês de exemplo.**
    "Noite da pizza no salão de festas" está em `data/edificio-exemplo.json`, marcado como exemplo. Troque pelo prêmio que vocês quiserem mostrar.
+
+5. **Imagem de compartilhamento (WhatsApp, LinkedIn).**
+   A imagem `icons/og-imagem.png` já existe. Depois de publicar, troque em `index.html` o `og:image` por um endereço completo, por exemplo `https://SEU-USUARIO.github.io/recicla-app/icons/og-imagem.png`. Sem `https://` no começo, o WhatsApp não mostra a imagem.
+
+6. **Prédio com mais de 10 andares.**
+   O telão mostra os 10 primeiros colocados, que é o que cabe legível a distância. O app e o painel mostram todos.

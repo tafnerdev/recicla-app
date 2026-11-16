@@ -52,6 +52,28 @@ function ligarMenu() {
   });
 }
 
+/** Marca no menu a seção que está na tela. */
+function ligarSecaoAtual() {
+  const links = [...document.querySelectorAll('.menu ul a[href^="#"]')];
+  const alvos = new Map(links.map((a) => [document.querySelector(a.getAttribute('href')), a]));
+  const heroi = document.querySelector('.heroi');
+  if (heroi) alvos.set(heroi, null);
+  const observador = new IntersectionObserver(
+    (entradas) => {
+      for (const entrada of entradas) {
+        if (!entrada.isIntersecting) continue;
+        const atual = alvos.get(entrada.target);
+        for (const link of links) {
+          if (link === atual) link.setAttribute('aria-current', 'true');
+          else link.removeAttribute('aria-current');
+        }
+      }
+    },
+    { rootMargin: '-45% 0px -50% 0px' },
+  );
+  for (const alvo of alvos.keys()) if (alvo) observador.observe(alvo);
+}
+
 /* ------------------------------------------------------------------ */
 /* Revelação na rolagem (ScrollTrigger)                                */
 /* ------------------------------------------------------------------ */
@@ -275,7 +297,7 @@ async function ligarDemoRanking() {
       return empatados ? `${nome} está empatado na frente, com ${rotuloPontos(item.pontos)}.` : `${nome} está na frente, com ${rotuloPontos(item.pontos)}.`;
     }
     const faltam = Math.ceil((acima.pontos - item.pontos + 1) / pontosPorDescarte);
-    return `${nome}: ${lugar}. Faltam ${rotuloDescartes(faltam)} para passar o ${nomeAndar(acima.andar)}.`;
+    return `${nome}: ${lugar}. ${faltam === 1 ? 'Falta' : 'Faltam'} ${rotuloDescartes(faltam)} para passar o ${nomeAndar(acima.andar)}.`;
   }
 
   function renderizar(animar) {
@@ -348,6 +370,7 @@ function ligarContato() {
 /* ------------------------------------------------------------------ */
 
 ligarMenu();
+ligarSecaoAtual();
 ligarContato();
 ligarDemoRanking();
 

@@ -8,6 +8,12 @@
   background-repeat: no-repeat;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.tela-site) {
+    scroll-behavior: smooth;
+  }
+}
+
 .destaque-verde {
   color: var(--verde);
 }
@@ -112,6 +118,11 @@
 
 .menu ul a:hover {
   color: var(--texto);
+}
+
+.menu ul a[aria-current='true'] {
+  color: var(--texto);
+  background: rgb(139 209 124 / 0.12);
 }
 
 .menu__cta {

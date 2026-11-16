@@ -18,6 +18,7 @@ import {
   ordinal,
   prepararAvisos,
   pulsar,
+  reduzMovimento,
   reordenarComAnimacao,
   rotuloDescartes,
   rotuloPontos,
@@ -270,7 +271,7 @@ function renderizarDestaque(animar) {
     return;
   }
   const faltam = Math.ceil((acima.pontos - item.pontos + 1) / pontosPorDescarte());
-  meta.innerHTML = `Faltam <strong>${rotuloDescartes(faltam)}</strong> para passar o ${nomeAndar(acima.andar)}, que está em ${ordinal(acima.posicao)} lugar.`;
+  meta.innerHTML = `${faltam === 1 ? 'Falta' : 'Faltam'} <strong>${rotuloDescartes(faltam)}</strong> para passar o ${nomeAndar(acima.andar)}, que está em ${ordinal(acima.posicao)} lugar.`;
 }
 
 function listaDeAndares(andares) {
@@ -381,6 +382,11 @@ function aoMudarPlacar(placar) {
         ],
         { duration: 1100, id: 'mais' },
       );
+      if (reduzMovimento()) {
+        mais.style.opacity = '1';
+        clearTimeout(estado.relogioMais);
+        estado.relogioMais = setTimeout(() => (mais.style.opacity = ''), 1600);
+      }
       const depois = itemDoAndar(estado.meuAndar);
       if (antes?.posicao && depois?.posicao && depois.posicao < antes.posicao) {
         avisar(`Seu andar subiu para o ${ordinal(depois.posicao)} lugar.`);

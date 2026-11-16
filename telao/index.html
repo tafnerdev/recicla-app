@@ -22,10 +22,10 @@
   <body class="tela-telao">
     <h1 class="visualmente-oculto">Telão do ranking do Recicla Slide</h1>
 
-    <div class="enquadramento" id="enquadramento">
+    <main class="enquadramento" id="enquadramento">
       <div class="palco" id="palco">
         <header class="t-topo">
-          <span class="logo t-logo">Recicla Slide</span>
+          <span class="logo t-logo" translate="no">Recicla Slide</span>
           <div class="t-titulo">
             <p class="t-titulo__predio" id="t-predio">Edifício Exemplo</p>
             <h2 class="t-titulo__texto">Ranking de <span id="t-mes">novembro</span></h2>
@@ -104,7 +104,7 @@
             </p>
             <form class="t-sensor__teste" id="t-sensor-teste">
               <label for="t-sensor-linha">Testar uma linha</label>
-              <input id="t-sensor-linha" type="text" placeholder="R,7" autocomplete="off" spellcheck="false" />
+              <input id="t-sensor-linha" name="linha" type="text" placeholder="R,7" autocomplete="off" spellcheck="false" />
               <button type="submit" class="t-botao">Enviar</button>
             </form>
           </section>
@@ -125,7 +125,7 @@
           <div class="t-celebracao__pecas" id="t-celebracao-pecas"></div>
         </div>
       </div>
-    </div>
+    </main>
 
     <p class="visualmente-oculto" id="t-anuncio" role="status" aria-live="polite"></p>
   </body>

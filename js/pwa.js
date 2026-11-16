@@ -50,7 +50,11 @@ function dicaIos() {
   dica.hidden = !(ios && !instalado());
 }
 
+/** O telão fica no projetor: nada de avisos pequenos aparecendo no meio da apresentação. */
+const SILENCIOSO = document.body?.classList.contains('tela-telao') ?? false;
+
 function avisarConexao() {
+  if (SILENCIOSO) return;
   addEventListener('offline', () => avisar('Sem internet. O app continua funcionando com o que está guardado neste aparelho.'));
   addEventListener('online', () => avisar('Internet de volta.'));
 }
@@ -61,6 +65,7 @@ async function registrar() {
     const registro = await navigator.serviceWorker.register(URL_SW, { scope: ESCOPO.pathname });
 
     const oferecerAtualizacao = (trabalhador) => {
+      if (SILENCIOSO) return; // o telão pega a versão nova na próxima vez que abrir
       avisar('Nova versão disponível.', {
         duracao: 15000,
         acao: {

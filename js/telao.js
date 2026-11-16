@@ -27,6 +27,7 @@ const $ = (id) => document.getElementById(id);
 const parametros = new URLSearchParams(location.search);
 const TEMPO_OCIOSO = 3000;
 const ITENS_FEED = 5;
+const LIMITE_LINHAS = 10; // o palco foi desenhado para 10 linhas legíveis a distância
 
 const estado = {
   edificio: null,
@@ -217,10 +218,11 @@ function renderizarRanking(animar) {
   vazio.hidden = true;
   const estavaEscondida = lista.hidden;
   lista.hidden = false;
-  lista.style.setProperty('--linhas', String(ranking.length));
+  const visiveis = ranking.slice(0, LIMITE_LINHAS);
+  lista.style.setProperty('--linhas', String(visiveis.length));
 
   const maximo = Math.max(1, ...ranking.map((i) => i.pontos));
-  const linhas = ranking.map((item) => {
+  const linhas = visiveis.map((item) => {
     let linha = estado.linhas.get(item.andar);
     if (!linha) {
       linha = criarLinha(item.andar);
@@ -244,6 +246,8 @@ function renderizarRanking(animar) {
     }
     return [];
   }
+  // Quem saiu dos 10 primeiros sai da lista.
+  for (const filho of [...lista.children]) if (!linhas.includes(filho)) filho.remove();
   return reordenarComAnimacao(lista, linhas, { duracao: 900, escala: estado.escala });
 }
 
@@ -373,6 +377,19 @@ function destacarLinha(linha, evento, posicaoAntes, posicaoDepois) {
     ],
     { duration: 1500, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', id: 'mais' },
   );
+
+  if (reduzMovimento()) {
+    // Sem movimento: o destaque aparece parado por um instante.
+    brilho.style.opacity = '1';
+    mais.style.opacity = '1';
+    clearTimeout(Number(linha.dataset.relogio));
+    linha.dataset.relogio = String(
+      setTimeout(() => {
+        brilho.style.opacity = '';
+        mais.style.opacity = '';
+      }, 1600),
+    );
+  }
 
   if (posicaoAntes && posicaoDepois && posicaoDepois < posicaoAntes) {
     const selo = linha.querySelector('.t-linha__subiu');
