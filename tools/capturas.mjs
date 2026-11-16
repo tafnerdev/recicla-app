@@ -47,6 +47,7 @@ async function rolarAteOFim(page) {
       scrollTo(0, y);
       await new Promise((r) => setTimeout(r, 120));
     }
+    await new Promise((r) => setTimeout(r, 700)); // deixa as revelações do fim da página dispararem
     scrollTo(0, 0);
   });
   await page.waitForTimeout(1200);

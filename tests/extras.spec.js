@@ -81,6 +81,21 @@ test.describe('página inicial', () => {
     await expect(primeira).toHaveCSS('transform', /^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
   });
 
+  test('depois de rolar até o fim, nenhum bloco fica invisível', async ({ page }) => {
+    await page.goto('./');
+    await page.evaluate(async () => {
+      for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight * 0.7) {
+        scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 150));
+      }
+    });
+    await page.waitForTimeout(1200);
+    const escondidos = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-revelar]')].filter((el) => getComputedStyle(el).opacity !== '1').length,
+    );
+    expect(escondidos).toBe(0);
+  });
+
   test('menu do celular abre e fecha', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('./');

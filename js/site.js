@@ -83,19 +83,22 @@ function ligarRevelacao() {
   if (!gsap || !ScrollTrigger || reduzMovimento()) return;
   gsap.registerPlugin(ScrollTrigger);
   document.documentElement.classList.add('anima');
+  const revelar = (lote) =>
+    gsap.to(lote, {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: 'expo.out',
+      stagger: 0.08,
+      overwrite: true,
+      // Sem clearProps: apagar o transform inline traria de volta o translateY do CSS.
+    });
   ScrollTrigger.batch('[data-revelar]', {
     start: 'top 88%',
     once: true,
-    onEnter: (lote) =>
-      gsap.to(lote, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: 'expo.out',
-        stagger: 0.08,
-        overwrite: true,
-        // Sem clearProps: apagar o transform inline traria de volta o translateY do CSS.
-      }),
+    onEnter: revelar,
+    // Quem rola rápido para baixo e volta também encontra o conteúdo.
+    onEnterBack: revelar,
   });
   // Fontes e conteúdo carregado depois (a demonstração do ranking) mudam a altura da página.
   document.fonts?.ready.then(() => ScrollTrigger.refresh());
