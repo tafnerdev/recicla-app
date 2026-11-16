@@ -39,3 +39,4 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 08:09 | RESUMO.md escrito. Trabalho encerrado: 27 testes passando, publicação pendente (ver PENDENCIAS.md). |
 | 16/11 09:45 | Redesign etapa 1: branch `redesign`, capturas atuais em `capturas/antes/`, referências capturadas em `capturas/referencia/` e DESIGN.md reescrito (vidro, luz e letra fina). |
 | 16/11 09:50 | Redesign etapa 2: Geist local (OFL), Nunito removida, `css/base.css` com as variáveis novas e os componentes (vidro, botões, botões de tipo, ponto colorido, barra, linha fina, chips, aviso, diálogo, esqueleto, foco, luz ambiente) e `js/comum.js` com ícones de traço, ponto colorido e linha do ranking novos. |
+| 16/11 09:51 | Redesign etapa 3: `js/predio.js` gera o prédio em SVG para qualquer número de andares (andar aceso, realce do líder, rótulos "você" e "líder", ponto de luz descendo pelo tubo a cada descarte) e já prevê a troca para o 3D. |
