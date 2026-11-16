@@ -81,5 +81,7 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
 
 ## 5. Observações
 
+- **Refração do vidro (bônus do redesign): testada e desligada.** Com o filtro SVG no `backdrop-filter`, o Chrome deixa de aplicar o desfoque e o conteúdo de trás aparece nítido através das folhas, o que atrapalha a leitura. Como o prompt manda, ficou só o vidro base aprovado. A captura do teste está em `docs/redesign/refracao-testada.png`.
+
 - A skill `review-animations` citada no pedido não existe em `.claude/skills` nem entre as skills instaladas neste PC. Para revisar as animações usei a `emilkowalski-motion`, as skills de GSAP e uma revisão quadro a quadro do telão e da abertura (registrada no `DIARIO.md`).
 - Dependências: só o Playwright (desenvolvimento) e o GSAP copiado para `js/vendor/`. As fontes foram baixadas uma vez do Google Fonts e ficam no projeto.
