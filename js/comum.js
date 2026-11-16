@@ -225,7 +225,9 @@ export function textoErroCarregar(erro) {
     return 'Abra pelo servidor local (npm run servir) ou pelo endereço publicado. Com duplo clique no arquivo, o navegador bloqueia os dados.';
   }
   const codigo = /HTTP (\d+)/.exec(erro?.message ?? '')?.[1];
-  return `O placar não carregou${codigo ? ` (o servidor respondeu com erro ${codigo})` : ''}. Confira a conexão e tente de novo.`;
+  return codigo
+    ? `O servidor respondeu com erro ${codigo}. Confira a conexão e tente de novo.`
+    : 'Confira a conexão com a internet e tente de novo.';
 }
 
 /* ------------------------------------------------------------------ */
@@ -235,10 +237,12 @@ export function textoErroCarregar(erro) {
 /**
  * Reordena os filhos de `lista` na ordem de `itens` e anima cada um da posição
  * antiga para a nova (técnica FLIP, só com transform).
+ * opcoes.escala: use quando a lista está dentro de um elemento com transform: scale().
  * Devolve a lista de itens que subiram.
  */
 export function reordenarComAnimacao(lista, itens, opcoes = {}) {
   const duracao = opcoes.duracao ?? 900;
+  const escala = opcoes.escala ?? 1;
   const easing = opcoes.easing ?? 'cubic-bezier(0.65, 0, 0.35, 1)';
   const antes = new Map();
   for (const item of itens) {
@@ -261,9 +265,10 @@ export function reordenarComAnimacao(lista, itens, opcoes = {}) {
   for (const item of itens) {
     const topoAntes = antes.get(item);
     if (topoAntes === undefined) continue;
-    const delta = topoAntes - item.getBoundingClientRect().top;
+    const delta = (topoAntes - item.getBoundingClientRect().top) / escala;
     if (Math.abs(delta) < 1) continue;
     if (delta > 0) subiram.push(item);
+    if (opcoes.antesDeAnimar) opcoes.antesDeAnimar(item, delta);
     const animacao = item.animate(
       [{ transform: `translateY(${delta}px)` }, { transform: 'translateY(0)' }],
       { duration: duracao, easing },
