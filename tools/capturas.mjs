@@ -62,6 +62,27 @@ const CAPTURAS = [
     secoes: ['.oque', '#como-funciona', '#ranking', '#para-quem', '#perguntas', '#contato', '.rodape'],
     depois: rolarAteOFim,
   },
+  { nome: 'site-parado', url: '', tamanhos: [COMPUTADOR, CELULAR], inteira: false, movimento: 'reduce' },
+  {
+    nome: 'site-foco',
+    url: '',
+    tamanhos: [COMPUTADOR],
+    inteira: false,
+    depois: async (page) => {
+      for (let i = 0; i < 9; i += 1) await page.keyboard.press('Tab');
+      await page.waitForTimeout(300);
+    },
+  },
+  {
+    nome: 'app-foco',
+    url: 'app/?andar=7',
+    tamanhos: [CELULAR],
+    inteira: false,
+    depois: async (page) => {
+      for (let i = 0; i < 4; i += 1) await page.keyboard.press('Tab');
+      await page.waitForTimeout(300);
+    },
+  },
   { nome: 'app', url: 'app/?andar=7', tamanhos: [CELULAR, TABLET, COMPUTADOR], inteira: true },
   { nome: 'app-sem-andar', url: 'app/', tamanhos: [CELULAR, COMPUTADOR], inteira: true },
   { nome: 'app-andar-invalido', url: 'app/?andar=42', tamanhos: [CELULAR], inteira: true },
@@ -115,6 +136,7 @@ try {
         locale: 'pt-BR',
         timezoneId: 'America/Sao_Paulo',
         hasTouch: tamanho.width < 800,
+        reducedMotion: captura.movimento ?? 'no-preference',
         isMobile: false,
       });
       const page = await contexto.newPage();

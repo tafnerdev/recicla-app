@@ -286,6 +286,10 @@ ol[role='list'] {
   box-shadow: 0 0 0 0.16em rgb(139 209 124 / 0.16);
 }
 
+a.logo {
+  min-height: 44px;
+}
+
 a.logo:hover {
   color: var(--texto);
 }

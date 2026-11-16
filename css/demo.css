@@ -35,7 +35,7 @@
 }
 
 .d-topo__links .botao {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 var(--e-4);
   font-size: 0.875rem;
 }
@@ -174,6 +174,16 @@
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: var(--e-3);
   margin-top: var(--e-4);
+}
+
+@media (min-width: 560px) and (max-width: 1099px) {
+  .d-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .d-andar__botoes {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (min-width: 1100px) {
@@ -330,6 +340,13 @@
   border-radius: var(--r-pilula);
   border: 1.5px solid var(--borda-forte);
   background: var(--fundo);
+}
+
+.d-chave::after {
+  /* área de toque maior que a chave desenhada */
+  content: '';
+  position: absolute;
+  inset: -8px -4px;
 }
 
 .d-chave::before {
