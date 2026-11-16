@@ -5,6 +5,8 @@
 import * as dados from './dados.js';
 import {
   animarNumero,
+  atualizarLinhaRanking,
+  criarLinhaRanking,
   avisar,
   confirmar,
   el,
@@ -277,18 +279,6 @@ function listaDeAndares(andares) {
   return `os andares ${andares.slice(0, -1).map(ordinal).join(', ')} e ${ordinal(andares.at(-1))}`;
 }
 
-function criarLinha(andar) {
-  const linha = el('li', { class: 'linha', dataset: { andar } });
-  linha.innerHTML = `
-    <span class="linha__brilho" aria-hidden="true"></span>
-    <span class="linha__posicao numero" aria-hidden="true"></span>
-    <span class="linha__andar" aria-hidden="true"><span class="linha__nome"></span></span>
-    <span class="linha__barra" aria-hidden="true"><span class="barra barra--r"></span><span class="barra barra--o"></span></span>
-    <span class="linha__pontos numero" aria-hidden="true"><span class="linha__valor" data-valor="0">0</span></span>
-    <span class="visualmente-oculto linha__leitura"></span>`;
-  return linha;
-}
-
 function renderizarRanking(animar) {
   const lista = $('ranking-lista');
   const vazio = $('ranking-vazio');
@@ -315,49 +305,15 @@ function renderizarRanking(animar) {
   const linhas = ranking.map((item) => {
     let linha = estado.linhas.get(item.andar);
     if (!linha) {
-      linha = criarLinha(item.andar);
+      linha = criarLinhaRanking(item.andar);
       estado.linhas.set(item.andar, linha);
     }
-    atualizarLinha(linha, item, maximo, animar);
+    atualizarLinhaRanking(linha, item, { maximo, animar, minha: item.andar === estado.meuAndar });
     return linha;
   });
 
   if (!lista.children.length) lista.append(...linhas);
   else reordenarComAnimacao(lista, linhas, { duracao: 760 });
-}
-
-function atualizarLinha(linha, item, maximo, animar) {
-  const minha = item.andar === estado.meuAndar;
-  linha.classList.toggle('linha--minha', minha);
-  linha.classList.toggle('linha--zero', item.pontos === 0);
-  linha.dataset.posicao = String(item.posicao ?? '');
-  if (minha) linha.setAttribute('aria-current', 'true');
-  else linha.removeAttribute('aria-current');
-
-  linha.querySelector('.linha__posicao').textContent = item.posicao ? ordinal(item.posicao) : '';
-  const nome = linha.querySelector('.linha__andar');
-  nome.replaceChildren(el('span', { class: 'linha__nome' }, nomeAndar(item.andar)));
-  if (minha) nome.append(el('span', { class: 'etiqueta etiqueta--reciclavel' }, 'Seu andar'));
-
-  const fr = item.pontosReciclavel / maximo;
-  const fo = item.pontosOrganico / maximo;
-  linha.querySelector('.barra--r').style.setProperty('--f', fr.toFixed(4));
-  const barraO = linha.querySelector('.barra--o');
-  barraO.style.setProperty('--f', fo.toFixed(4));
-  barraO.style.setProperty('--x', fr.toFixed(4));
-
-  const valor = linha.querySelector('.linha__valor');
-  if (animar) animarNumero(valor, item.pontos);
-  else {
-    valor.dataset.valor = String(item.pontos);
-    valor.textContent = formatarNumero(item.pontos);
-  }
-
-  const lugar = item.posicao ? `${ordinal(item.posicao)} lugar` : 'sem posição';
-  linha.querySelector('.linha__leitura').textContent =
-    `${lugar}, ${nomeAndar(item.andar)}${minha ? ', seu andar' : ''}: ${rotuloPontos(item.pontos)}, ` +
-    `${item.reciclavel} ${item.reciclavel === 1 ? 'descarte reciclável' : 'descartes recicláveis'} e ` +
-    `${item.organico} ${item.organico === 1 ? 'orgânico' : 'orgânicos'}.`;
 }
 
 function renderizarPremio() {

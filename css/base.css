@@ -684,6 +684,135 @@ dialog.dialogo p {
 }
 
 /* ------------------------------------------------------------------ */
+/* Linha do ranking (app e página inicial)                             */
+/* ------------------------------------------------------------------ */
+
+.legenda {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legenda--r::before,
+.legenda--o::before {
+  content: '';
+  width: 14px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--verde);
+}
+
+.legenda--o::before {
+  background: var(--laranja);
+}
+
+.linha {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    'pos andar pontos'
+    'pos barra pontos';
+  align-items: center;
+  column-gap: var(--e-3);
+  row-gap: 6px;
+  min-height: 56px;
+  padding: var(--e-2) var(--e-3);
+  border-radius: var(--r-interno);
+  background: var(--cartao);
+}
+
+.linha__brilho {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(139 209 124 / 0.24);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.linha__brilho[data-tipo='organico'] {
+  background: rgb(242 165 65 / 0.24);
+}
+
+.linha.subindo {
+  z-index: 1; /* item em movimento passa por cima dos vizinhos (DESIGN.md) */
+}
+
+.linha__posicao {
+  grid-area: pos;
+  font-size: 1.25rem;
+  color: var(--texto-2);
+  text-align: center;
+}
+
+.linha[data-posicao='1'] .linha__posicao {
+  color: var(--laranja);
+}
+
+.linha__andar {
+  grid-area: andar;
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  min-width: 0;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.linha__andar .etiqueta {
+  padding: 0.05em 0.6em;
+  font-size: 0.75rem;
+}
+
+.linha__barra {
+  grid-area: barra;
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+.barra {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  transform-origin: left center;
+  transform: translateX(calc(var(--x, 0) * 100%)) scaleX(var(--f, 0));
+  transition: transform 700ms var(--ease-saida);
+}
+
+.barra--r {
+  background: var(--verde);
+}
+
+.barra--o {
+  background: var(--laranja);
+}
+
+.linha__pontos {
+  grid-area: pontos;
+  font-size: 1.25rem;
+  text-align: right;
+  min-width: 3.5ch;
+}
+
+
+.linha--minha {
+  background: rgb(139 209 124 / 0.12);
+  box-shadow: inset 0 0 0 1.5px rgb(139 209 124 / 0.6);
+}
+
+.linha--minha .linha__posicao {
+  color: var(--verde);
+}
+
+.linha--zero .linha__pontos,
+.linha--zero .linha__andar {
+  color: var(--texto-2);
+}
+
+/* ------------------------------------------------------------------ */
 /* Reduzir movimento                                                   */
 /* ------------------------------------------------------------------ */
 

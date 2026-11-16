@@ -320,6 +320,60 @@ export function pulsar(elemento, quadros, opcoes = {}) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Linha do ranking                                                    */
+/* ------------------------------------------------------------------ */
+
+/** Linha do ranking (app e página inicial). */
+export function criarLinhaRanking(andar) {
+  const linha = el('li', { class: 'linha', dataset: { andar } });
+  linha.innerHTML = `
+    <span class="linha__brilho" aria-hidden="true"></span>
+    <span class="linha__posicao numero" aria-hidden="true"></span>
+    <span class="linha__andar" aria-hidden="true"><span class="linha__nome"></span></span>
+    <span class="linha__barra" aria-hidden="true"><span class="barra barra--r"></span><span class="barra barra--o"></span></span>
+    <span class="linha__pontos numero" aria-hidden="true"><span class="linha__valor" data-valor="0">0</span></span>
+    <span class="visualmente-oculto linha__leitura"></span>`;
+  return linha;
+}
+
+/**
+ * Atualiza a linha com o item do ranking.
+ * opcoes: { maximo (pontos do 1º), minha (destaca como 'Seu andar'), animar }
+ */
+export function atualizarLinhaRanking(linha, item, { maximo = 1, minha = false, animar = false } = {}) {
+  linha.classList.toggle('linha--minha', minha);
+  linha.classList.toggle('linha--zero', item.pontos === 0);
+  linha.dataset.posicao = String(item.posicao ?? '');
+  if (minha) linha.setAttribute('aria-current', 'true');
+  else linha.removeAttribute('aria-current');
+
+  linha.querySelector('.linha__posicao').textContent = item.posicao ? ordinal(item.posicao) : '';
+  const nome = linha.querySelector('.linha__andar');
+  nome.replaceChildren(el('span', { class: 'linha__nome' }, nomeAndar(item.andar)));
+  if (minha) nome.append(el('span', { class: 'etiqueta etiqueta--reciclavel' }, 'Seu andar'));
+
+  const fr = item.pontosReciclavel / maximo;
+  const fo = item.pontosOrganico / maximo;
+  linha.querySelector('.barra--r').style.setProperty('--f', fr.toFixed(4));
+  const barraO = linha.querySelector('.barra--o');
+  barraO.style.setProperty('--f', fo.toFixed(4));
+  barraO.style.setProperty('--x', fr.toFixed(4));
+
+  const valor = linha.querySelector('.linha__valor');
+  if (animar) animarNumero(valor, item.pontos);
+  else {
+    valor.dataset.valor = String(item.pontos);
+    valor.textContent = formatarNumero(item.pontos);
+  }
+
+  const lugar = item.posicao ? `${ordinal(item.posicao)} lugar` : 'sem posição';
+  linha.querySelector('.linha__leitura').textContent =
+    `${lugar}, ${nomeAndar(item.andar)}${minha ? ', seu andar' : ''}: ${rotuloPontos(item.pontos)}, ` +
+    `${item.reciclavel} ${item.reciclavel === 1 ? 'descarte reciclável' : 'descartes recicláveis'} e ` +
+    `${item.organico} ${item.organico === 1 ? 'orgânico' : 'orgânicos'}.`;
+}
+
+/* ------------------------------------------------------------------ */
 /* Diálogo de confirmação                                              */
 /* ------------------------------------------------------------------ */
 
