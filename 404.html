@@ -15,65 +15,116 @@
     </script>
     <title>Página não encontrada | Recicla Slide</title>
     <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#071B16" />
+    <meta name="theme-color" content="#050807" />
     <meta name="color-scheme" content="dark" />
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="stylesheet" href="css/base.css" />
     <style>
+      .p404__luz-1 {
+        left: calc(50% - 560px);
+        top: -120px;
+        width: 760px;
+        height: 760px;
+      }
+
+      .p404__luz-2 {
+        right: calc(50% - 560px);
+        bottom: -260px;
+        width: 620px;
+        height: 620px;
+      }
+
       .p404 {
         display: grid;
         place-items: center;
         min-height: 100dvh;
-        padding: var(--e-6) var(--margem);
+        padding: 48px 24px calc(48px + env(safe-area-inset-bottom));
       }
 
       .p404__caixa {
         display: grid;
-        justify-items: start;
-        gap: var(--e-4);
-        width: min(100%, 560px);
+        justify-items: center;
+        gap: 16px;
+        width: min(100%, 520px);
+        text-align: center;
+      }
+
+      .p404__predio {
+        width: min(100%, 300px);
+        margin-bottom: 8px;
       }
 
       .p404__codigo {
-        color: var(--verde);
-        font-family: var(--fonte-titulo);
-        font-weight: 800;
-        font-size: 1rem;
+        color: var(--texto-2);
+        font-size: 13px;
+        line-height: 18px;
       }
 
       .p404 h1 {
-        font-size: clamp(2rem, 1.4rem + 2.6vw, 3rem);
-        line-height: 1.05;
-        letter-spacing: -0.02em;
+        font-size: clamp(2.2rem, 1.6rem + 3vw, 3.5rem);
+        line-height: 1.04;
+        font-weight: 400;
+        letter-spacing: -0.045em;
       }
 
-      .p404 p {
+      .p404 p.p404__texto {
+        max-width: 36ch;
         color: var(--texto-2);
+        font-size: 17px;
+        line-height: 26px;
       }
 
       .p404__links {
         display: flex;
         flex-wrap: wrap;
-        gap: var(--e-3);
-        margin-top: var(--e-3);
+        justify-content: center;
+        gap: 4px 20px;
+        margin-top: 4px;
+      }
+
+      .p404__links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: var(--texto-2);
+        font-size: 15px;
+      }
+
+      .p404 .botao {
+        margin-top: 12px;
       }
     </style>
   </head>
   <body>
+    <div class="luzes" aria-hidden="true">
+      <div class="luz luz--verde p404__luz-1"></div>
+      <div class="luz luz--laranja p404__luz-2"></div>
+    </div>
     <main class="p404">
       <div class="p404__caixa">
-        <a class="logo" href="./" translate="no">Recicla Slide</a>
+        <div class="p404__predio" id="p404-predio"></div>
         <p class="p404__codigo">Erro 404</p>
-        <h1>Esta página não existe.</h1>
-        <p>O endereço pode ter sido digitado errado. Escolha uma das telas abaixo.</p>
-        <div class="p404__links">
-          <a class="botao" href="./">Página inicial</a>
-          <a class="botao botao--fantasma" href="app/">App do morador</a>
-          <a class="botao botao--fantasma" href="telao/">Telão</a>
-          <a class="botao botao--fantasma" href="demo/">Painel</a>
-        </div>
+        <h1>Esse andar não existe.</h1>
+        <p class="p404__texto">O endereço pode ter sido digitado errado. Volte ao início ou escolha uma das telas.</p>
+        <a class="botao botao--grande" href="./">Voltar ao início</a>
+        <nav class="p404__links" aria-label="Telas do sistema">
+          <a href="app/">App do morador</a>
+          <a href="telao/">Telão</a>
+          <a href="demo/">Painel</a>
+        </nav>
       </div>
     </main>
+    <script type="module">
+      // Prédio em SVG com todos os andares apagados (sem dados, sem 3D).
+      import { criarPredioSVG } from './js/predio.js';
+      const predio = criarPredioSVG({
+        andares: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        aceso: null,
+        largura: null,
+        descricao: () => 'Prédio com todos os andares apagados.',
+      });
+      document.getElementById('p404-predio').append(predio.elemento);
+    </script>
   </body>
 </html>

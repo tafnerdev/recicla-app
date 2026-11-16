@@ -182,7 +182,7 @@ test.describe('PWA', () => {
 test('página 404 com links para as telas', async ({ page }) => {
   const resposta = await page.goto('nao/existe/');
   expect(resposta.status()).toBe(404);
-  await expect(page.getByRole('heading', { name: 'Esta página não existe.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Esse andar não existe.' })).toBeVisible();
   await page.getByRole('link', { name: 'Telão' }).click();
   await expect(page).toHaveURL(/\/recicla-app\/telao\/$/);
 });

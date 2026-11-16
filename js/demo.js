@@ -15,6 +15,7 @@ import {
   nomeAndar,
   ordinal,
   prepararAvisos,
+  ponto,
   pulsar,
   rotuloPontos,
   tempoRelativo,
@@ -99,12 +100,12 @@ function montarCartoes() {
             'button',
             {
               type: 'button',
-              class: `botao${tipo === 'organico' ? ' botao--organico' : ''}`,
+              class: 'botao d-tipo',
               dataset: { tipo },
               'aria-label': `${ROTULO_TIPO[tipo]} no ${nomeAndar(andar)}`,
               onclick: () => registrar(andar, tipo),
             },
-            el('span', { class: `marca-tipo${tipo === 'organico' ? ' marca-tipo--organico' : ''}`, 'aria-hidden': 'true' }, tipo === 'organico' ? 'O' : 'R'),
+            ponto(tipo, 'ponto--brilho'),
             ROTULO_TIPO[tipo],
           ),
         ),
@@ -139,7 +140,7 @@ function renderizar() {
       el(
         'li',
         { class: 'd-historico__item', dataset: { em: h.em } },
-        el('span', { class: `marca-tipo${h.descarte === 'organico' ? ' marca-tipo--organico' : ''}`, 'aria-hidden': 'true' }, h.descarte === 'organico' ? 'O' : 'R'),
+        ponto(h.descarte),
         el(
           'span',
           {},

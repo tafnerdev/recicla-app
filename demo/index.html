@@ -6,20 +6,25 @@
     <title>Painel de demonstração | Recicla Slide</title>
     <meta name="description" content="Painel para registrar descartes e zerar o placar durante a apresentação." />
     <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#071B16" />
+    <meta name="theme-color" content="#050807" />
     <meta name="color-scheme" content="dark" />
     <link rel="manifest" href="../manifest.webmanifest" />
     <link rel="icon" href="../icons/icon.svg" type="image/svg+xml" />
     <link rel="icon" href="../icons/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
     <link rel="preload" href="../fonts/rubik-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="../fonts/nunito-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="../fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="../css/base.css" />
     <link rel="stylesheet" href="../css/demo.css" />
     <script type="module" src="../js/demo.js"></script>
     <script type="module" src="../js/pwa.js"></script>
   </head>
   <body class="tela-demo">
+    <div class="luzes" aria-hidden="true">
+      <div class="luz luz--verde d-luz-1"></div>
+      <div class="luz luz--laranja d-luz-2"></div>
+    </div>
+
     <a class="pular-para-conteudo" href="#andares">Pular para os andares</a>
 
     <header class="d-topo">
@@ -27,8 +32,8 @@
         <a class="logo" href="../" aria-label="Recicla Slide, página inicial" translate="no">Recicla Slide</a>
         <p class="d-topo__nome">Painel de demonstração</p>
         <nav class="d-topo__links" aria-label="Outras telas">
-          <a class="botao botao--fantasma" href="../telao/" target="telao-recicla" data-icone-fim="seta">Abrir telão</a>
-          <a class="botao botao--fantasma" href="../app/?andar=7" target="app-recicla" data-icone-fim="seta">Abrir app</a>
+          <a class="botao botao--vidro" href="../telao/" target="telao-recicla" data-icone-fim="externo">Abrir telão</a>
+          <a class="botao botao--vidro" href="../app/?andar=7" target="app-recicla" data-icone-fim="externo">Abrir app</a>
         </nav>
       </div>
     </header>
@@ -45,7 +50,7 @@
         <div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div>
       </div>
 
-      <div class="cartao d-erro" id="d-erro" hidden></div>
+      <div class="d-erro" id="d-erro" hidden></div>
 
       <div class="d-grade" id="d-painel" hidden>
         <section class="d-andares" id="andares" aria-labelledby="d-titulo" tabindex="-1">
@@ -58,10 +63,10 @@
         </section>
 
         <aside class="d-lado" aria-label="Controles do placar">
-          <section class="cartao d-controles" aria-labelledby="d-controles-titulo">
+          <section class="d-bloco d-controles" aria-labelledby="d-controles-titulo">
             <h2 id="d-controles-titulo">Placar</h2>
 
-            <button type="button" class="botao botao--fantasma botao--bloco d-desfazer" id="d-desfazer" disabled>
+            <button type="button" class="botao botao--vidro botao--bloco d-desfazer" id="d-desfazer" disabled>
               <span data-icone="desfazer"></span><span id="d-desfazer-texto">Desfazer último</span>
             </button>
 
@@ -76,7 +81,7 @@
             </div>
 
             <div class="d-controles__perigo">
-              <button type="button" class="botao botao--fantasma botao--bloco" id="d-restaurar">
+              <button type="button" class="botao botao--vidro botao--bloco" id="d-restaurar">
                 <span data-icone="atualizar"></span>Voltar aos dados de exemplo
               </button>
               <button type="button" class="botao botao--perigo botao--bloco" id="d-zerar">
@@ -85,7 +90,7 @@
             </div>
           </section>
 
-          <section class="cartao d-atalhos" aria-labelledby="d-atalhos-titulo">
+          <section class="d-bloco d-atalhos" aria-labelledby="d-atalhos-titulo">
             <h2 id="d-atalhos-titulo">Atalhos de teclado</h2>
             <dl>
               <div><dt><kbd>1</kbd> a <kbd>9</kbd>, <kbd>0</kbd></dt><dd>escolhe o andar (0 é o 10º)</dd></div>
@@ -94,7 +99,7 @@
             </dl>
           </section>
 
-          <section class="cartao d-historico" aria-labelledby="d-historico-titulo">
+          <section class="d-bloco d-historico" aria-labelledby="d-historico-titulo">
             <h2 id="d-historico-titulo">Últimos descartes</h2>
             <ol class="d-historico__lista" id="d-historico" role="list"></ol>
             <p class="d-historico__vazio" id="d-historico-vazio">Nenhum descarte ainda. Os toques nos botões aparecem aqui.</p>
