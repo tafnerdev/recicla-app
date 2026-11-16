@@ -1,0 +1,17 @@
+{
+  "name": "recicla-slide",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site e app web (PWA) do Recicla Slide. Estático, sem etapa de build.",
+  "type": "module",
+  "scripts": {
+    "servir": "node tools/servidor.mjs",
+    "testar": "playwright test",
+    "capturas": "node tools/capturas.mjs",
+    "icones": "node tools/icones.mjs"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
+  }
+}

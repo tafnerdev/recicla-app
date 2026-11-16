@@ -1,0 +1,29 @@
+{
+  "_aviso": "DADOS DE EXEMPLO para demonstração. Nenhum número aqui é real: prédio, contagens e prêmio são fictícios.",
+  "versaoDados": 1,
+  "edificio": {
+    "id": "edificio-exemplo",
+    "nome": "Edifício Exemplo"
+  },
+  "pontosPorDescarte": {
+    "reciclavel": 10,
+    "organico": 10
+  },
+  "premio": {
+    "exemplo": true,
+    "titulo": "Noite da pizza no salão de festas",
+    "descricao": "Para todos os moradores do andar campeão. Prêmio de exemplo: cada condomínio define o seu."
+  },
+  "andares": [
+    { "numero": 1,  "reciclavel": 14, "organico": 9 },
+    { "numero": 2,  "reciclavel": 21, "organico": 12 },
+    { "numero": 3,  "reciclavel": 9,  "organico": 11 },
+    { "numero": 4,  "reciclavel": 26, "organico": 15 },
+    { "numero": 5,  "reciclavel": 17, "organico": 8 },
+    { "numero": 6,  "reciclavel": 12, "organico": 14 },
+    { "numero": 7,  "reciclavel": 19, "organico": 10 },
+    { "numero": 8,  "reciclavel": 23, "organico": 16 },
+    { "numero": 9,  "reciclavel": 8,  "organico": 7 },
+    { "numero": 10, "reciclavel": 15, "organico": 13 }
+  ]
+}
