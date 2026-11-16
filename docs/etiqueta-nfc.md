@@ -7,23 +7,23 @@ Cada lixeira tem uma etiqueta NFC. Quem encosta o celular nela abre o app do mor
 Um registro do tipo **URL** com o endereço do app e o número do andar:
 
 ```
-https://SEU-USUARIO.github.io/recicla-app/app/?andar=7
+https://tafnerdev.github.io/recicla-app/app/?andar=7
 ```
 
-Troque `SEU-USUARIO` pelo usuário do GitHub onde o site foi publicado e `7` pelo andar da lixeira. Uma etiqueta por andar:
+Troque `tafnerdev` pelo usuário do GitHub onde o site foi publicado e `7` pelo andar da lixeira. Uma etiqueta por andar:
 
 | Andar | Endereço |
 |---|---|
-| 1º | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=1` |
-| 2º | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=2` |
-| 3º | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=3` |
-| 4º | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=4` |
-| 5º | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=5` |
-| 6º | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=6` |
-| 7º | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=7` |
-| 8º | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=8` |
-| 9º | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=9` |
-| 10º | `https://SEU-USUARIO.github.io/recicla-app/app/?andar=10` |
+| 1º | `https://tafnerdev.github.io/recicla-app/app/?andar=1` |
+| 2º | `https://tafnerdev.github.io/recicla-app/app/?andar=2` |
+| 3º | `https://tafnerdev.github.io/recicla-app/app/?andar=3` |
+| 4º | `https://tafnerdev.github.io/recicla-app/app/?andar=4` |
+| 5º | `https://tafnerdev.github.io/recicla-app/app/?andar=5` |
+| 6º | `https://tafnerdev.github.io/recicla-app/app/?andar=6` |
+| 7º | `https://tafnerdev.github.io/recicla-app/app/?andar=7` |
+| 8º | `https://tafnerdev.github.io/recicla-app/app/?andar=8` |
+| 9º | `https://tafnerdev.github.io/recicla-app/app/?andar=9` |
+| 10º | `https://tafnerdev.github.io/recicla-app/app/?andar=10` |
 
 O endereço tem cerca de 60 caracteres e cabe numa etiqueta **NTAG213** (144 bytes), a mais barata. NTAG215 e NTAG216 também servem.
 

@@ -86,21 +86,11 @@ As capturas ficam em [`docs/redesign/`](docs/redesign/). As referências aprovad
 
 **Refração do vidro (bônus): testada e desligada.** No Chrome, ela anulava o desfoque e o texto de trás aparecia nítido pela folha. A captura está em `docs/redesign/refracao-testada.png`.
 
-## O que ficou pendente
+## Publicação
 
-O item 1 do [PENDENCIAS.md](PENDENCIAS.md) traz os comandos exatos para:
-- juntar a branch `redesign` na `main`;
-- instalar o GitHub CLI e fazer o login;
-- publicar o repositório `recicla-app` e ligar o GitHub Pages.
+Publicado em **https://tafnerdev.github.io/recicla-app/** (repositório https://github.com/tafnerdev/recicla-app). Antes do envio, a branch `redesign` foi juntada na `main`. O PWA foi conferido no endereço publicado: instala, guarda 34 arquivos e abre sem internet.
 
-O `gh` não está instalado neste PC. Como combinado, não tentei autenticar nem publicar.
-
-Também estão no PENDENCIAS.md:
-- os textos novos que a estrutura nova pediu;
-- a barra do Início do app;
-- o painel e o limite de vidros;
-- a versão fixa do Three.js;
-- as pendências antigas: contato e prêmio de exemplo, logo definitivo e imagem de compartilhamento com endereço completo.
+O que ainda depende de vocês está no [PENDENCIAS.md](PENDENCIAS.md): textos novos que a estrutura pediu, contato e prêmio de exemplo, logo definitivo e a gravação das etiquetas NFC com o endereço publicado.
 
 ## Como conferir cada tela em 2 minutos
 

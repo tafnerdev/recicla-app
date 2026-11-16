@@ -131,10 +131,10 @@ Edite `data/edificio-exemplo.json` e aumente `versaoDados` para os navegadores d
 
 Veja `PENDENCIAS.md` para os comandos exatos. Depois de publicado:
 
-- Site: `https://SEU-USUARIO.github.io/recicla-app/`
-- App: `https://SEU-USUARIO.github.io/recicla-app/app/?andar=7`
-- Telão: `https://SEU-USUARIO.github.io/recicla-app/telao/`
-- Painel: `https://SEU-USUARIO.github.io/recicla-app/demo/`
+- Site: `https://tafnerdev.github.io/recicla-app/`
+- App: `https://tafnerdev.github.io/recicla-app/app/?andar=7`
+- Telão: `https://tafnerdev.github.io/recicla-app/telao/`
+- Painel: `https://tafnerdev.github.io/recicla-app/demo/`
 
 ## Créditos e licenças
 

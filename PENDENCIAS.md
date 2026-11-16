@@ -2,53 +2,23 @@
 
 Tudo aqui depende de você. Em cada item eu escolhi a opção mais segura e segui em frente.
 
-## 1. Publicar no GitHub Pages (não foi feito)
+## 1. Publicação: feita em 16/11
 
-Conferi de novo com `gh auth status` no fim do redesign (16/11): o **GitHub CLI (`gh`) continua não instalado** neste PC, então não há login no GitHub. Como combinado, não tentei autenticar nem publicar.
+O site está no ar em **https://tafnerdev.github.io/recicla-app/**, no repositório público https://github.com/tafnerdev/recicla-app (conta que já estava logada no Git deste PC). A branch `redesign` foi juntada na `main` antes de enviar.
 
-O visual novo está na branch **`redesign`** (pronta, testada, com um commit por etapa). A `main` ainda tem o visual antigo. O passo 0 abaixo junta as duas.
+| Tela | Endereço |
+|---|---|
+| Site | https://tafnerdev.github.io/recicla-app/ |
+| App | https://tafnerdev.github.io/recicla-app/app/?andar=7 |
+| Telão | https://tafnerdev.github.io/recicla-app/telao/ |
+| Telão para TV que pisca | https://tafnerdev.github.io/recicla-app/telao/?estavel=1 |
+| Painel | https://tafnerdev.github.io/recicla-app/demo/ |
 
-Rode no **PowerShell**, um bloco de cada vez:
+Conferido no endereço publicado: o service worker ativa, guarda 34 arquivos e as quatro telas abrem sem internet (com o prédio em 3D).
 
-```powershell
-# 0. Juntar o redesign na main (a main só avança; nada se perde)
-cd "C:\caminho\da\pasta\Recicla Slide"
-git checkout main
-git merge --ff-only redesign
+**Para publicar mudanças depois:** aumente `VERSAO` no `sw.js` (por exemplo `recicla-v5`), faça o commit e rode `git push`. O GitHub Pages republica sozinho em 1 ou 2 minutos.
 
-# 1. Instalar o GitHub CLI (só na primeira vez). Depois feche e abra o PowerShell.
-winget install --id GitHub.cli -e
-
-# 2. Entrar na sua conta do GitHub (abre o navegador; escolha GitHub.com e HTTPS)
-gh auth login
-
-# 3. Criar o repositório público "recicla-app" e enviar o código
-cd "C:\caminho\da\pasta\Recicla Slide"
-gh repo create recicla-app --public --source . --remote origin --push
-
-# 4. Ligar o GitHub Pages no ramo main, pasta raiz
-gh api --method POST "repos/{owner}/{repo}/pages" -f "source[branch]=main" -f "source[path]=/"
-
-# 5. Ver o endereço publicado (leva 1 a 2 minutos para ficar no ar)
-gh api "repos/{owner}/{repo}/pages" --jq .html_url
-```
-
-Depois, abra e confira as quatro telas: `.../recicla-app/`, `.../recicla-app/app/?andar=7`, `.../recicla-app/telao/` e `.../recicla-app/demo/`.
-
-**Sem instalar o `gh`:** faça o passo 0 acima, crie em github.com um repositório público chamado `recicla-app`, **sem** README, e rode:
-
-```powershell
-cd "C:\caminho\da\pasta\Recicla Slide"
-git remote add origin https://github.com/SEU-USUARIO/recicla-app.git
-git push -u origin main
-```
-
-Em seguida, no GitHub: **Settings > Pages > Build and deployment > Source: Deploy from a branch > Branch: `main`, pasta `/ (root)` > Save**.
-
-**Depois de publicar:**
-- Grave as etiquetas NFC com o endereço publicado ([docs/etiqueta-nfc.md](docs/etiqueta-nfc.md)).
-- Troque o `og:image` do `index.html` por um endereço completo (item 6 abaixo).
-- Se mudar qualquer arquivo depois, aumente `VERSAO` no `sw.js` (por exemplo `recicla-v2`) antes de enviar, para os celulares pegarem a versão nova.
+**Histórico:** antes de tornar o repositório público, o caminho com o nome de usuário do Windows foi trocado por um caminho genérico em todo o histórico. As etiquetas `backup-antes-publicar` e `backup-main-antes-publicar` guardam a versão antiga só neste PC (não foram enviadas).
 
 ## 2. Identidade dos commits
 
@@ -74,8 +44,7 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
 5. **Virada do mês.**
    O placar não zera sozinho no dia 1º. Fiz assim de propósito: o demo day é em 1º de dezembro, e um placar zerado sozinho naquela manhã apagaria a demonstração. Para fechar o mês, use **Zerar placar** no painel. Com um banco online, quem fecha o mês é o servidor.
 
-6. **Imagem de compartilhamento (WhatsApp, LinkedIn).**
-   A imagem `icons/og-imagem.png` já existe. Depois de publicar, troque em `index.html` o `og:image` por um endereço completo, por exemplo `https://SEU-USUARIO.github.io/recicla-app/icons/og-imagem.png`. Sem `https://` no começo, o WhatsApp não mostra a imagem.
+6. **Imagem de compartilhamento (WhatsApp, LinkedIn).** Feito: o `og:image` aponta para o endereço completo publicado.
 
 7. **Prédio com mais de 10 andares.**
    O telão mostra os 10 primeiros colocados, que é o que cabe legível a distância. O app e o painel mostram todos.
