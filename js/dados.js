@@ -94,6 +94,7 @@ function validarConfig(bruto) {
     edificio: {
       id: String(bruto.edificio?.id ?? 'edificio'),
       nome: String(bruto.edificio?.nome ?? 'Edifício'),
+      apartamentosPorAndar: Math.max(1, Math.round(Number(bruto.edificio?.apartamentosPorAndar)) || 1),
     },
     pontosPorDescarte: {
       reciclavel: Number(pontos.reciclavel) || 10,
@@ -341,6 +342,7 @@ export async function obterEdificio() {
   return {
     id: config.edificio.id,
     nome: config.edificio.nome,
+    apartamentosPorAndar: config.edificio.apartamentosPorAndar,
     premio: { ...config.premio },
     pontosPorDescarte: { ...config.pontosPorDescarte },
     andares: config.andares.map((a) => a.numero),

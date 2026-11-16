@@ -24,15 +24,19 @@ try {
     serviceWorkers: 'block',
   });
   const page = await contexto.newPage();
-  await page.goto(`http://localhost:${PORTA}/?svg=1`, { waitUntil: 'networkidle' });
+  await page.goto(`http://localhost:${PORTA}/`, { waitUntil: 'networkidle' });
   await page.addStyleTag({
     content: `
-      .cabecalho, .heroi__acoes, .heroi__evento, .avisos, .selo { display: none !important; }
-      .heroi { width: 1080px !important; min-height: 630px; margin: 0 auto !important; gap: 24px !important; flex-wrap: nowrap !important; }
-      .heroi__texto { flex: 1 1 560px !important; }
-      .heroi__figura { flex: 0 0 440px !important; }
-      .heroi__titulo { margin-top: 28px !important; font-size: 64px !important; }
-      .heroi__sub { font-size: 21px !important; line-height: 32px !important; }
+      /* A abertura nova (a lixeira à direita, o título à esquerda) num quadro de 1200 x 630 */
+      .cabecalho, .heroi__acoes, .avisos { display: none !important; }
+      .heroi { min-height: 630px !important; height: 630px; padding: 0 72px !important; justify-content: center !important; }
+      .heroi__lixeira { --lx-ocupa: 0.78 !important; --lx-x: 70% !important; --lx-y: 52% !important; --lx-largura-min: 1.45 !important; --lx-altura-min: 1.1 !important; }
+      .heroi__midia::after {
+        background: linear-gradient(90deg, rgba(5,8,7,.86) 0%, rgba(5,8,7,.55) 36%, rgba(5,8,7,0) 60%) !important;
+      }
+      .heroi__texto { width: 100% !important; }
+      .heroi__titulo { max-width: 9.5ch !important; margin-top: 28px !important; font-size: 64px !important; }
+      .heroi__sub { max-width: 420px !important; font-size: 21px !important; line-height: 32px !important; }
       .heroi__texto::before {
         content: 'Recicla Slide'; display: flex; align-items: center;
         font: 800 26px/1 Rubik, sans-serif; letter-spacing: -0.01em; color: #F5F2EA;

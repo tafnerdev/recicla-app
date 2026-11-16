@@ -26,6 +26,7 @@
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="preload" href="fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="fonts/rubik-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/lixeira/lixeira-parede-verde.jpg" as="image" fetchpriority="high" />
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/site.css" />
     <script src="js/vendor/gsap.min.js" defer></script>
@@ -76,8 +77,31 @@
       <!-- Abertura                                                      -->
       <!-- ============================================================ -->
       <section class="heroi" aria-labelledby="heroi-titulo">
+        <!-- A lixeira (foto + anel de LED). Se existir assets/lixeira/giro.mp4, js/site.js troca a foto pelo vídeo. -->
+        <div class="heroi__midia" id="heroi-midia">
+          <div class="lixeira heroi__lixeira" data-foto="verde" style="--lx-proporcao: 1700 / 949; --lx-razao: 0.5582; --lx-foco-x: 0.494; --lx-foco-y: 0.511; --lx-altura: 0.537;">
+            <div class="lixeira__cena">
+              <img class="lixeira__foto" src="assets/lixeira/lixeira-parede-verde.jpg" width="1700" height="949" alt="Lixeira do Recicla Slide: corpo branco, tampa verde e anel de LED verde aceso, presa a um tubo de aço numa parede verde." decoding="async" loading="eager" />
+              <svg class="lixeira__led" viewBox="0 0 1700 949" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                <defs>
+                  <filter id="lx-heroi-halo" x="-30%" y="-300%" width="160%" height="700%"><feGaussianBlur stdDeviation="9" /></filter>
+                  <filter id="lx-heroi-largo" x="-40%" y="-400%" width="180%" height="900%"><feGaussianBlur stdDeviation="22" /></filter>
+                  <filter id="lx-heroi-fio" x="-10%" y="-100%" width="120%" height="300%"><feGaussianBlur stdDeviation="1.4" /></filter>
+                </defs>
+                <g class="lixeira__respira">
+                  <path class="lixeira__halo" d="M664,281 C730,304 830,322 893,325 C940,327 978,301 1014,271" stroke-width="16" filter="url(#lx-heroi-halo)" />
+                  <path class="lixeira__fio" d="M664,281 C730,304 830,322 893,325 C940,327 978,301 1014,271" stroke-width="3" filter="url(#lx-heroi-fio)" />
+                </g>
+                <g class="lixeira__pulso">
+                  <ellipse class="lixeira__luz" cx="842" cy="300" rx="250" ry="70" filter="url(#lx-heroi-largo)" />
+                  <path class="lixeira__halo" d="M664,281 C730,304 830,322 893,325 C940,327 978,301 1014,271" stroke-width="30" filter="url(#lx-heroi-largo)" />
+                  <path class="lixeira__fio" d="M664,281 C730,304 830,322 893,325 C940,327 978,301 1014,271" stroke-width="5" filter="url(#lx-heroi-fio)" />
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
         <div class="heroi__texto">
-          <p class="selo">Para prédios novos</p>
           <h1 id="heroi-titulo" class="heroi__titulo">
             O lixo desce pelo tobogã. <span>O andar sobe no ranking.</span>
           </h1>
@@ -92,14 +116,6 @@
             </a>
           </div>
         </div>
-
-        <figure class="heroi__figura">
-          <div class="heroi__predio" id="s-predio"></div>
-          <p class="heroi__evento" id="heroi-evento" aria-hidden="true">
-            <span class="ponto ponto--brilho" id="heroi-evento-ponto"></span>
-            <span><span class="heroi__evento-andar" id="heroi-evento-andar">5º andar</span> <span class="heroi__evento-texto">ganhou 10 pontos</span></span>
-          </p>
-        </figure>
       </section>
 
       <!-- ============================================================ -->
@@ -120,6 +136,30 @@
             <li data-revelar><span class="oque__kit-num numero" aria-hidden="true">1</span><span>sensor em cada lixeira, que conta cada descarte</span></li>
             <li data-revelar><span class="oque__kit-num numero" aria-hidden="true">10</span><span>pontos para o andar a cada descarte</span></li>
           </ul>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- Vídeo de lançamento (fora do cache do service worker)        -->
+      <!-- ============================================================ -->
+      <section class="secao lancamento" id="video" aria-labelledby="lancamento-titulo">
+        <div class="contem">
+          <h2 id="lancamento-titulo" class="secao__titulo" data-revelar>O Recicla Slide em 26 segundos</h2>
+          <figure class="lancamento__quadro" data-revelar>
+            <video
+              class="lancamento__video"
+              controls
+              playsinline
+              preload="none"
+              width="1920"
+              height="1080"
+              poster="assets/video/recicla-lancamento-capa.jpg"
+              aria-label="Vídeo de lançamento do Recicla Slide, 26 segundos"
+            >
+              <source src="assets/video/recicla-lancamento.mp4" type="video/mp4" />
+              <a href="assets/video/recicla-lancamento.mp4">Baixar o vídeo de lançamento</a>
+            </video>
+          </figure>
         </div>
       </section>
 
@@ -203,6 +243,7 @@
               </div>
               <p class="controle__status" id="demo-status" role="status" aria-live="polite">Carregando o placar de exemplo…</p>
               <button type="button" class="controle__reiniciar" id="demo-reiniciar" hidden>Voltar ao placar inicial</button>
+              <div class="controle__predio" id="s-predio"></div>
             </div>
 
             <div class="ranking-demo__placar">

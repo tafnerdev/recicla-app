@@ -58,7 +58,19 @@
           <span class="a-etiqueta__texto">Você está no <span id="aviso-etiqueta-andar">7º andar</span>.</span>
           <span class="a-etiqueta__acao">Pontuar agora</span>
         </a>
-        <div class="a-predio" id="predio"></div>
+        <!-- A lixeira do andar: foto com o anel de LED (js/lixeira.js), estado e último descarte -->
+        <section class="a-lixeira" id="lixeira" aria-labelledby="lixeira-titulo">
+          <div class="a-lixeira__foto" id="lixeira-foto"></div>
+          <div class="a-lixeira__info">
+            <h2 class="a-lixeira__titulo" id="lixeira-titulo">Lixeira do <span id="lixeira-andar">7º andar</span></h2>
+            <p class="a-lixeira__estado">
+              <span class="a-lixeira__sinal" id="lixeira-sinal" aria-hidden="true"></span>
+              <span id="lixeira-estado">Conectada</span>
+              <span class="chip a-lixeira__simulado" id="lixeira-simulado" title="Ainda não há sensor de verdade ligado a este prédio">Simulado</span>
+            </p>
+            <p class="a-lixeira__ultimo" id="lixeira-ultimo"></p>
+          </div>
+        </section>
 
         <div class="a-destaque" id="destaque">
           <p class="a-numero">
@@ -89,6 +101,8 @@
         <p class="a-rotulo" id="nome-predio">Edifício Exemplo</p>
         <h1 class="a-titulo" id="ranking-titulo">Ranking de <span id="ranking-mes">novembro</span></h1>
         <p class="a-sub" id="ranking-total"></p>
+
+        <div class="a-predio" id="predio"></div>
 
         <div class="a-premio" id="premio">
           <div>

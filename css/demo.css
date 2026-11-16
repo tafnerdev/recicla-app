@@ -247,14 +247,15 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0 var(--e-2);
+  flex-wrap: nowrap;
+  gap: 0 6px;
+  white-space: nowrap;
   margin-top: calc(-1 * var(--e-2));
 }
 
 .d-andar__pontos {
   color: var(--texto-2);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .d-andar__pontos .numero {
@@ -264,7 +265,7 @@
 
 .d-andar__posicao {
   color: var(--texto-2);
-  font-size: 14px;
+  font-size: 13px;
   white-space: nowrap;
 }
 

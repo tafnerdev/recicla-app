@@ -33,13 +33,19 @@ Abra `http://localhost:8080/`. O terminal mostra os endereços das quatro telas.
 
 ```bash
 npm install     # só na primeira vez: instala o Playwright (dependência de desenvolvimento)
-npm test        # 41 testes, usando o Chrome já instalado
+npm test        # 53 testes, usando o Chrome já instalado
 npm run capturas  # capturas de todas as telas em capturas/ (fora do git)
 ```
 
 Os testes cobrem: registrar descarte, desfazer, atalhos de teclado e descartes automáticos no painel; placar atualizando em outra aba (telão e app), subida na lista e novo líder; zerar e cancelar, voltar ao exemplo; abrir com `?andar=7` (e a folha Pontuar abrindo sozinha), abas pelo endereço, folha abrindo e fechando (Esc, Concluir, voltar), escolher e trocar de andar, andar inexistente, contador pessoal e erro de carregamento no app; prédio em SVG sem WebGL e em 3D com WebGL; telão em `?estavel=1` sem desfoque, sem canvas e sem animação; linhas do sensor; demonstração, menu, links e revelação na rolagem da página inicial; rolagem horizontal; uso sem internet, manifest e página 404.
 
 Outras ferramentas: `node tools/auditoria.mjs` (contraste, foco, nomes e alvos de toque), `node tools/og.mjs` (imagem de compartilhamento), `npm run icones` (ícones da PWA) e `node tools/capturas-referencia.mjs` (capturas das telas aprovadas da pasta `referencia/`, que fica fora do git).
+
+## A lixeira e o anel de LED
+
+A abertura do site e o Início do app mostram a lixeira (os renders de `assets/lixeira/`). Por cima da foto há um brilho verde desenhado exatamente sobre o anel de LED (`js/lixeira.js`): ele respira devagar e dá um pulso a cada descarte, verde no reciclável e laranja no orgânico.
+
+**Vídeo do giro:** quando existir `assets/lixeira/giro.mp4`, a abertura do site troca a foto pelo vídeo (mudo, em laço, com a foto como capa). Basta colocar o arquivo na pasta e publicar. Com "reduzir movimento" ou economia de dados, fica a foto.
 
 ## O prédio: 3D ou SVG
 
@@ -79,7 +85,7 @@ Para TVs que piscam com animação contínua (como a da escola): abra `.../telao
 
 | Tecla | Ação |
 |---|---|
-| `1` a `9`, `0` | escolhe o andar (`0` é o 10º) |
+| `1` a `9`, `0` | escolhe o andar (`0` é o 10º; dois números seguidos escolhem os de cima: `1` e `5` = 15º) |
 | `R` / `O` | reciclável / orgânico no andar escolhido |
 | `Z` | desfaz o último descarte |
 
@@ -106,6 +112,7 @@ css/base.css          variáveis do DESIGN.md e componentes compartilhados (vidr
 css/*.css             estilos de cada tela
 js/dados.js           módulo ÚNICO de dados (toda leitura e escrita passa por aqui)
 js/comum.js           peças de interface compartilhadas (formatação, ícones, avisos, animação FLIP, linha do ranking)
+js/lixeira.js         a lixeira (foto) com o anel de LED que respira e pulsa a cada descarte
 js/predio.js          o prédio em SVG e a escolha entre SVG e 3D
 js/predio3d.js        o prédio em 3D (Three.js)
 js/app.js telao.js demo.js site.js   uma por tela
@@ -113,7 +120,9 @@ js/serial.js          leitura do sensor pela Web Serial
 js/pwa.js  sw.js      instalação e uso offline
 js/vendor/            GSAP 3.15 e Three.js 0.180 copiados para dentro do projeto
 fonts/                Geist (texto) e Rubik (só o logo), woff2 com licença OFL
-data/edificio-exemplo.json   prédio, prêmio e contagens de exemplo
+data/edificio-exemplo.json   prédio (20 andares, 4 apartamentos por andar), prêmio e contagens de exemplo
+assets/lixeira/       renders da lixeira; se existir giro.mp4 aqui, a abertura do site usa o vídeo
+assets/video/         vídeo de lançamento de 26 s (fica fora do cache offline)
 docs/                 sensor, ESP32, etiqueta NFC e capturas do redesign (docs/redesign/)
 tests/                testes Playwright
 tools/                servidor local, capturas e gerador de ícones

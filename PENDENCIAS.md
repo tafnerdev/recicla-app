@@ -47,12 +47,12 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
 6. **Imagem de compartilhamento (WhatsApp, LinkedIn).** Feito: o `og:image` aponta para o endereço completo publicado.
 
 7. **Prédio com mais de 10 andares.**
-   O telão mostra os 10 primeiros colocados, que é o que cabe legível a distância. O app e o painel mostram todos.
+   O prédio de exemplo agora tem 20 andares, como na apresentação. O telão mostra os 10 primeiros colocados (o que cabe legível a distância) até a Etapa 3, que faz ele alternar as páginas. O app, o site e o painel mostram todos; no painel, dois números seguidos escolhem os andares acima do 10º.
 
 ## 4. Materiais que só vocês têm
 
 - **Logo definitivo.** Hoje o logo é o ponto verde antes do nome. Quando houver logo, troque o desenho em `tools/icones.mjs` e rode `npm run icones` para gerar todos os ícones de novo.
-- **Fotos reais.** O site não usa fotos de banco de imagem nem imagens geradas (seria dado inventado ou serviço externo). Se houver fotos do protótipo ou da maquete, elas podem entrar na abertura e em "Para quem é".
+- **Fotos e vídeo da lixeira.** A abertura e o app usam os renders que vocês mandaram (`assets/lixeira/`). O render com parede de concreto ainda não aparece em nenhuma tela. Quando o vídeo do giro existir, salve como `assets/lixeira/giro.mp4` e publique: a abertura troca a foto por ele sozinha.
 - **QR Code para o palco.** Um QR Code com o endereço publicado no slide ajuda os investidores a abrirem o app no celular. Qualquer gerador de QR serve, depois de publicar.
 
 ## 5. Observações
@@ -79,4 +79,6 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
 
 ## 7. `prompt-app.md` (sistema de verdade)
 
-1. **Conferir o prédio 3D no seu celular** (Etapa 0). Abra `https://tafnerdev.github.io/recicla-app/app/?diag=1` e me diga o que aparece embaixo do prédio e o modelo do celular. No emulador ele carrega; os detalhes estão no `ETAPAS.md`.
+1. **Conferir o prédio 3D no seu celular** (Etapa 0). Na resposta da Etapa 0, o modelo e o resultado vieram como "(MODELO)" e "(O QUE APARECEU)", sem preencher. Como o prédio agora fica na aba Ranking, abra `https://tafnerdev.github.io/recicla-app/app/?diag=1#ranking` e me diga o que aparece embaixo do prédio e o modelo do celular.
+2. **Uma lixeira de duas bocas ou duas lixeiras?** (para a Etapa 6). A apresentação fala em duas lixeiras por andar (a verde, de recicláveis, e a marrom, de orgânicos, com a tampa que abre com o pé). O site e o app ainda dizem "uma lixeira de duas bocas". Não mudei os textos nesta etapa; a Etapa 6 alinha tudo com os slides. O pulso laranja do orgânico aparece na lixeira verde porque é a única foto que existe.
+3. **"Conectada" é simulado.** Ainda não há sensor de verdade ligado ao app, então o estado da lixeira aparece com a marca "Simulado"; "Sem sinal" aparece quando o celular está sem internet. "Último descarte" é verdadeiro: vem dos descartes registrados (painel, sensor ou a etiqueta neste celular).

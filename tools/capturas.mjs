@@ -60,7 +60,7 @@ const CAPTURAS = [
     nome: 'secoes',
     url: '',
     tamanhos: [COMPUTADOR, TABLET, CELULAR],
-    secoes: ['.oque', '#como-funciona', '#ranking', '#para-quem', '#perguntas', '#contato', '.rodape'],
+    secoes: ['.oque', '#video', '#como-funciona', '#ranking', '#para-quem', '#perguntas', '#contato', '.rodape'],
     depois: rolarAteOFim,
   },
   { nome: 'site-parado', url: '', tamanhos: [COMPUTADOR, CELULAR], inteira: false, movimento: 'reduce' },
@@ -194,7 +194,12 @@ try {
       });
       const page = await contexto.newPage();
       page.on('pageerror', (e) => problemas.push(`${captura.nome} ${tamanho.width}: ${e.message}`));
-      page.on('console', (m) => m.type() === 'error' && problemas.push(`${captura.nome} ${tamanho.width}: console: ${m.text()}`));
+      page.on('console', (m) => {
+        if (m.type() !== 'error') return;
+        // O site pergunta se existe o vídeo do giro (assets/lixeira/giro.mp4); o 404 é esperado enquanto ele não existir.
+        if ((m.location()?.url ?? '').includes('assets/lixeira/giro.mp4')) return;
+        problemas.push(`${captura.nome} ${tamanho.width}: console: ${m.text()}`);
+      });
       if (captura.falharDados) await page.route('**/data/*.json', (r) => r.fulfill({ status: 500, body: 'erro' }));
       await page.goto(BASE + captura.url, { waitUntil: 'networkidle' });
       if (captura.preparar) {

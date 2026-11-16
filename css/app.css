@@ -103,9 +103,10 @@
 }
 
 .esq-predio {
-  width: min(100%, 342px);
-  aspect-ratio: 350 / 320;
-  border-radius: 24px;
+  width: 100%;
+  height: 236px;
+  margin-top: 14px;
+  border-radius: 28px;
 }
 
 .esq-numero {
@@ -213,17 +214,106 @@
   }
 }
 
+/* O prédio, menor, na aba Ranking: contexto para a lista */
 .a-predio {
   position: relative;
-  width: min(100%, 342px);
+  width: min(100%, 260px);
   aspect-ratio: 350 / 320;
-  margin-top: 4px;
+  margin: 20px auto 4px;
 }
 
 .a-predio > svg,
 .a-predio > canvas {
   width: 100%;
   height: auto;
+}
+
+/* ------------------------------------------------------------------ */
+/* A lixeira do andar (Início)                                         */
+/* ------------------------------------------------------------------ */
+
+.a-lixeira {
+  margin-top: 14px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--linha);
+  margin-bottom: 12px;
+}
+
+.a-lixeira__foto {
+  position: relative;
+  height: 236px;
+  overflow: hidden;
+  border-radius: 28px;
+  background: #1f2c23;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+.a-lixeira__foto .lixeira {
+  position: absolute;
+  inset: 0;
+  --lx-ocupa: 0.84;
+  --lx-x: 50%;
+  --lx-y: 52%;
+}
+
+/* entrada: a foto aparece e o zoom assenta */
+.a-aba.entrou .a-lixeira__foto .lixeira__cena {
+  animation: lixeira-entra 900ms var(--ease-saida) both;
+}
+
+@keyframes lixeira-entra {
+  from {
+    opacity: 0;
+    scale: 1.05;
+  }
+}
+
+.a-lixeira__info {
+  margin-top: 14px;
+}
+
+.a-lixeira__titulo {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.a-lixeira__estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: 6px;
+  color: var(--texto-vidro);
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.a-lixeira__sinal {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--verde);
+  box-shadow: 0 0 10px rgba(139, 209, 124, 0.8);
+}
+
+.a-lixeira[data-sinal='sem'] .a-lixeira__sinal {
+  background: var(--texto-2);
+  box-shadow: none;
+}
+
+.a-lixeira__simulado {
+  min-height: 24px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.a-lixeira__ultimo {
+  margin-top: 4px;
+  color: var(--texto-2);
+  font-size: 15px;
+  line-height: 20px;
 }
 
 .a-numero {

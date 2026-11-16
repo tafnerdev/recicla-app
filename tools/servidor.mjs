@@ -35,6 +35,10 @@ const TIPOS = {
   '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.mp4': 'video/mp4',
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
   '.txt': 'text/plain; charset=utf-8',
@@ -77,10 +81,27 @@ const servidor = createServer(async (req, res) => {
       arquivo = join(arquivo, 'index.html');
     }
     const corpo = await readFile(arquivo);
-    res.writeHead(200, {
+    const cabecalhos = {
       'Content-Type': TIPOS[extname(arquivo).toLowerCase()] || 'application/octet-stream',
       'Cache-Control': 'no-cache',
-    });
+      'Accept-Ranges': 'bytes',
+    };
+    // Pedido parcial (Range): o vídeo precisa disso para avançar e, no iPhone, para tocar.
+    const faixa = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range ?? '');
+    if (faixa && (faixa[1] || faixa[2])) {
+      const total = corpo.length;
+      let inicio = faixa[1] ? Number(faixa[1]) : total - Number(faixa[2]);
+      let fim = faixa[1] && faixa[2] ? Number(faixa[2]) : total - 1;
+      inicio = Math.max(0, inicio);
+      fim = Math.min(fim, total - 1);
+      if (inicio > fim) {
+        res.writeHead(416, { 'Content-Range': `bytes */${total}` });
+        return res.end();
+      }
+      res.writeHead(206, { ...cabecalhos, 'Content-Range': `bytes ${inicio}-${fim}/${total}`, 'Content-Length': fim - inicio + 1 });
+      return res.end(corpo.subarray(inicio, fim + 1));
+    }
+    res.writeHead(200, { ...cabecalhos, 'Content-Length': corpo.length });
     res.end(corpo);
   } catch {
     try {

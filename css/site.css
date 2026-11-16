@@ -37,7 +37,7 @@
 
 .secao {
   padding-top: clamp(96px, 12vw, 160px);
-  scroll-margin-top: 72px;
+  scroll-margin-top: 40px;
 }
 
 .secao__titulo {
@@ -66,11 +66,12 @@
 /* ------------------------------------------------------------------ */
 
 .cabecalho {
-  position: sticky;
+  position: fixed;
   top: calc(20px + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
   z-index: var(--z-cabecalho);
   padding-inline: 24px;
-  margin-top: calc(20px + env(safe-area-inset-top));
 }
 
 .cabecalho__pilula {
@@ -341,56 +342,96 @@ html.menu-aberto {
 }
 
 /* ------------------------------------------------------------------ */
-/* Abertura                                                            */
+/* Abertura: a lixeira ocupa a dobra, o texto fica por cima            */
 /* ------------------------------------------------------------------ */
 
 .heroi {
+  position: relative;
+  isolation: isolate;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 40px 48px;
-  width: min(100% - 48px, 1200px);
-  margin: 56px auto 0;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100svh;
+  padding: calc(112px + env(safe-area-inset-top)) 24px clamp(40px, 7svh, 72px);
+  overflow: hidden;
+  background: var(--fundo);
+}
+
+.heroi__midia {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+/* No celular, a lixeira fica no alto e o texto embaixo */
+.heroi__lixeira {
+  position: absolute;
+  inset: 0;
+  --lx-ocupa: 0.36;
+  --lx-x: 50%;
+  --lx-y: 31%;
+  background: var(--fundo);
+}
+
+/* Entrada: zoom lento de 1,06 para 1 em 1,6 s */
+.heroi__lixeira .lixeira__cena {
+  height: max(calc(100cqh * var(--lx-ocupa) / var(--lx-altura)), calc(100cqw * var(--lx-largura-min, 0) * var(--lx-razao)), calc(100cqh * var(--lx-altura-min, 0)));
+  animation: heroi-zoom 1.6s var(--ease-saida) both;
+}
+
+@keyframes heroi-zoom {
+  from {
+    scale: 1.06;
+  }
+}
+
+/* Escurece onde fica o texto */
+.heroi__midia::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(5, 8, 7, 0.55) 0, rgba(5, 8, 7, 0) 18%),
+    linear-gradient(180deg, rgba(5, 8, 7, 0) 46%, rgba(5, 8, 7, 0.86) 66%, var(--fundo) 80%);
+  pointer-events: none;
 }
 
 .heroi__texto {
-  flex: 1 1 480px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  width: min(100%, 1200px);
+  margin-inline: auto;
 }
 
 .heroi__titulo {
-  margin-top: 24px;
-  font-size: clamp(2.6rem, 5.4vw, 4.75rem);
+  max-width: 12.5ch;
+  font-size: clamp(2.5rem, 5.4vw, 4.75rem);
   line-height: 1.02;
   font-weight: 400;
   letter-spacing: -0.045em;
+  text-wrap: balance;
 }
 
 .heroi__titulo span {
-  color: rgba(245, 242, 234, 0.6);
+  color: rgba(245, 242, 234, 0.62);
 }
 
 .heroi__sub {
-  max-width: 460px;
-  margin-top: 28px;
-  font-size: 19px;
-  line-height: 30px;
-  color: rgba(245, 242, 234, 0.7);
+  max-width: 440px;
+  margin-top: 20px;
+  font-size: 17px;
+  line-height: 26px;
+  color: rgba(245, 242, 234, 0.74);
 }
 
 .heroi__acoes {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 36px;
+  margin-top: 28px;
 }
 
 .heroi__acoes .botao--vidro {
-  padding: 0 26px;
-  border-color: rgba(255, 255, 255, 0.18);
+  padding: 0 24px;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .heroi__acoes [data-icone] svg {
@@ -399,83 +440,121 @@ html.menu-aberto {
   stroke-width: 1.8;
 }
 
-.heroi__figura {
-  flex: 1 1 420px;
-  min-width: 0;
-  position: relative;
-  display: flex;
-  justify-content: center;
+/* Entrada do texto, logo depois da foto */
+.heroi__titulo,
+.heroi__sub,
+.heroi__acoes {
+  animation: heroi-texto var(--t-entrada) var(--ease-saida) both;
 }
 
-.heroi__predio {
-  position: relative;
-  width: 100%;
-  max-width: 640px;
-  aspect-ratio: 350 / 320;
+.heroi__titulo {
+  animation-delay: 200ms;
 }
 
-.heroi__predio > svg,
-.heroi__predio > canvas {
-  width: 100%;
-  height: 100%;
+.heroi__sub {
+  animation-delay: 280ms;
 }
 
-.heroi__evento {
-  position: absolute;
-  left: 0;
-  bottom: 12%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 52px;
-  padding: 0 20px 0 16px;
-  border-radius: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
-  -webkit-backdrop-filter: blur(24px) saturate(170%);
-  backdrop-filter: blur(24px) saturate(170%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 16px 40px rgba(0, 0, 0, 0.45);
-  font-size: 15px;
-  white-space: nowrap;
+.heroi__acoes {
+  animation-delay: 360ms;
 }
 
-.heroi__evento .ponto {
-  --tam-ponto: 10px;
-}
-
-.heroi__evento-andar {
-  font-weight: 500;
-}
-
-.heroi__evento-texto {
-  color: var(--texto-vidro);
-}
-
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .heroi__evento {
-    background: var(--vidro-opaco);
+@keyframes heroi-texto {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
   }
 }
 
-@media (min-width: 561px) and (max-width: 899px) {
-  .heroi__predio {
-    max-width: 480px;
+@media (max-width: 420px) {
+  .heroi__acoes {
+    gap: 10px;
+  }
+
+  .heroi__acoes .botao {
+    padding: 0 16px;
+    font-size: 16px;
   }
 }
 
-@media (max-width: 560px) {
+/* Tablet: a lixeira cresce um pouco */
+@media (min-width: 600px) and (max-width: 899px) {
+  .heroi__lixeira {
+    --lx-ocupa: 0.42;
+    --lx-y: 34%;
+  }
+
+  .heroi__sub {
+    font-size: 19px;
+    line-height: 30px;
+  }
+}
+
+/* Computador: a lixeira à direita, o texto à esquerda, tudo na mesma dobra */
+@media (min-width: 900px) {
   .heroi {
-    margin-top: 40px;
+    justify-content: center;
+    padding-bottom: 64px;
+  }
+
+  .heroi__lixeira {
+    --lx-ocupa: 0.64;
+    --lx-x: 68%;
+    --lx-y: 54%;
+    /* a cena cobre o quadro inteiro, sem sobrar borda */
+    --lx-largura-min: 1.4;
+    --lx-altura-min: 1.06;
+  }
+
+  .heroi__midia::after {
+    background:
+      linear-gradient(90deg, rgba(5, 8, 7, 0.82) 0%, rgba(5, 8, 7, 0.5) 34%, rgba(5, 8, 7, 0) 58%),
+      linear-gradient(180deg, rgba(5, 8, 7, 0.5) 0, rgba(5, 8, 7, 0) 16%),
+      linear-gradient(180deg, rgba(5, 8, 7, 0) 72%, var(--fundo) 100%);
+  }
+
+  .heroi__titulo {
+    max-width: 10.5ch;
+  }
+
+  .heroi__sub {
+    margin-top: 28px;
+    font-size: 19px;
+    line-height: 30px;
   }
 
   .heroi__acoes {
-    display: grid;
-    width: 100%;
+    margin-top: 36px;
   }
+}
 
-  .heroi__evento {
-    bottom: 4%;
-  }
+/* ------------------------------------------------------------------ */
+/* Vídeo de lançamento                                                 */
+/* ------------------------------------------------------------------ */
+
+.lancamento__quadro {
+  margin-top: clamp(32px, 4vw, 48px);
+  overflow: hidden;
+  border-radius: var(--r-grande);
+  border: 1px solid var(--linha);
+  background: #0b2a24;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+.lancamento__video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: #0b2a24;
+}
+
+/* o quadro corta o que passa da borda: o contorno de foco fica por dentro */
+.lancamento__video:focus-visible,
+.lancamento__video:focus-within {
+  outline: 2px solid var(--texto);
+  outline-offset: -6px;
+  border-radius: calc(var(--r-grande) - 2px);
 }
 
 /* ------------------------------------------------------------------ */
@@ -770,6 +849,19 @@ html.menu-aberto {
 .controle__status strong {
   color: var(--texto);
   font-weight: 500;
+}
+
+.controle__predio {
+  justify-self: center;
+  width: min(100%, 300px);
+  aspect-ratio: 350 / 320;
+  margin-top: 8px;
+}
+
+.controle__predio > svg,
+.controle__predio > canvas {
+  width: 100%;
+  height: 100%;
 }
 
 .controle__reiniciar {

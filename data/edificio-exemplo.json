@@ -1,9 +1,10 @@
 {
-  "_aviso": "DADOS DE EXEMPLO para demonstração. Nenhum número aqui é real: prédio, contagens e prêmio são fictícios.",
-  "versaoDados": 1,
+  "_aviso": "DADOS DE EXEMPLO para demonstração. Nenhum número aqui é real: prédio, contagens e prêmio são fictícios. O tamanho (20 andares, 4 apartamentos por andar) é o mesmo do prédio de exemplo da apresentação.",
+  "versaoDados": 2,
   "edificio": {
     "id": "edificio-exemplo",
-    "nome": "Edifício Exemplo"
+    "nome": "Edifício Exemplo",
+    "apartamentosPorAndar": 4
   },
   "pontosPorDescarte": {
     "reciclavel": 10,
@@ -24,6 +25,16 @@
     { "numero": 7,  "reciclavel": 19, "organico": 10 },
     { "numero": 8,  "reciclavel": 23, "organico": 16 },
     { "numero": 9,  "reciclavel": 8,  "organico": 7 },
-    { "numero": 10, "reciclavel": 15, "organico": 13 }
+    { "numero": 10, "reciclavel": 15, "organico": 13 },
+    { "numero": 11, "reciclavel": 15, "organico": 11 },
+    { "numero": 12, "reciclavel": 13, "organico": 9 },
+    { "numero": 13, "reciclavel": 16, "organico": 11 },
+    { "numero": 14, "reciclavel": 11, "organico": 8 },
+    { "numero": 15, "reciclavel": 14, "organico": 10 },
+    { "numero": 16, "reciclavel": 12, "organico": 9 },
+    { "numero": 17, "reciclavel": 7, "organico": 5 },
+    { "numero": 18, "reciclavel": 10, "organico": 7 },
+    { "numero": 19, "reciclavel": 14, "organico": 11 },
+    { "numero": 20, "reciclavel": 8, "organico": 6 }
   ]
 }

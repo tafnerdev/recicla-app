@@ -865,6 +865,119 @@ button.chip--vidro:active {
 }
 
 /* ------------------------------------------------------------------ */
+/* Lixeira com o anel de LED (js/lixeira.js)                           */
+/* ------------------------------------------------------------------ */
+
+/*
+ * A cena tem a proporção da foto. Quem usa a lixeira define o quadro (.lixeira,
+ * com container-type: size) e quanto da altura dele a lixeira ocupa (--lx-ocupa);
+ * a cena se posiciona para a lixeira ficar no ponto --lx-x / --lx-y do quadro.
+ */
+.lixeira {
+  --lx-ocupa: 0.8;
+  --lx-x: 50%;
+  --lx-y: 50%;
+  position: relative;
+  overflow: hidden;
+  container-type: size;
+}
+
+.lixeira__cena {
+  position: absolute;
+  left: var(--lx-x);
+  top: var(--lx-y);
+  height: calc(100cqh * var(--lx-ocupa) / var(--lx-altura));
+  aspect-ratio: var(--lx-proporcao);
+  translate: calc(var(--lx-foco-x) * -100%) calc(var(--lx-foco-y) * -100%);
+  transform-origin: calc(var(--lx-foco-x) * 100%) calc(var(--lx-foco-y) * 100%);
+  isolation: isolate;
+}
+
+.lixeira__foto,
+.lixeira__video,
+.lixeira__led {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.lixeira__video {
+  object-fit: cover;
+}
+
+.lixeira__led {
+  overflow: visible;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.lixeira__led path {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.lixeira__respira .lixeira__halo {
+  stroke: var(--verde);
+}
+
+.lixeira__respira .lixeira__fio {
+  stroke: #d6f7cd;
+}
+
+/* O anel respira devagar */
+.lixeira__respira {
+  opacity: 0.6;
+  animation: lixeira-respira 4.8s ease-in-out infinite alternate;
+}
+
+@keyframes lixeira-respira {
+  from {
+    opacity: 0.3;
+  }
+
+  to {
+    opacity: 0.95;
+  }
+}
+
+/* Pulso de cada descarte: verde no reciclável, laranja no orgânico */
+.lixeira__pulso {
+  --lx-cor: var(--verde);
+  opacity: 0;
+}
+
+.lixeira[data-pulso='organico'] .lixeira__pulso {
+  --lx-cor: var(--laranja);
+}
+
+.lixeira__pulso .lixeira__halo,
+.lixeira__pulso .lixeira__fio {
+  stroke: var(--lx-cor);
+}
+
+.lixeira__pulso .lixeira__luz {
+  fill: var(--lx-cor);
+  opacity: 0.55;
+}
+
+/* Com o vídeo do giro tocando, o vídeo já mostra o próprio LED */
+.lixeira--video .lixeira__led {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lixeira__respira {
+    animation: none;
+  }
+}
+
+.estavel .lixeira__respira {
+  animation: none;
+}
+
+/* ------------------------------------------------------------------ */
 /* Aviso (toast)                                                       */
 /* ------------------------------------------------------------------ */
 

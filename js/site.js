@@ -21,6 +21,7 @@ import {
   rotuloDescartes,
   rotuloPontos,
 } from './comum.js';
+import { ligarLixeira, trocarPorVideoSeExistir } from './lixeira.js';
 import { montarPredio } from './predio.js';
 
 const $ = (id) => document.getElementById(id);
@@ -147,78 +148,55 @@ function ligarRevelacao() {
     // Quem rola rápido para baixo e volta também encontra o conteúdo.
     onEnterBack: revelar,
   });
+  ligarParalaxe();
   // Fontes e conteúdo carregado depois (a demonstração do ranking) mudam a altura da página.
   document.fonts?.ready.then(() => ScrollTrigger.refresh());
 }
 
 /* ------------------------------------------------------------------ */
-/* O prédio da abertura                                                */
+/* A lixeira da abertura                                               */
 /* ------------------------------------------------------------------ */
 
-async function ligarPredio() {
-  const caixa = $('s-predio');
-  let edificio;
-  let placar;
-  try {
-    [edificio, placar] = await Promise.all([obterEdificio(), obterPlacar()]);
-  } catch {
-    return; // sem dados, o espaço fica vazio e o texto da abertura continua
-  }
-  const lider = placar.ranking[0]?.pontos > 0 ? placar.ranking[0].andar : null;
-  const predio = montarPredio(caixa, {
-    andares: edificio.andares,
-    aceso: lider,
-    pontosAndares: Object.fromEntries(placar.ranking.map((i) => [i.andar, i.pontos])),
-    modo: 'lider',
-    pontos: 'site',
-    traco: 0.7,
-    largura: null,
-    interativo: true,
-  });
+function ligarAbertura() {
+  const elemento = document.querySelector('.heroi__lixeira');
+  if (!elemento) return;
+  const lixeira = ligarLixeira(elemento);
 
-  // Laço de demonstração: um ponto de luz desce a cada poucos segundos e o chip conta
-  // qual andar ganhou pontos. Para quando a abertura sai da tela. Sem movimento: parado.
+  // Encaixe pronto para o vídeo do giro: se assets/lixeira/giro.mp4 existir, entra no lugar da foto.
+  trocarPorVideoSeExistir(lixeira);
+
+  // O anel dá um pulso a cada descarte de demonstração, enquanto a abertura está na tela.
   if (reduzMovimento()) return;
-  const cartao = $('heroi-evento');
-  const pontoCor = $('heroi-evento-ponto');
-  const andarTexto = $('heroi-evento-andar');
   let visivel = false;
   let relogio = 0;
-  let ultimo = null;
-
-  const soltar = () => {
-    const andares = edificio.andares;
-    let andar = andares[Math.floor(Math.random() * andares.length)];
-    if (andar === ultimo) andar = andares[(andares.indexOf(andar) + 3) % andares.length];
-    ultimo = andar;
-    const tipo = Math.random() < 0.58 ? 'reciclavel' : 'organico';
-    predio.soltarLuz(andar, tipo, {
-      aoChegar: () => {
-        andarTexto.textContent = nomeAndar(andar);
-        pontoCor.classList.toggle('ponto--o', tipo === 'organico');
-        pulsar(cartao, [{ opacity: 0.4, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], {
-          duration: 480,
-          id: 'evento',
-        });
-      },
-    });
-  };
   const agendar = (espera) => {
     clearTimeout(relogio);
     if (!visivel || document.hidden) return;
     relogio = setTimeout(() => {
-      soltar();
-      agendar(3200 + Math.random() * 1600);
+      lixeira.pulsar(Math.random() < 0.58 ? 'reciclavel' : 'organico');
+      agendar(3600 + Math.random() * 2400);
     }, espera);
   };
   new IntersectionObserver(
     ([entrada]) => {
       visivel = entrada.isIntersecting;
-      agendar(900);
+      agendar(1800);
     },
     { threshold: 0.2 },
-  ).observe(caixa);
-  document.addEventListener('visibilitychange', () => agendar(900));
+  ).observe(elemento);
+  document.addEventListener('visibilitychange', () => agendar(1800));
+}
+
+/** Paralaxe leve: a foto da abertura desce mais devagar que a página. */
+function ligarParalaxe() {
+  const { gsap, ScrollTrigger } = window;
+  const midia = document.getElementById('heroi-midia');
+  if (!gsap || !ScrollTrigger || !midia || reduzMovimento()) return;
+  gsap.to(midia, {
+    yPercent: 16,
+    ease: 'none',
+    scrollTrigger: { trigger: '.heroi', start: 'top top', end: 'bottom top', scrub: true },
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -264,6 +242,20 @@ async function ligarDemoRanking() {
   );
 
   let placar = await simulacao.obterPlacar();
+
+  // O prédio, pequeno, como contexto: o andar escolhido aceso e a luz descendo a cada descarte.
+  const pontosAndares = () => Object.fromEntries(placar.ranking.map((i) => [i.andar, i.pontos]));
+  const predio = montarPredio($('s-predio'), {
+    andares: edificio.andares,
+    aceso: escolhido,
+    modo: 'lider',
+    pontos: 'site',
+    pontosAndares: pontosAndares(),
+    traco: 0.7,
+    largura: null,
+    interativo: true,
+    descricao: (estado) => `Prédio de ${edificio.andares.length} andares com o ${nomeAndar(estado.aceso)} aceso.`,
+  });
 
   function descrever() {
     const { ranking } = placar;
@@ -315,11 +307,14 @@ async function ligarDemoRanking() {
       }
     }
     reiniciar.hidden = novo.evento?.tipo === 'restaurado';
+    predio.atualizar({ aceso: escolhido, pontosAndares: pontosAndares() });
+    if (evento?.tipo === 'descarte') predio.soltarLuz(evento.andar, evento.descarte);
   });
 
   opcoes.addEventListener('change', (e) => {
     escolhido = Number(e.target.value);
     renderizar(false);
+    predio.atualizar({ aceso: escolhido });
   });
 
   for (const botao of botoes) {
@@ -361,7 +356,7 @@ ligarMenu();
 ligarSecaoAtual();
 ligarContato();
 ligarDemoRanking();
-ligarPredio();
+ligarAbertura();
 
 // GSAP e ScrollTrigger chegam com "defer"; módulos rodam depois deles, mas confere por garantia.
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ligarRevelacao);

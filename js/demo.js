@@ -259,7 +259,18 @@ function ligarEventos() {
     if (document.querySelector('dialog[open]')) return;
     const tecla = e.key.toLowerCase();
     if (/^[0-9]$/.test(tecla)) {
-      const andar = tecla === '0' ? 10 : Number(tecla);
+      // Um número escolhe o andar (0 é o 10º); dois números seguidos, os de cima (1 e 5 = 15º).
+      const agora = Date.now();
+      let andar = tecla === '0' ? 10 : Number(tecla);
+      const anterior = estado.digito;
+      estado.digito = { tecla, em: agora };
+      if (anterior && agora - anterior.em < 900) {
+        const combinado = Number(`${anterior.tecla}${tecla}`);
+        if (estado.cartoes.has(combinado)) {
+          andar = combinado;
+          estado.digito = null;
+        }
+      }
       if (estado.cartoes.has(andar)) {
         e.preventDefault();
         escolherAndar(andar);

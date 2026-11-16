@@ -156,7 +156,7 @@ test.describe('app do morador', () => {
   test('sem andar, pede para escolher; e a escolha fica guardada', async ({ page }) => {
     await page.goto('app/');
     await expect(page.getByRole('heading', { name: 'Qual é o seu andar?' })).toBeVisible();
-    await page.getByRole('button', { name: '3º andar' }).click();
+    await page.getByRole('button', { name: '3º andar', exact: true }).click();
     await expect(page.locator('#destaque-titulo')).toHaveText(/3º\s*andar/);
     await page.reload();
     await expect(page.locator('#destaque-titulo')).toHaveText(/3º\s*andar/);
@@ -166,11 +166,11 @@ test.describe('app do morador', () => {
     await page.goto('app/?andar=7');
     await page.getByRole('button', { name: 'Trocar de andar' }).click();
     await expect(page.getByRole('heading', { name: 'Qual é o seu andar?' })).toBeVisible();
-    await expect(page.getByRole('button', { name: '7º andar' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: '7º andar', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await page.getByRole('button', { name: 'Manter o andar atual' }).click();
     await expect(page.locator('#destaque-titulo')).toHaveText(/7º\s*andar/);
     await page.getByRole('button', { name: 'Trocar de andar' }).click();
-    await page.getByRole('button', { name: '2º andar' }).click();
+    await page.getByRole('button', { name: '2º andar', exact: true }).click();
     await expect(page.locator('#destaque-titulo')).toHaveText(/2º\s*andar/);
     await expect(page).toHaveURL(/andar=2/);
   });

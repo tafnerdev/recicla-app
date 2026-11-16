@@ -7,7 +7,7 @@
  *
  * Ao publicar uma versão nova, mude VERSAO. As telas avisam "Nova versão disponível".
  */
-const VERSAO = 'recicla-v5';
+const VERSAO = 'recicla-v6';
 const ESPERA_REDE = 2500;
 
 const ARQUIVOS = [
@@ -31,6 +31,8 @@ const ARQUIVOS = [
   'js/demo.js',
   'js/serial.js',
   'js/predio.js',
+  'js/lixeira.js',
+  'assets/lixeira/lixeira-parede-verde.jpg',
   'js/predio3d.js',
   'js/vendor/three.module.min.js',
   'js/vendor/three.core.min.js',
@@ -128,6 +130,8 @@ self.addEventListener('fetch', (evento) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== location.origin) return;
+  // Vídeos ficam fora do cache: são grandes e o navegador pede em pedaços (Range).
+  if (url.pathname.endsWith('.mp4') || url.pathname.includes('/assets/video/') || request.headers.has('range')) return;
 
   if (request.mode === 'navigate') {
     evento.respondWith(

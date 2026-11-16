@@ -29,6 +29,7 @@ import {
   textoErroCarregar,
   vibrar,
 } from './comum.js';
+import { criarLixeira } from './lixeira.js';
 import { montarPredio } from './predio.js';
 
 const $ = (id) => document.getElementById(id);
@@ -44,6 +45,8 @@ const estado = {
   empilhouFolha: false,
   linhas: new Map(),
   predio: null,
+  lixeira: null,
+  ultimoToque: null, // último descarte pela etiqueta neste aparelho (a pessoa usou a lixeira)
 };
 
 const mes = nomeMes();
@@ -73,6 +76,8 @@ async function iniciar() {
   const alerta = await resolverAndar();
   preencherTextosFixos();
   montarEscolha();
+  estado.lixeira = criarLixeira({ foto: 'verde', base: '../' });
+  $('lixeira-foto').append(estado.lixeira.elemento);
   estado.predio = montarPredio($('predio'), {
     andares: estado.edificio.andares,
     aceso: estado.meuAndar,
@@ -101,6 +106,8 @@ async function iniciar() {
     renderizarPessoal(true);
   });
   setInterval(atualizarHora, 30_000);
+  addEventListener('online', renderizarLixeira);
+  addEventListener('offline', renderizarLixeira);
 }
 
 /** Lê ?andar= da URL. Devolve um texto de alerta se o andar não existir. */
@@ -351,6 +358,7 @@ function pontosPorDescarte() {
 function renderizar({ animar }) {
   renderizarRanking(animar);
   renderizarDestaque(animar);
+  renderizarLixeira();
   renderizarPremio();
   atualizarHora();
   estado.predio?.atualizar({ aceso: estado.meuAndar, lider: liderUnico()?.andar ?? null, pontosAndares: pontosPorAndar() });
@@ -478,8 +486,33 @@ function renderizarPremio() {
   $('premio-exemplo').hidden = !premio.exemplo;
 }
 
+/** A lixeira do andar: estado da conexão e último descarte (do placar ou da etiqueta). */
+function renderizarLixeira() {
+  const andar = estado.meuAndar;
+  const caixa = $('lixeira');
+  caixa.hidden = !andar;
+  if (!andar || !estado.placar) return;
+  $('lixeira-andar').textContent = nomeAndar(andar);
+
+  // Ainda não há sensor de verdade: a conexão é simulada, e "Sem sinal" é quando o celular está sem internet.
+  const online = navigator.onLine !== false;
+  caixa.dataset.sinal = online ? 'ok' : 'sem';
+  $('lixeira-estado').textContent = online ? 'Conectada' : 'Sem sinal';
+
+  const doPlacar = estado.placar.historico?.find((h) => h.andar === andar)?.em ?? null;
+  const toque = estado.ultimoToque?.andar === andar ? estado.ultimoToque.em : null;
+  const ultimo = [doPlacar, toque].filter(Boolean).sort().at(-1);
+  if (!ultimo) {
+    $('lixeira-ultimo').textContent = 'Nenhum descarte recente';
+    return;
+  }
+  const quando = tempoRelativo(ultimo);
+  $('lixeira-ultimo').textContent = /^\d/.test(quando) ? `Último descarte às ${quando}` : `Último descarte ${quando}`;
+}
+
 function atualizarHora() {
   if (!estado.placar) return;
+  renderizarLixeira();
   const quando = tempoRelativo(estado.placar.atualizadoEm);
   $('atualizado').textContent = quando === 'agora' ? 'Atualizado agora' : `Atualizado ${quando}`;
 }
@@ -497,6 +530,7 @@ function aoMudarPlacar(placar) {
     estado.predio?.soltarLuz(evento.andar, evento.descarte);
 
     if (evento.andar === estado.meuAndar) {
+      estado.lixeira?.pulsar(evento.descarte);
       const mais = $('destaque-mais');
       mais.textContent = `+${evento.pontos}`;
       if (semMovimento()) {
@@ -556,6 +590,9 @@ async function pontuarPessoal(tipo, botao) {
     estado.pessoal = resumo;
     renderizarPessoal(true);
     vibrar();
+    estado.ultimoToque = { andar: estado.meuAndar, em: new Date().toISOString() };
+    renderizarLixeira();
+    estado.lixeira?.pulsar(tipo);
     const pontos = estado.edificio.pontosPorDescarte[tipo];
     avisar(`+${pontos} pontos no seu nome (${tipo === 'organico' ? 'orgânico' : 'reciclável'}). Obrigado por separar.`);
     pulsar(botao.querySelector('.botao-tipo__brilho'), [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 0 }], {

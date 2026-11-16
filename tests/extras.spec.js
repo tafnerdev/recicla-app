@@ -37,7 +37,7 @@ test.describe('sensor pela porta serial', () => {
       };
     });
     await page.goto('app/?andar=7');
-    await page.goto('app/#inicio');
+    await page.goto('app/#ranking');
     const predio = page.locator('#predio');
     await expect(predio.locator('svg.predio-svg')).toBeVisible();
     await page.waitForTimeout(800);
@@ -48,11 +48,11 @@ test.describe('sensor pela porta serial', () => {
 
   test('trocar de aba logo depois de abrir não derruba o 3D', async ({ page }) => {
     await page.goto('app/?andar=7');
-    await page.goto('app/#inicio');
+    await page.goto('app/#ranking');
     await page.waitForFunction(() => document.querySelector('#predio canvas'));
-    await page.evaluate(() => (location.hash = 'ranking'));
-    await page.waitForTimeout(1500);
     await page.evaluate(() => (location.hash = 'inicio'));
+    await page.waitForTimeout(1500);
+    await page.evaluate(() => (location.hash = 'ranking'));
     await expect(page.locator('#predio')).toHaveAttribute('data-quadros', /\d+/, { timeout: 8000 });
     await expect(page.locator('#predio')).toHaveAttribute('data-modo', '3d');
   });
@@ -71,13 +71,13 @@ test.describe('sensor pela porta serial', () => {
     };
     await page.addInitScript(limitar, 30);
     await page.goto('app/?andar=7');
-    await page.goto('app/#inicio');
+    await page.goto('app/#ranking');
     await expect(page.locator('#predio')).toHaveAttribute('data-quadros', /\d+/, { timeout: 8000 });
     await expect(page.locator('#predio')).toHaveAttribute('data-modo', '3d');
 
     const lenta = await context.newPage();
     await lenta.addInitScript(limitar, 12);
-    await lenta.goto('app/?diag=1#inicio');
+    await lenta.goto('app/?diag=1#ranking');
     await expect(lenta.locator('#predio')).toHaveAttribute('data-motivo', /^lento:/, { timeout: 10000 });
     await expect(lenta.locator('#predio')).toHaveAttribute('data-modo', 'svg');
     await expect(lenta.locator('.predio__diag')).toContainText('SVG · lento');
@@ -92,7 +92,7 @@ test.describe('sensor pela porta serial', () => {
 
   test('com WebGL, o prédio do app vira 3D com a mesma descrição', async ({ page }) => {
     await page.goto('app/?andar=7');
-    await page.goto('app/#inicio');
+    await page.goto('app/#ranking');
     const predio = page.locator('#predio');
     await expect(predio).toHaveAttribute('data-modo', '3d', { timeout: 8000 });
     await expect(predio.locator('canvas')).toHaveAttribute('aria-label', /7º andar, o seu, está aceso/);
@@ -144,7 +144,7 @@ test.describe('página inicial', () => {
     await expect(page.locator('#demo-status')).toContainText('3º lugar');
 
     // outro andar
-    await page.getByRole('radio', { name: '9º andar' }).check({ force: true });
+    await page.getByRole('radio', { name: '9º andar', exact: true }).check({ force: true });
     await expect(page.locator('#demo-lista .linha[aria-current="true"]')).toHaveAttribute('data-andar', '9');
 
     // o placar de verdade continua com os dados de exemplo
@@ -269,7 +269,7 @@ test.describe('PWA', () => {
     await page.goto('telao/');
     await expect(page.locator('.t-linha')).toHaveCount(10);
     await page.goto('demo/');
-    await expect(page.locator('.d-andar')).toHaveCount(10);
+    await expect(page.locator('.d-andar')).toHaveCount(20);
     await context.setOffline(false);
   });
 
