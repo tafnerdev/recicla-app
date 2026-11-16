@@ -35,3 +35,5 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 08:06 | Polimento ciclo 18: rodada completa (capturas em todos os tamanhos, auditoria, 27 testes) sem nada relevante. Ciclo limpo 1 de 3. |
 | 16/11 08:07 | Polimento ciclo 19: "reduzir movimento" conferido em execução (telão com destaque parado e sem animações; site todo visível). Ciclo limpo 2 de 3. |
 | 16/11 08:08 | Polimento ciclo 20: fluxo de versão nova da PWA conferido em execução (aviso no app, silêncio no telão, recarga e limpeza do cache antigo). Ciclo limpo 3 de 3: polimento encerrado. |
+| 16/11 08:08 | Publicação: `gh` não instalado, sem login no GitHub. Não tentei autenticar; comandos exatos em PENDENCIAS.md. Ramo local renomeado para `main`. |
+| 16/11 08:09 | RESUMO.md escrito. Trabalho encerrado: 27 testes passando, publicação pendente (ver PENDENCIAS.md). |

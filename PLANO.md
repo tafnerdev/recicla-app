@@ -46,6 +46,6 @@ Conferir teclado, foco visível, "reduzir movimento", contraste AA, rolagem hori
 - [x] Ciclos 18, 19 e 20: nada relevante encontrado. Polimento encerrado
 
 ## 8. Publicação
-- [ ] Conferir `gh auth status`
-- [ ] Publicar no GitHub Pages ou deixar os comandos em `PENDENCIAS.md`
-- [ ] `RESUMO.md`
+- [x] Conferir `gh auth status` (gh não instalado, sem login)
+- [x] Publicar no GitHub Pages ou deixar os comandos em `PENDENCIAS.md` (comandos deixados)
+- [x] `RESUMO.md`
