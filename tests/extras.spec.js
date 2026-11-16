@@ -90,6 +90,17 @@ test.describe('página inicial', () => {
     await page.getByRole('navigation', { name: 'Seções da página' }).getByRole('link', { name: 'Perguntas' }).click();
     await expect(botao).toHaveAttribute('aria-expanded', 'false');
     await expect(page).toHaveURL(/#perguntas$/);
+    await expect(page.getByRole('heading', { name: 'Perguntas frequentes' })).toBeInViewport();
+  });
+
+  test('botões da abertura levam ao ranking e ao contato', async ({ page }) => {
+    await page.goto('./');
+    await page.locator('.heroi__acoes').getByRole('link', { name: 'Ver o ranking' }).click();
+    await expect(page.getByRole('heading', { name: 'Escolha um andar e faça um descarte' })).toBeInViewport();
+    await page.goto('./');
+    await page.locator('.heroi__acoes').getByRole('link', { name: 'Fale com a gente' }).click();
+    await expect(page.getByRole('heading', { name: 'Quer o Recicla Slide no seu próximo prédio?' })).toBeInViewport();
+    await expect(page.locator('#contato-link')).toHaveAttribute('href', /^mailto:/);
   });
 
   test('nenhuma tela tem rolagem horizontal no celular', async ({ page }) => {
