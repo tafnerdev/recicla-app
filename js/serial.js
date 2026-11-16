@@ -24,9 +24,9 @@ export function interpretarLinha(linha, andaresValidos = null) {
   const texto = String(linha ?? '').trim();
   if (!texto || texto.startsWith('#')) return { ok: false, ignorada: true };
   const partes = /^([A-Za-z])\s*[,;]\s*(-?\d{1,3})$/.exec(texto);
-  if (!partes) return { ok: false, erro: `Linha fora do formato "R,7" ou "O,7": ${texto.slice(0, 40)}` };
+  if (!partes) return { ok: false, erro: `Linha fora do formato “R,7” ou “O,7”: ${texto.slice(0, 40)}` };
   const tipo = TIPO_POR_LETRA[partes[1].toUpperCase()];
-  if (!tipo) return { ok: false, erro: `Tipo desconhecido "${partes[1]}". Use R (reciclável) ou O (orgânico).` };
+  if (!tipo) return { ok: false, erro: `Tipo desconhecido “${partes[1]}”. Use R (reciclável) ou O (orgânico).` };
   const andar = Number(partes[2]);
   if (andaresValidos && !andaresValidos.includes(andar)) {
     return { ok: false, erro: `O andar ${andar} não existe neste prédio.` };

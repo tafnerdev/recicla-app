@@ -96,7 +96,7 @@ async function resolverAndar() {
     estado.vindoDaEtiqueta = true;
     return null;
   }
-  const texto = parametro.trim() === '' ? 'O link não diz qual é o andar.' : `O ${/^\d+$/.test(parametro) ? `${parametro}º andar` : `andar "${parametro}"`} não existe no ${estado.edificio.nome}.`;
+  const texto = parametro.trim() === '' ? 'O link não diz qual é o andar.' : `O ${/^\d+$/.test(parametro) ? `${parametro}º andar` : `andar “${parametro}”`} não existe no ${estado.edificio.nome}.`;
   return `${texto} Escolha o seu andar abaixo.`;
 }
 

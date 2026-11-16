@@ -43,7 +43,7 @@ test.describe('sensor pela porta serial', () => {
     await page.getByLabel('Testar uma linha').fill('O,7');
     await page.getByLabel('Testar uma linha').press('Enter');
     await expect(pontos).toHaveText('300');
-    await expect(page.locator('#t-sensor-ultima')).toContainText('"O,7"');
+    await expect(page.locator('#t-sensor-ultima')).toContainText('“O,7”');
     await page.getByLabel('Testar uma linha').fill('Z,7');
     await page.getByLabel('Testar uma linha').press('Enter');
     await expect(page.locator('#t-sensor-ultima')).toContainText('ignorada');

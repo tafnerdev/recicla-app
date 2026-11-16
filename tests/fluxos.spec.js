@@ -189,7 +189,7 @@ test.describe('app do morador', () => {
     await expect(page).toHaveURL(/\/app\/$/);
 
     await page.locator('summary', { hasText: 'Seu nome e seus dados' }).click();
-    await page.getByLabel('Como você quer ser chamado (opcional)').fill('Ana');
+    await page.getByLabel('Seu nome ou apelido (opcional)').fill('Ana');
     await page.getByRole('button', { name: 'Salvar nome' }).click();
     await expect(page.locator('#pontuar-ola')).toHaveText('Olá, Ana.');
 

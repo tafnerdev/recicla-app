@@ -543,7 +543,7 @@ async function processarLinha(linha, teste = false) {
   }
   try {
     await dados.registrarDescarte(resultado.andar, resultado.tipo, 'sensor');
-    ultima.textContent = `${teste ? 'Teste' : 'Recebido'} às ${quando}: "${String(linha).trim()}"`;
+    ultima.textContent = `${teste ? 'Teste' : 'Recebido'} às ${quando}: “${String(linha).trim()}”`;
   } catch (erro) {
     ultima.textContent = `Não registrou: ${erro.message}`;
   }
