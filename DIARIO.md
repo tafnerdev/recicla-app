@@ -31,3 +31,7 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 08:02 | Polimento ciclos 13 e 14: estresse do telão com 40 descartes rápidos (ordem, pontos e animações corretos, sem erros: ciclo limpo); hover protegido para não ficar preso no toque do celular (ciclo 14, correção pequena). |
 | 16/11 08:03 | Polimento ciclo 15: foco do teclado conferido em execução (diálogos abrem em Cancelar e devolvem o foco; escolha de andar leva o foco ao destaque). Nada a corrigir. |
 | 16/11 08:04 | Polimento ciclo 16: todo o texto visível relido; rótulo do nome sem gênero e aspas tipográficas. |
+| 16/11 08:04 | Polimento ciclo 17: botões que ficam escondidos por padrão (Instalar, ação dos avisos) com 44 px de área de toque. |
+| 16/11 08:06 | Polimento ciclo 18: rodada completa (capturas em todos os tamanhos, auditoria, 27 testes) sem nada relevante. Ciclo limpo 1 de 3. |
+| 16/11 08:07 | Polimento ciclo 19: "reduzir movimento" conferido em execução (telão com destaque parado e sem animações; site todo visível). Ciclo limpo 2 de 3. |
+| 16/11 08:08 | Polimento ciclo 20: fluxo de versão nova da PWA conferido em execução (aviso no app, silêncio no telão, recarga e limpeza do cache antigo). Ciclo limpo 3 de 3: polimento encerrado. |

@@ -42,9 +42,8 @@ Marque `[x]` quando a tarefa estiver pronta e anote a hora no `DIARIO.md`.
 ## 7. Polimento (repetir até três ciclos seguidos sem nada relevante)
 Capturas em 390x844, 768x1024 e 1440x900 (e 1920x1080 no telão), crítica, correção e nova captura.
 Conferir teclado, foco visível, "reduzir movimento", contraste AA, rolagem horizontal, animações só com transform e opacity, português.
-- [ ] Ciclo 1
-- [ ] Ciclo 2
-- [ ] Ciclo 3
+- [x] Ciclos 1 a 17: cada um achou e corrigiu algo (detalhes no `DIARIO.md`)
+- [x] Ciclos 18, 19 e 20: nada relevante encontrado. Polimento encerrado
 
 ## 8. Publicação
 - [ ] Conferir `gh auth status`
