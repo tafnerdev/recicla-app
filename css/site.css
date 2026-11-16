@@ -948,6 +948,8 @@
 .rodape__links a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-width: 44px;
   min-height: 44px;
   color: var(--texto-2);
   font-size: 14px;

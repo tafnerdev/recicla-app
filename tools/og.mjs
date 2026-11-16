@@ -24,22 +24,23 @@ try {
     serviceWorkers: 'block',
   });
   const page = await contexto.newPage();
-  await page.goto(`http://localhost:${PORTA}/`, { waitUntil: 'networkidle' });
+  await page.goto(`http://localhost:${PORTA}/?svg=1`, { waitUntil: 'networkidle' });
   await page.addStyleTag({
     content: `
-      .cabecalho, .heroi__acoes, .heroi__evento, .avisos { display: none !important; }
-      .heroi { min-height: 630px !important; padding: 0 !important; display: grid; align-items: center; }
-      .heroi__grade { width: 1080px !important; grid-template-columns: 1.15fr 0.85fr !important; }
-      .heroi__titulo { font-size: 58px !important; }
-      .heroi__sub { font-size: 22px !important; }
+      .cabecalho, .heroi__acoes, .heroi__evento, .avisos, .selo { display: none !important; }
+      .heroi { width: 1080px !important; min-height: 630px; margin: 0 auto !important; gap: 24px !important; flex-wrap: nowrap !important; }
+      .heroi__texto { flex: 1 1 560px !important; }
+      .heroi__figura { flex: 0 0 440px !important; }
+      .heroi__titulo { margin-top: 28px !important; font-size: 64px !important; }
+      .heroi__sub { font-size: 21px !important; line-height: 32px !important; }
       .heroi__texto::before {
-        content: 'Recicla Slide'; display: flex; align-items: center; gap: 12px;
-        font: 800 28px/1 Rubik, sans-serif; letter-spacing: -0.02em; color: #F5F2EA;
-        padding-left: 30px; background: radial-gradient(circle at 9px 50%, #8BD17C 8.5px, transparent 9.5px) no-repeat;
+        content: 'Recicla Slide'; display: flex; align-items: center;
+        font: 800 26px/1 Rubik, sans-serif; letter-spacing: -0.01em; color: #F5F2EA;
+        padding-left: 24px; background: radial-gradient(circle at 7px 50%, #8BD17C 6px, rgba(139,209,124,0.35) 8px, transparent 12px) no-repeat;
       }
-      .selo { display: none !important; }
     `,
   });
+  await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(400);
   await page.screenshot({ path: fileURLToPath(new URL('../icons/og-imagem.png', import.meta.url)) });
   console.log('ok icons/og-imagem.png');

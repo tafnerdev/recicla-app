@@ -101,18 +101,22 @@ try {
         relatar(`${tela} ${largura}`, [...new Set(foco)], 'foco pelo teclado');
       }
 
-      // 3. Alvos de toque no celular
+      // 3. Alvos de toque no celular. O telão é um palco de 1920x1080 encolhido para caber
+      // na tela: lá os alvos são medidos no tamanho do palco (no projetor, 56 px).
       if (largura === 390) {
-        const pequenos = await page.evaluate(() =>
+        const escala = await page.evaluate(() => Number(getComputedStyle(document.getElementById('palco') ?? document.body).getPropertyValue('--escala')) || 1);
+        const pequenos = await page.evaluate((escala) =>
           [...document.querySelectorAll('button, a[href], input, summary, [role="switch"]')]
             .filter((el) => !el.closest('[hidden]') && el.getClientRects().length)
             .map((el) => {
               const alvo = el.matches('input[type="radio"]') ? el.parentElement : el;
-              const c = alvo.getBoundingClientRect();
+              const r = alvo.getBoundingClientRect();
+              const c = { width: r.width / escala, height: r.height / escala };
               return { el, c, texto: (el.getAttribute('aria-label') || el.textContent || el.id).trim().slice(0, 30) };
             })
             .filter(({ el, c }) => (c.height < 44 || c.width < 44) && !(el.tagName === 'A' && getComputedStyle(el).display === 'inline'))
             .map(({ el, c, texto }) => `${el.tagName.toLowerCase()} "${texto}" ${Math.round(c.width)}x${Math.round(c.height)}`),
+          escala,
         );
         relatar(`${tela} ${largura}`, pequenos, 'alvo de toque menor que 44 px');
       }

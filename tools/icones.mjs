@@ -12,11 +12,19 @@ const PASTA = new URL('../icons/', import.meta.url);
 
 // Fundo arredondado (ícone comum) ou fundo inteiro (maskable e iPhone, que recortam sozinhos).
 function desenho({ arredondado, escalaPonto = 1 }) {
-  const r = 112 * escalaPonto;
-  const halo = 150 * escalaPonto;
+  // Fundo #050807 e o ponto verde com brilho (o logo: ponto + Rubik só no nome).
+  const r = 96 * escalaPonto;
+  const brilho = 210 * escalaPonto;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  ${arredondado ? '<rect width="512" height="512" rx="112" fill="#071B16"/>' : '<rect width="512" height="512" fill="#071B16"/>'}
-  <circle cx="256" cy="256" r="${halo}" fill="#8BD17C" fill-opacity="0.16"/>
+  <defs>
+    <radialGradient id="b" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8BD17C" stop-opacity="0.55"/>
+      <stop offset="0.45" stop-color="#8BD17C" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#8BD17C" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  ${arredondado ? '<rect width="512" height="512" rx="112" fill="#050807"/>' : '<rect width="512" height="512" fill="#050807"/>'}
+  <circle cx="256" cy="256" r="${brilho}" fill="url(#b)"/>
   <circle cx="256" cy="256" r="${r}" fill="#8BD17C"/>
 </svg>`;
 }
