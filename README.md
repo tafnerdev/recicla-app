@@ -33,13 +33,30 @@ Abra `http://localhost:8080/`. O terminal mostra os endereços das quatro telas.
 
 ```bash
 npm install     # só na primeira vez: instala o Playwright (dependência de desenvolvimento)
-npm test        # 53 testes, usando o Chrome já instalado
+npm test        # 67 testes, usando o Chrome já instalado
 npm run capturas  # capturas de todas as telas em capturas/ (fora do git)
 ```
 
 Os testes cobrem: registrar descarte, desfazer, atalhos de teclado e descartes automáticos no painel; placar atualizando em outra aba (telão e app), subida na lista e novo líder; zerar e cancelar, voltar ao exemplo; abrir com `?andar=7` (e a folha Pontuar abrindo sozinha), abas pelo endereço, folha abrindo e fechando (Esc, Concluir, voltar), escolher e trocar de andar, andar inexistente, contador pessoal e erro de carregamento no app; prédio em SVG sem WebGL e em 3D com WebGL; telão em `?estavel=1` sem desfoque, sem canvas e sem animação; linhas do sensor; demonstração, menu, links e revelação na rolagem da página inicial; rolagem horizontal; uso sem internet, manifest e página 404.
 
 Outras ferramentas: `node tools/auditoria.mjs` (contraste, foco, nomes e alvos de toque), `node tools/og.mjs` (imagem de compartilhamento), `npm run icones` (ícones da PWA) e `node tools/capturas-referencia.mjs` (capturas das telas aprovadas da pasta `referencia/`, que fica fora do git).
+
+## Placar online e modo palco (Supabase)
+
+Sem configuração, tudo funciona em **modo local**: o prédio de exemplo, com o placar guardado no navegador. Com o `js/config.js` preenchido (passo a passo no item 8 do `PENDENCIAS.md`), as telas abertas com `?predio=CODIGO` ficam **online**: o placar vive no Supabase e chega a todos os aparelhos em menos de um segundo pelo Realtime.
+
+| Endereço | O que faz |
+|---|---|
+| `app/?predio=CODIGO` | App do morador no prédio online. O código fica guardado: o app instalado abre no mesmo prédio |
+| `app/?predio=CODIGO&entrar=1` | Modo palco: o celular entra no prédio, recebe o andar com menos gente e vira o sensor (dois botões grandes) |
+| `telao/?predio=CODIGO&palco=1` | Telão com o QR code para a plateia entrar e o contador "37 pessoas no prédio" |
+| `telao/?simular=1` | Plano B sem internet: demonstração automática no prédio de exemplo |
+| `demo/?predio=CODIGO` | Painel do prédio online. Desfazer e fechar o mês pedem o PIN do síndico |
+| qualquer tela com `?predio=exemplo` | Volta este aparelho ao prédio de exemplo |
+
+- **Banco:** `supabase/schema.sql` (tabelas, funções e Realtime). Ninguém escreve direto nas tabelas: toda escrita passa por funções que conferem tudo no servidor, inclusive 2 segundos entre toques do mesmo celular.
+- **Código:** só o `js/dados.js` sabe que existe o Supabase (por meio do `js/remoto.js`). As telas usam as mesmas funções nos dois modos.
+- **Sem internet:** os toques esperam numa fila, o app mostra um chip discreto "Sem conexão" e manda tudo quando a conexão volta. O telão fica com o último placar.
 
 ## A lixeira e o anel de LED
 
@@ -117,8 +134,11 @@ js/predio.js          o prédio em SVG e a escolha entre SVG e 3D
 js/predio3d.js        o prédio em 3D (Three.js)
 js/app.js telao.js demo.js site.js   uma por tela
 js/serial.js          leitura do sensor pela Web Serial
+js/config.js          endereço e chave pública do Supabase (vazio = modo local)
+js/remoto.js          a conversa com o Supabase (só o dados.js usa)
+supabase/schema.sql   o banco do placar online, para colar no SQL Editor
 js/pwa.js  sw.js      instalação e uso offline
-js/vendor/            GSAP 3.15 e Three.js 0.180 copiados para dentro do projeto
+js/vendor/            GSAP 3.15, Three.js 0.180, supabase-js 2.118 e uqr (QR code), copiados para dentro do projeto
 fonts/                Geist (texto) e Rubik (só o logo), woff2 com licença OFL
 data/edificio-exemplo.json   prédio (20 andares, 4 apartamentos por andar), prêmio e contagens de exemplo
 assets/lixeira/       renders da lixeira; se existir giro.mp4 aqui, a abertura do site usa o vídeo

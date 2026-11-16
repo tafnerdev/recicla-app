@@ -837,3 +837,218 @@ dialog.folha::backdrop {
 #escolher-cancelar {
   margin-top: 16px;
 }
+
+/* ------------------------------------------------------------------ */
+/* Modo palco: a plateia vira o prédio                                 */
+/* ------------------------------------------------------------------ */
+
+/* No palco, a tela é só o andar, as lixeiras e os botões */
+.tela-app[data-aba='palco'] .a-barra,
+.tela-app[data-aba='palco'] .a-andar {
+  display: none;
+}
+
+#aba-palco {
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+}
+
+.a-palco .a-titulo {
+  margin-top: 4px;
+}
+
+.a-palco__lixeiras {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.a-palco__lixeira {
+  display: grid;
+  gap: 12px;
+}
+
+.a-palco__foto {
+  position: relative;
+  height: 210px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #1f2c23;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+.a-palco__foto .lixeira {
+  position: absolute;
+  inset: 0;
+  --lx-ocupa: 0.84;
+  --lx-x: 50%;
+  --lx-y: 52%;
+}
+
+.a-palco__botao {
+  min-height: 120px;
+  overflow: hidden;
+}
+
+/* Trava de 2 s entre toques: uma linha fina que se enche */
+.a-palco__espera {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 12px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--trilho);
+  opacity: 0;
+  transform-origin: left center;
+}
+
+.a-palco__espera::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(245, 242, 234, 0.7);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.a-palco__botao.esperando .a-palco__espera {
+  opacity: 1;
+}
+
+.a-palco__botao.esperando .a-palco__espera::after {
+  animation: palco-espera 2s linear forwards;
+}
+
+@keyframes palco-espera {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.a-palco__botao:disabled {
+  opacity: 0.6;
+}
+
+.a-palco__nota {
+  margin-top: 20px;
+  color: var(--texto-2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.a-palco__ranking {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 8px;
+  color: var(--texto-vidro);
+  font-size: 15px;
+}
+
+/* Entrada: "Você mora no 12º andar" */
+.a-entrada {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-celebracao);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  background: rgba(5, 8, 7, 0.86);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  text-align: center;
+  animation: entrada-aparece var(--t-entrada) var(--ease-saida) both;
+}
+
+.a-entrada[hidden] {
+  display: none;
+}
+
+.a-entrada.saindo {
+  animation: entrada-some var(--t-ui) var(--ease-saida) both;
+}
+
+.a-entrada__rotulo {
+  color: var(--texto-2);
+  font-size: 19px;
+  line-height: 26px;
+}
+
+.a-entrada__andar {
+  font-size: clamp(3.5rem, 18vw, 6rem);
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: -0.045em;
+}
+
+.a-entrada__andar:empty {
+  display: none;
+}
+
+.a-entrada.chegou .a-entrada__andar {
+  animation: entrada-andar 900ms var(--ease-saida) both;
+}
+
+@keyframes entrada-aparece {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes entrada-some {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes entrada-andar {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+    filter: blur(6px);
+  }
+}
+
+/* Sem conexão: chip discreto no alto */
+.a-conexao {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  left: 50%;
+  z-index: var(--z-aviso);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--r-pilula);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(20, 26, 24, 0.92);
+  color: var(--texto-vidro);
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.a-conexao[hidden] {
+  display: none;
+}
+
+/* Com o chip no alto, o conteúdo desce um pouco para não ficar embaixo dele */
+.com-conexao .a-topo {
+  margin-top: calc(56px + env(safe-area-inset-top));
+}
+
+.com-conexao #aba-ranking {
+  padding-top: calc(60px + env(safe-area-inset-top));
+}
+
+.a-conexao__ponto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--laranja);
+}

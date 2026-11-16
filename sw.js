@@ -7,7 +7,7 @@
  *
  * Ao publicar uma versão nova, mude VERSAO. As telas avisam "Nova versão disponível".
  */
-const VERSAO = 'recicla-v7';
+const VERSAO = 'recicla-v8';
 const ESPERA_REDE = 2500;
 
 const ARQUIVOS = [
@@ -32,6 +32,10 @@ const ARQUIVOS = [
   'js/serial.js',
   'js/predio.js',
   'js/lixeira.js',
+  'js/config.js',
+  'js/remoto.js',
+  'js/vendor/supabase.esm.js',
+  'js/vendor/uqr.mjs',
   'assets/lixeira/lixeira-parede-verde.jpg',
   'js/predio3d.js',
   'js/vendor/three.module.min.js',
@@ -173,7 +177,8 @@ self.addEventListener('fetch', (evento) => {
     return;
   }
 
-  if (url.pathname.endsWith('.json')) {
+  // Dados e a ligação com o placar online: rede primeiro (o config.js preenchido vale na hora).
+  if (url.pathname.endsWith('.json') || url.pathname.endsWith('/js/config.js')) {
     evento.respondWith(redePrimeiro(request, { ignoreSearch: true }));
     return;
   }

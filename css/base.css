@@ -1190,6 +1190,21 @@ dialog.dialogo p {
   line-height: 22px;
 }
 
+.dialogo__form {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.dialogo__rotulo {
+  color: var(--texto-vidro);
+  font-size: 14px;
+}
+
+.dialogo__form .dialogo__acoes {
+  margin-top: 12px;
+}
+
 .dialogo__acoes {
   display: flex;
   flex-wrap: wrap;

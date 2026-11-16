@@ -183,3 +183,94 @@ Agora o produto é sempre descrito como duas lixeiras por andar: a verde, de rec
 - site e app sem "boca", falando em duas lixeiras.
 
 A auditoria de acessibilidade não apontou nada.
+
+---
+
+## Etapa 2 · Online de verdade, com Supabase (16/11/2026)
+
+### O que mudou
+
+**Banco pronto para colar.** O arquivo `supabase/schema.sql` cria tudo no Supabase:
+- **Tabelas:**
+  - `predios` (código de 6 caracteres, nome, andares, apartamentos por andar, prêmio e patrocinador, PIN do síndico guardado só como hash);
+  - `descartes` (prédio, andar, tipo, origem, aparelho, data e hora);
+  - `participantes` (prédio, aparelho, andar);
+  - mais os campeões de cada mês e um registro de eventos do síndico.
+- **Escrita só por funções que conferem tudo no servidor.** Ninguém escreve direto nas tabelas.
+  - `criar_predio` devolve o código do prédio.
+  - `entrar` põe o celular no andar com menos gente; o mesmo celular recebe sempre o mesmo andar.
+  - `registrar_descarte` exige 2 segundos entre toques do mesmo celular.
+  - As funções do síndico pedem o PIN, com bloqueio depois de 10 erros: `definir_premio`, `desfazer_ultimo` e `fechar_mes`, que guarda o campeão e zera.
+- **Leitura pública por views sem o hash do PIN**, e Realtime ligado para os descartes, as entradas e os avisos do síndico.
+- Sem e-mail, sem senha, sem dado pessoal: o "aparelho" é um número aleatório criado pelo navegador.
+
+**Dois modos, as mesmas telas.**
+- **Modo local:** com o `js/config.js` vazio (como está agora), tudo funciona igual a antes.
+- **Modo online:** preenchido o `config.js`, as telas abertas com `?predio=CODIGO` passam a usar o Supabase. Só o `js/dados.js` sabe disso, então as telas não mudaram de funcionamento.
+- **Código lembrado:** o código do prédio fica guardado no aparelho (o app instalado abre no mesmo prédio). `?predio=exemplo` volta ao exemplo.
+- **Página inicial:** a demonstração dela continua sempre no prédio de exemplo.
+
+**Sem internet.**
+- O toque fica numa fila e aparece um chip discreto: "Sem conexão · 1 toque guardado". Quando a conexão volta, os toques vão em ordem, respeitando os 2 segundos.
+- O telão mostra "Sem conexão" no selo e mantém o último placar.
+
+**Modo palco.**
+- **Telão:** `telao/?predio=CODIGO&palco=1` troca o prédio por um QR code grande, com "Aponte a câmera e entre no prédio", o contador "3 pessoas no prédio" e o endereço escrito.
+  - O QR fica num cartão claro, para a câmera ler bem.
+  - Com a plateia tocando, o líder troca toda hora, então no palco a celebração de novo líder aparece no máximo a cada 15 s.
+- **Celular:** abre pelo QR, entra no prédio e mostra "Você mora no 12º andar" numa animação curta. Depois cai numa tela com as duas lixeiras e dois botões grandes de vidro.
+  - Cada toque faz o anel pulsar, vibra e envia. Os botões esperam 2 s, com uma linha fina que se enche.
+  - Embaixo, a frase "No palco, o botão faz o papel do sensor da lixeira".
+- **Sem o placar online:** o telão no palco explica o que falta em vez de mostrar um QR inútil, e o celular avisa e fica no app normal.
+- **Plano B sem internet:** `telao/?simular=1` faz uma demonstração automática no prédio de exemplo.
+
+**Painel no prédio online.**
+- Mostra o nome e o código do prédio.
+- "Zerar" vira "Fechar o mês".
+- Desfazer e fechar o mês pedem o PIN do síndico.
+- O "Voltar ao exemplo" some.
+
+**Dependências.**
+- supabase-js 2.118 (arquivo único, só carregado no modo online) e o gerador de QR code uqr 0.1.3 (MIT), copiados em `js/vendor/`.
+- O `config.js` é buscado primeiro na rede, então a chave nova vale na hora em todos os aparelhos.
+
+### O que falta para ficar online (com você)
+
+O passo a passo exato está no item 8 do `PENDENCIAS.md`:
+1. criar o projeto no Supabase (na conta do seu pai) e colar o `schema.sql`;
+2. criar o prédio do demo day com uma linha de SQL;
+3. copiar a URL e a chave `anon` para o `js/config.js`;
+4. fazer commit e push.
+
+Enquanto isso não acontece, nada quebra: tudo segue em modo local.
+
+### Links para testar agora (modo local)
+
+- Plano B, demonstração automática: https://tafnerdev.github.io/recicla-app/telao/?simular=1
+- Telão no modo palco (explica o que falta enquanto o Supabase não está ligado): https://tafnerdev.github.io/recicla-app/telao/?palco=1
+- O app normal continua igual: https://tafnerdev.github.io/recicla-app/app/?andar=7
+
+### Três coisas para conferir
+
+1. **Plano B:** abra `telao/?simular=1` no computador e deixe rodando. A cada 3 segundos entra um descarte, a luz desce no prédio e as linhas trocam de lugar. Ponha o computador sem internet: continua rodando.
+2. **Palco sem Supabase:** abra `telao/?palco=1`. Deve aparecer "O modo palco precisa do placar online", com o que falta, em vez do QR code.
+3. **Depois de ligar o Supabase** (item 8 do PENDENCIAS): abra `telao/?predio=SEUCODIGO&palco=1`, aponte a câmera de dois celulares diferentes e confira três coisas:
+   - cada um cai num andar diferente;
+   - o contador sobe para 2;
+   - um toque em "Reciclável" muda o telão em menos de um segundo.
+
+### Testes
+
+67 testes passando (eram 58). Os 9 novos usam um servidor falso que segue as regras do `schema.sql`, com cada celular num contexto separado do navegador:
+- dois celulares entram pelo QR e caem em andares diferentes, e o telão muda em menos de um segundo;
+- trava de 2 s no servidor;
+- fila sem internet com o chip;
+- PIN do síndico no painel;
+- sem o `config.js`, o telão no palco explica e o app avisa;
+- o `?simular=1` funciona sem internet;
+- a página inicial continua no exemplo;
+- e um teste com o supabase-js de verdade falando com uma imitação da API REST do Supabase, para garantir que a biblioteca carrega e faz as chamadas certas.
+
+A auditoria de acessibilidade não apontou nada.
+
+**O que não deu para testar daqui:** o Supabase de verdade (não há conta aqui, e criar conta é com vocês). O `schema.sql` traz, no fim, umas linhas de conferência para rodar no SQL Editor logo depois de colar.

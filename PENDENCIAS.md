@@ -79,6 +79,46 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
 
 ## 7. `prompt-app.md` (sistema de verdade)
 
+0. **Ligar o placar online (Etapa 2).** Passo a passo no item 8, logo abaixo.
 1. **Conferir o prédio 3D no seu celular** (Etapa 0). Na resposta da Etapa 0, o modelo e o resultado vieram como "(MODELO)" e "(O QUE APARECEU)", sem preencher. Como o prédio agora fica na aba Ranking, abra `https://tafnerdev.github.io/recicla-app/app/?diag=1#ranking` e me diga o que aparece embaixo do prédio e o modelo do celular.
 2. **Duas lixeiras por andar: decidido e feito.** Como na apresentação, cada andar tem a lixeira verde (recicláveis) e a marrom (orgânicos), cada uma com seu tubo. Os textos do site, do app e dos guias já dizem isso. A tampa marrom do app é a foto da lixeira verde com a tampa pintada (só existe render da verde); quando houver render da marrom, troque em `js/lixeira.js`.
 3. **"Conectadas" é simulado.** Ainda não há sensor de verdade ligado ao app, então o estado das lixeiras aparece com a marca "Simulado"; "Sem sinal" aparece quando o celular está sem internet. "Último descarte" é verdadeiro: vem dos descartes registrados (painel, sensor ou a etiqueta neste celular).
+
+## 8. Ligar o placar online (Supabase), Etapa 2
+
+Enquanto isto não for feito, tudo continua funcionando em modo local (cada navegador com o seu placar). Leva uns 15 minutos.
+
+1. **Criar o projeto.** Entre em https://supabase.com com a conta do seu pai e clique em **New project**.
+   - Name: `recicla-slide`.
+   - Database Password: clique em "Generate", guarde com ele. Essa senha **não** vai para o site.
+   - Region: **South America (São Paulo)**. Plano: Free.
+   - Espere 1 ou 2 minutos até o projeto ficar pronto.
+2. **Criar o banco.** Menu **SQL Editor** > **New query**. Cole o conteúdo inteiro do arquivo `supabase/schema.sql` e clique em **Run**. Deve aparecer "Success. No rows returned".
+3. **Conferir o Realtime.** Menu **Database** > **Publications** > `supabase_realtime`. As tabelas `descartes`, `participantes` e `eventos_predio` devem estar ligadas (o `schema.sql` já liga; se alguma estiver desligada, ligue).
+4. **Criar o prédio do demo day.** No **SQL Editor**, numa query nova, rode (troque o nome e o PIN; o PIN tem de 4 a 6 números e só vocês sabem):
+   ```sql
+   select criar_predio('Edifício Demo Day', 20, 4, '123456');
+   ```
+   O resultado é o **código do prédio**, por exemplo `K7M2QX`. Anote. (Na Etapa 3, isso vira um formulário no painel do síndico.)
+5. **Copiar a URL e a chave pública.** Menu **Project Settings** > **API** (em algumas versões, "Data API" e "API Keys"). Copie a **Project URL** e a chave **anon public**. **Não** copie a `service_role`: ela nunca entra no site.
+6. **Preencher o `js/config.js`:**
+   ```js
+   export const SUPABASE_URL = 'https://xxxxxxxx.supabase.co';
+   export const SUPABASE_ANON_KEY = 'eyJ...';
+   ```
+7. **Publicar.** Aumente a `VERSAO` no `sw.js` (por exemplo `recicla-v9`) e rode no PowerShell, na pasta do projeto:
+   ```powershell
+   git add js/config.js sw.js
+   git commit -m "Liga o placar online"
+   git push
+   ```
+8. **Testar.** Depois de 1 ou 2 minutos:
+   - abra no computador `https://tafnerdev.github.io/recicla-app/telao/?predio=K7M2QX&palco=1` (com o seu código);
+   - aponte a câmera do celular para o QR code: ele entra no prédio e mostra "Você mora no Xº andar";
+   - toque em "Reciclável": o telão muda em menos de um segundo.
+
+**O que vale saber:**
+- A chave `anon` é pública por natureza: qualquer pessoa com ela pode criar prédios e registrar descartes pelo painel (`demo`). O servidor confere tudo (andar válido, tipo válido, 2 segundos entre toques do mesmo celular), mas não sabe quem é quem. Para o demo day isso basta. Se o sistema for usado de verdade, vale pôr um limite de prédios por dia e proteger o painel.
+- O "aparelho" é um número aleatório que o navegador cria. Não há e-mail, nome nem senha de morador no banco.
+- Para voltar um aparelho ao prédio de exemplo, abra qualquer tela com `?predio=exemplo`.
+- Na plateia, os celulares precisam de internet (Wi-Fi do local ou 4G). Se a internet do palco cair, use o plano B: `.../telao/?simular=1`, que roda uma demonstração automática sem internet.

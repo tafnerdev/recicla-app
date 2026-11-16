@@ -266,6 +266,7 @@ test.describe('PWA', () => {
     await context.setOffline(true);
     await page.goto('app/?andar=7');
     await expect(page.locator('#destaque-titulo')).toHaveText(/7º\s*andar/);
+    await expect(page.locator('#destaque-pontos')).toHaveText('290'); // o app carregou de verdade
     await page.goto('telao/');
     await expect(page.locator('.t-linha')).toHaveCount(10);
     await page.goto('demo/');

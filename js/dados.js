@@ -1,11 +1,16 @@
 /**
  * Recicla Slide: módulo de dados.
  *
- * Toda leitura e escrita das telas passa por este arquivo. Por enquanto o
- * placar vive no localStorage deste navegador, e as abas abertas se avisam
- * pelo BroadcastChannel. Para usar um banco online depois, reescreva só este
- * módulo mantendo as mesmas funções exportadas e o formato do que elas
- * devolvem. Todas já são assíncronas, como seriam com um servidor.
+ * Toda leitura e escrita das telas passa por este arquivo. Há dois modos, com
+ * as mesmas funções e o mesmo formato:
+ *  - local: o prédio de exemplo (data/edificio-exemplo.json), com o placar no
+ *    localStorage deste navegador e as abas se avisando pelo BroadcastChannel;
+ *  - online: com js/config.js preenchido e um prédio aberto por ?predio=CODIGO,
+ *    o placar vive no Supabase (js/remoto.js, supabase/schema.sql) e chega ao
+ *    vivo pelo Realtime. Sem internet, os toques esperam numa fila e vão
+ *    quando a conexão voltar; a tela continua com o último placar.
+ * A página inicial (meta recicla-dados=exemplo) e o telão com ?simular=1 usam
+ * sempre o prédio de exemplo.
  *
  * Formato do placar devolvido por obterPlacar() e entregue em aoMudar():
  *   {
@@ -21,12 +26,17 @@
  * calculados com config.pontosPorDescarte (no JSON de exemplo).
  */
 
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from './config.js';
+
 const URL_DADOS = new URL('../data/edificio-exemplo.json', import.meta.url);
 
 const PREFIXO = 'recicla-slide';
 const CHAVE_PLACAR = `${PREFIXO}:placar:v1`;
 const CHAVE_PESSOAL = `${PREFIXO}:pessoal:v1`;
 const CHAVE_MEU_ANDAR = `${PREFIXO}:meu-andar:v1`;
+const CHAVE_PREDIO = `${PREFIXO}:predio:v1`;
+const CHAVE_APARELHO = `${PREFIXO}:aparelho:v1`;
+const CHAVE_FILA = `${PREFIXO}:fila:v1`;
 const LIMITE_HISTORICO = 30;
 const LIMITE_HISTORICO_PESSOAL = 20;
 
@@ -122,6 +132,13 @@ function validarConfig(bruto) {
 export function iniciar() {
   if (!carregando) {
     carregando = (async () => {
+      const codigo = codigoPedido();
+      if (codigo && configurado()) {
+        await iniciarOnline(codigo);
+        ligarSincronizacao();
+        return;
+      }
+      codigoSemConfig = codigo;
       const resposta = await fetch(URL_DADOS, { cache: 'no-cache' });
       if (!resposta.ok) throw new Error(`Não carregou os dados (HTTP ${resposta.status}).`);
       config = validarConfig(await resposta.json());
@@ -299,6 +316,11 @@ function receberPlacar(estado, evento) {
 /** Relê o localStorage (aba que voltou do segundo plano ou do cache do navegador). */
 function conferirArmazenamento() {
   if (!config) return;
+  if (on) {
+    sincronizar();
+    avisarPessoal();
+    return;
+  }
   const estado = lerEstado();
   if (estado) receberPlacar(estado, { tipo: 'sincronizado', em: estado.atualizadoEm });
   avisarPessoal();
@@ -333,6 +355,468 @@ function ligarSincronizacao() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Modo online (Supabase)                                              */
+/* ------------------------------------------------------------------ */
+
+const CODIGO_VALIDO = /^[A-Z0-9]{6}$/;
+const LIMITE_FILA = 200;
+const ESPERA_TOQUE_MS = 2100; // a trava do servidor é de 2 s entre toques do mesmo aparelho
+
+/** Erros com código curto para as telas tratarem (precisa-pin, pin-errado, so-no-exemplo...). */
+export class ErroDados extends Error {
+  constructor(codigo, mensagem) {
+    super(mensagem || codigo);
+    this.name = 'ErroDados';
+    this.codigo = codigo;
+  }
+}
+
+let on = null; // estado do prédio online (null = modo local)
+let codigoSemConfig = null;
+const ouvintesConexao = new Set();
+const ouvintesParticipantes = new Set();
+
+function configurado() {
+  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+}
+
+function parametros() {
+  try {
+    return new URLSearchParams(location.search);
+  } catch {
+    return new URLSearchParams();
+  }
+}
+
+/** A página inicial e o ?simular=1 do telão usam sempre o prédio de exemplo. */
+function paginaSoDeExemplo() {
+  return Boolean(globalThis.document?.querySelector('meta[name="recicla-dados"][content="exemplo"]')) || parametros().get('simular') === '1';
+}
+
+/**
+ * Código do prédio desta tela: o ?predio=CODIGO do endereço (que fica guardado no
+ * aparelho, para o app instalado abrir no mesmo prédio) ou o guardado antes.
+ * ?predio=exemplo volta ao prédio de exemplo.
+ */
+function codigoPedido() {
+  if (paginaSoDeExemplo()) return null;
+  const pedido = parametros().get('predio');
+  if (pedido !== null) {
+    const codigo = pedido.trim().toUpperCase();
+    if (CODIGO_VALIDO.test(codigo)) {
+      gravar(CHAVE_PREDIO, codigo);
+      return codigo;
+    }
+    gravar(CHAVE_PREDIO, null);
+    if (codigo && codigo !== 'EXEMPLO') throw new ErroDados('codigo-invalido', `O código de prédio “${pedido}” não existe. Confira as 6 letras e números.`);
+    return null;
+  }
+  const guardado = ler(CHAVE_PREDIO);
+  return typeof guardado === 'string' && CODIGO_VALIDO.test(guardado) ? guardado : null;
+}
+
+/** Identificador aleatório deste aparelho (não é dado pessoal). */
+function aparelho() {
+  let id = ler(CHAVE_APARELHO);
+  if (typeof id !== 'string' || id.length < 8) {
+    id = `ap-${novoId()}`;
+    gravar(CHAVE_APARELHO, id);
+  }
+  return id;
+}
+
+function configDoPredio(predio) {
+  return {
+    versaoDados: 1,
+    edificio: {
+      id: `predio-${predio.codigo}`,
+      nome: predio.nome,
+      apartamentosPorAndar: Math.max(1, Number(predio.aptos_por_andar) || 1),
+    },
+    pontosPorDescarte: { reciclavel: 10, organico: 10 },
+    premio: {
+      exemplo: false,
+      titulo: predio.premio_titulo ?? '',
+      patrocinador: predio.premio_patrocinador ?? '',
+      descricao: predio.premio_patrocinador ? `Oferecido por ${predio.premio_patrocinador}.` : '',
+    },
+    andares: Array.from({ length: Number(predio.andares) || 0 }, (_, i) => ({ numero: i + 1, reciclavel: 0, organico: 0 })),
+  };
+}
+
+function estadoOnline() {
+  return { versao: on.versao, atualizadoEm: on.atualizadoEm, andares: on.contagens, historico: on.historico };
+}
+
+function eventoDaLinha(linha) {
+  return {
+    id: String(linha.id),
+    tipo: 'descarte',
+    andar: Number(linha.andar),
+    descarte: linha.tipo,
+    pontos: config.pontosPorDescarte[linha.tipo] ?? 10,
+    origem: linha.origem,
+    em: linha.criado_em,
+  };
+}
+
+/** Guarda o último placar online no aparelho: sem internet, a tela abre com ele. */
+function guardarFoto() {
+  gravar(`${PREFIXO}:online:${on.codigo}`, {
+    predio: on.predio,
+    contagens: on.contagens,
+    historico: on.historico,
+    atualizadoEm: on.atualizadoEm,
+  });
+}
+
+function lerFila() {
+  const fila = ler(CHAVE_FILA);
+  return Array.isArray(fila) ? fila : [];
+}
+
+function gravarFila(fila) {
+  gravar(CHAVE_FILA, fila.slice(-LIMITE_FILA));
+  avisarConexao();
+}
+
+function conexaoAtual() {
+  const pendentes = on ? lerFila().filter((p) => p.codigo === on.codigo).length : 0;
+  return {
+    online: Boolean(on),
+    conectado: on ? !on.semRede && navigator.onLine !== false : true,
+    aoVivo: Boolean(on?.aoVivo),
+    pendentes,
+  };
+}
+
+function avisarConexao() {
+  avisar(ouvintesConexao, conexaoAtual());
+}
+
+/** Aplica um descarte que veio do servidor (resposta do toque ou Realtime). Sem repetir. */
+function aplicarLinha(linha) {
+  if (!on || !linha) return null;
+  const id = String(linha.id);
+  if (on.vistos.has(id)) return null;
+  if (on.predio.mes_inicio && new Date(linha.criado_em) < new Date(on.predio.mes_inicio)) return null;
+  const contagem = on.contagens[Number(linha.andar)];
+  if (!contagem || !TIPOS.includes(linha.tipo)) return null;
+  on.vistos.add(id);
+  contagem[linha.tipo] += 1;
+  const evento = eventoDaLinha(linha);
+  on.historico.unshift(evento);
+  on.historico.length = Math.min(on.historico.length, LIMITE_HISTORICO);
+  on.versao += 1;
+  on.atualizadoEm = evento.em ?? new Date().toISOString();
+  guardarFoto();
+  const placar = { ...montarPlacar(estadoOnline()), evento };
+  avisar(ouvintesPlacar, placar);
+  return placar;
+}
+
+function contagensIguais(a, b) {
+  return Object.keys(a).every((andar) => a[andar].reciclavel === b[andar]?.reciclavel && a[andar].organico === b[andar]?.organico);
+}
+
+/**
+ * Relê o prédio, o placar e os últimos descartes do servidor. Avisa as telas se algo
+ * mudou (com o evento dado, ou 'sincronizado'). Lança ErroRemoto('rede') sem conexão.
+ */
+async function recarregarOnline(motivo = 'sincronizado') {
+  const predio = await on.api.buscarPredio(on.codigo);
+  if (!predio) throw new ErroDados('predio-nao-encontrado', `O prédio ${on.codigo} não existe mais.`);
+  const [linhas, recentes] = await Promise.all([
+    on.api.buscarPlacar(on.codigo),
+    on.api.buscarHistorico(predio.id, predio.mes_inicio, LIMITE_HISTORICO),
+  ]);
+  const anterior = on.predio;
+  const novoConfig = configDoPredio(predio);
+  const contagens = Object.fromEntries(novoConfig.andares.map((a) => [a.numero, { reciclavel: 0, organico: 0 }]));
+  for (const linha of linhas ?? []) {
+    if (contagens[linha.andar]) contagens[linha.andar] = { reciclavel: Number(linha.reciclavel) || 0, organico: Number(linha.organico) || 0 };
+  }
+  const historico = (recentes ?? []).map(eventoDaLinha);
+  const mudouMes = anterior.mes_inicio !== predio.mes_inicio;
+  const mudouPremio = anterior.premio_titulo !== predio.premio_titulo || anterior.premio_patrocinador !== predio.premio_patrocinador;
+  const mudouPlacar = mudouMes || !contagensIguais(contagens, on.contagens) || Object.keys(contagens).length !== Object.keys(on.contagens).length;
+
+  on.semRede = false;
+  on.predio = predio;
+  config = novoConfig;
+  on.contagens = contagens;
+  on.historico = historico;
+  on.vistos = new Set(historico.map((e) => e.id));
+  if (Number(predio.participantes) !== on.participantes) {
+    on.participantes = Number(predio.participantes) || 0;
+    avisar(ouvintesParticipantes, on.participantes);
+  }
+  guardarFoto();
+  avisarConexao();
+  if (mudouPlacar || mudouPremio || motivo !== 'sincronizado') {
+    on.versao += 1;
+    on.atualizadoEm = new Date().toISOString();
+    const tipo = mudouMes ? 'zerado' : motivo;
+    const placar = { ...montarPlacar(estadoOnline()), evento: { id: novoId(), tipo, em: on.atualizadoEm } };
+    avisar(ouvintesPlacar, placar);
+    return placar;
+  }
+  return null;
+}
+
+/** Sincroniza em segundo plano: relê o servidor e manda os toques da fila. */
+async function sincronizar(motivo) {
+  if (!on || on.sincronizando) return;
+  on.sincronizando = true;
+  try {
+    await recarregarOnline(motivo);
+    await esvaziarFila();
+  } catch (erro) {
+    if (erro?.codigo === 'rede') {
+      on.semRede = true;
+      avisarConexao();
+    } else console.warn('[Recicla Slide] não sincronizou:', erro);
+  } finally {
+    on.sincronizando = false;
+  }
+}
+
+const esperar = (ms) => new Promise((resolver) => setTimeout(resolver, ms));
+
+function argumentosDoToque(pedido) {
+  return {
+    p_codigo: pedido.codigo,
+    p_andar: pedido.andar,
+    p_tipo: pedido.tipo,
+    p_origem: pedido.origem,
+    p_aparelho: aparelho(),
+  };
+}
+
+/** Manda, em ordem, os toques guardados sem internet (com 2 s entre os toques do app). */
+async function esvaziarFila() {
+  if (!on || on.esvaziando || navigator.onLine === false) return;
+  on.esvaziando = true;
+  try {
+    for (;;) {
+      const pedido = lerFila().find((p) => p.codigo === on.codigo);
+      if (!pedido) break;
+      try {
+        aplicarLinha(await on.api.rpc('registrar_descarte', argumentosDoToque(pedido)));
+      } catch (erro) {
+        if (erro?.codigo === 'rede') {
+          on.semRede = true;
+          avisarConexao();
+          break;
+        }
+        if (erro?.codigo === 'devagar') {
+          await esperar(ESPERA_TOQUE_MS);
+          continue;
+        }
+        console.warn('[Recicla Slide] toque guardado recusado pelo servidor:', erro);
+      }
+      gravarFila(lerFila().filter((p) => p.id !== pedido.id));
+      if (pedido.origem === 'app' && lerFila().some((p) => p.codigo === on.codigo)) await esperar(ESPERA_TOQUE_MS);
+    }
+  } finally {
+    on.esvaziando = false;
+  }
+}
+
+async function iniciarOnline(codigo) {
+  const { conectar } = await import('./remoto.js');
+  const foto = ler(`${PREFIXO}:online:${codigo}`);
+  let api = null;
+  let predio = null;
+  try {
+    api = await conectar({ url: SUPABASE_URL, chave: SUPABASE_ANON_KEY });
+    predio = await api.buscarPredio(codigo);
+    if (!predio) throw new ErroDados('predio-nao-encontrado', `Não achei o prédio ${codigo}. Confira o código.`);
+  } catch (erro) {
+    // Sem internet, mas com um placar guardado deste prédio: abre com ele e tenta de novo depois.
+    if (erro?.codigo !== 'rede' || !foto?.predio) throw erro;
+  }
+  const base = predio ?? foto.predio;
+  config = configDoPredio(base);
+  on = {
+    api,
+    codigo,
+    predio: base,
+    contagens: Object.fromEntries(config.andares.map((a) => [a.numero, { reciclavel: 0, organico: 0 }])),
+    historico: [],
+    vistos: new Set(),
+    versao: 1,
+    atualizadoEm: new Date().toISOString(),
+    participantes: Number(base.participantes) || 0,
+    semRede: !predio,
+    aoVivo: false,
+    sincronizando: false,
+    esvaziando: false,
+  };
+  if (foto?.contagens && !predio) {
+    for (const [andar, c] of Object.entries(foto.contagens)) if (on.contagens[andar]) on.contagens[andar] = c;
+    on.historico = Array.isArray(foto.historico) ? foto.historico : [];
+    on.vistos = new Set(on.historico.map((e) => e.id));
+    on.atualizadoEm = foto.atualizadoEm ?? on.atualizadoEm;
+  }
+  if (predio) {
+    try {
+      await recarregarOnline();
+    } catch (erro) {
+      if (erro?.codigo !== 'rede') throw erro;
+      on.semRede = true;
+    }
+  }
+  ligarOnline();
+}
+
+/** Realtime, reconexão, fila e conferência periódica. */
+function ligarOnline() {
+  const assinar = async () => {
+    if (!on.api) {
+      // a biblioteca não carregou (primeira visita sem internet): tenta de novo
+      try {
+        const { conectar } = await import('./remoto.js');
+        on.api = await conectar({ url: SUPABASE_URL, chave: SUPABASE_ANON_KEY });
+      } catch {
+        return;
+      }
+    }
+    if (on.pararAssinatura) return;
+    on.pararAssinatura = on.api.assinar(on.predio.id, {
+      aoDescarte: (linha) => aplicarLinha(linha),
+      aoParticipante: () => {
+        on.participantes += 1;
+        avisar(ouvintesParticipantes, on.participantes);
+      },
+      aoEvento: (linha) => {
+        const motivo = linha?.tipo === 'desfeito' ? 'desfeito' : linha?.tipo === 'mes_fechado' ? 'zerado' : 'premio';
+        sincronizar(motivo);
+      },
+      aoEstado: (situacao) => {
+        const antes = on.aoVivo;
+        on.aoVivo = situacao === 'ao-vivo';
+        avisarConexao();
+        // voltou ao vivo: confere o que pode ter passado e manda a fila
+        if (on.aoVivo && !antes) sincronizar();
+      },
+    });
+  };
+  assinar();
+
+  addEventListener('online', () => {
+    avisarConexao();
+    assinar().then(() => sincronizar());
+  });
+  addEventListener('offline', avisarConexao);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') sincronizar();
+  });
+
+  // Conferência periódica: a cada 3 s sem o Realtime, a cada 20 s com ele.
+  let ultima = Date.now();
+  setInterval(() => {
+    if (document.hidden) return;
+    if (on.aoVivo && Date.now() - ultima < 20_000) return;
+    ultima = Date.now();
+    if (!on.api) assinar();
+    sincronizar();
+  }, 3000);
+}
+
+function chaveMeuAndar() {
+  return on ? `${CHAVE_MEU_ANDAR}:${on.codigo}` : CHAVE_MEU_ANDAR;
+}
+
+function lerPin() {
+  try {
+    return sessionStorage.getItem(`${PREFIXO}:pin:${on?.codigo}`) || '';
+  } catch {
+    return '';
+  }
+}
+
+async function comPin(funcao, argumentos) {
+  const pin = lerPin();
+  if (!pin) throw new ErroDados('precisa-pin', 'Digite o PIN do síndico.');
+  const resposta = await on.api.rpc(funcao, { p_codigo: on.codigo, p_pin: pin, ...argumentos });
+  if (!resposta?.ok) {
+    if (resposta?.erro === 'pin_errado') {
+      definirPinSindico('');
+      throw new ErroDados('pin-errado', 'PIN errado.');
+    }
+    if (resposta?.erro === 'muitas_tentativas') throw new ErroDados('muitas-tentativas', 'Muitas tentativas de PIN. Espere 10 minutos.');
+    throw new ErroDados(resposta?.erro || 'servidor', 'O servidor recusou o pedido.');
+  }
+  return resposta;
+}
+
+/* ------------------------------------------------------------------ */
+/* API pública: modo online, palco, conexão                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Como esta tela está funcionando: { online, codigo, configurado, codigoSemConfig }.
+ * codigoSemConfig: a tela pediu um prédio (?predio=) mas js/config.js está vazio.
+ */
+export async function modo() {
+  try {
+    await iniciar();
+  } catch {
+    /* o erro de carregamento aparece pelas outras funções */
+  }
+  return { online: Boolean(on), codigo: on?.codigo ?? null, configurado: configurado(), codigoSemConfig };
+}
+
+/** Palco: coloca este aparelho num andar (sempre o que tem menos gente) e guarda o andar. */
+export async function entrarNoPredio() {
+  await iniciar();
+  if (!on) throw new ErroDados('so-online', 'O modo palco precisa do placar online.');
+  if (!on.api) throw new ErroDados('rede', 'Sem conexão. Tente de novo quando a internet voltar.');
+  const andar = Number(await on.api.rpc('entrar', { p_codigo: on.codigo, p_aparelho: aparelho() }));
+  if (!existeAndar(andar)) throw new ErroDados('servidor', 'O servidor devolveu um andar que não existe.');
+  gravar(chaveMeuAndar(), andar);
+  return andar;
+}
+
+/** Quantas pessoas entraram no prédio (modo palco). No modo local, 0. */
+export async function obterParticipantes() {
+  await iniciar();
+  return on ? on.participantes : 0;
+}
+
+export function aoMudarParticipantes(callback) {
+  ouvintesParticipantes.add(callback);
+  iniciar().catch(() => {});
+  return () => ouvintesParticipantes.delete(callback);
+}
+
+/** Situação da conexão: { online, conectado, aoVivo, pendentes } (pendentes = toques na fila). */
+export async function obterConexao() {
+  await iniciar();
+  return conexaoAtual();
+}
+
+export function aoMudarConexao(callback) {
+  ouvintesConexao.add(callback);
+  iniciar()
+    .then(() => callback(conexaoAtual()))
+    .catch(() => {});
+  return () => ouvintesConexao.delete(callback);
+}
+
+/** PIN do síndico para desfazer e fechar o mês no prédio online (fica só nesta aba). */
+export function definirPinSindico(pin) {
+  try {
+    const chave = `${PREFIXO}:pin:${on?.codigo}`;
+    if (pin) sessionStorage.setItem(chave, String(pin));
+    else sessionStorage.removeItem(chave);
+  } catch {
+    /* sem sessionStorage: o PIN precisa ser digitado de novo */
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* API pública: prédio e placar                                        */
 /* ------------------------------------------------------------------ */
 
@@ -351,6 +835,7 @@ export async function obterEdificio() {
 
 export async function obterPlacar() {
   await iniciar();
+  if (on) return montarPlacar(estadoOnline());
   const estado = garantirEstado();
   marcarVisto(estado);
   return montarPlacar(estado);
@@ -370,6 +855,7 @@ export async function registrarDescarte(andar, tipo, origem = 'demo') {
   const numero = Number(andar);
   if (!existeAndar(numero)) throw new RangeError(`O andar ${andar} não existe neste prédio.`);
   if (!TIPOS.includes(tipo)) throw new TypeError(`Tipo de descarte inválido: ${tipo}`);
+  if (on) return registrarDescarteOnline(numero, tipo, origem);
   return alterar((estado) => {
     estado.andares[numero][tipo] += 1;
     const evento = {
@@ -387,9 +873,52 @@ export async function registrarDescarte(andar, tipo, origem = 'demo') {
   });
 }
 
+/**
+ * Toque online: vai direto ao servidor; sem internet, entra na fila e vai depois.
+ * Toques do app com menos de 2 s entre si são recusados (ErroDados 'devagar').
+ */
+async function registrarDescarteOnline(andar, tipo, origem) {
+  const pedido = {
+    id: novoId(),
+    codigo: on.codigo,
+    andar,
+    tipo,
+    origem: ORIGENS.includes(origem) ? origem : 'demo',
+    em: new Date().toISOString(),
+  };
+  const naFila = () => {
+    gravarFila([...lerFila(), pedido]);
+    return { ...montarPlacar(estadoOnline()), evento: { id: pedido.id, tipo: 'na-fila', andar, descarte: tipo, em: pedido.em } };
+  };
+  if (navigator.onLine === false || !on.api) return naFila();
+  try {
+    const linha = await on.api.rpc('registrar_descarte', argumentosDoToque(pedido));
+    if (on.semRede) {
+      on.semRede = false;
+      avisarConexao();
+      esvaziarFila();
+    }
+    return aplicarLinha(linha) ?? { ...montarPlacar(estadoOnline()), evento: eventoDaLinha(linha) };
+  } catch (erro) {
+    if (erro?.codigo === 'rede') {
+      on.semRede = true;
+      return naFila();
+    }
+    if (erro?.codigo === 'devagar') throw new ErroDados('devagar', 'Espere 2 segundos entre um toque e outro.');
+    throw erro;
+  }
+}
+
 /** Desfaz o descarte mais recente do histórico. Devolve null se não houver. */
 export async function desfazerUltimo() {
   await iniciar();
+  if (on) {
+    const resposta = await comPin('desfazer_ultimo');
+    if (resposta.nada) return null;
+    const placar = (await recarregarOnline('desfeito')) ?? { ...montarPlacar(estadoOnline()), evento: { id: novoId(), tipo: 'desfeito' } };
+    Object.assign(placar.evento, { andar: resposta.andar, descarte: resposta.tipo, pontos: -10 });
+    return placar;
+  }
   const estado = lerEstado();
   if (!estado?.historico.length) return null;
   return alterar((atual) => {
@@ -409,8 +938,13 @@ export async function desfazerUltimo() {
   });
 }
 
-/** Zera todos os andares. */
+/** Zera todos os andares. No prédio online, fecha o mês (guarda o campeão e zera; pede o PIN). */
 export async function zerarPlacar() {
+  await iniciar();
+  if (on) {
+    await comPin('fechar_mes');
+    return (await recarregarOnline('zerado')) ?? { ...montarPlacar(estadoOnline()), evento: { id: novoId(), tipo: 'zerado' } };
+  }
   return alterar((estado) => {
     estado.andares = contagensZeradas();
     estado.historico = [];
@@ -418,8 +952,10 @@ export async function zerarPlacar() {
   });
 }
 
-/** Volta às contagens do JSON de exemplo. */
+/** Volta às contagens do JSON de exemplo (só no prédio de exemplo). */
 export async function restaurarExemplo() {
+  await iniciar();
+  if (on) throw new ErroDados('so-no-exemplo', 'O prédio online não tem dados de exemplo para voltar. Para zerar, feche o mês.');
   return alterar((estado) => {
     estado.andares = contagensDoExemplo();
     estado.historico = [];
@@ -499,15 +1035,16 @@ export function aoMudar(callback) {
 
 export async function obterMeuAndar() {
   await iniciar();
-  const numero = Number(ler(CHAVE_MEU_ANDAR));
-  return ler(CHAVE_MEU_ANDAR) !== null && existeAndar(numero) ? numero : null;
+  const guardado = ler(chaveMeuAndar());
+  const numero = Number(guardado);
+  return guardado !== null && existeAndar(numero) ? numero : null;
 }
 
 export async function definirMeuAndar(andar) {
   await iniciar();
   const numero = Number(andar);
   if (!existeAndar(numero)) throw new RangeError(`O andar ${andar} não existe neste prédio.`);
-  gravar(CHAVE_MEU_ANDAR, numero);
+  gravar(chaveMeuAndar(), numero);
   return numero;
 }
 

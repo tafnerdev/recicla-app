@@ -490,3 +490,61 @@ export function confirmar(opcoes) {
     botaoCancelar.focus();
   });
 }
+
+/**
+ * Diálogo de vidro com um campo (o PIN do síndico, por exemplo).
+ * opcoes: { titulo, texto, rotulo, tipo, modoTeclado, padrao, confirmar, cancelar }.
+ * Devolve o texto digitado, ou null se a pessoa cancelar.
+ */
+export function pedirTexto(opcoes) {
+  return new Promise((resolver) => {
+    const id = `campo-${Date.now().toString(36)}`;
+    const titulo = el('h2', { id: 'dialogo-titulo' }, opcoes.titulo);
+    const campo = el('input', {
+      id,
+      class: 'campo',
+      type: opcoes.tipo ?? 'text',
+      inputmode: opcoes.modoTeclado ?? null,
+      pattern: opcoes.padrao ?? null,
+      autocomplete: 'off',
+      required: true,
+    });
+    const botaoCancelar = el('button', { type: 'button', class: 'botao botao--vidro' }, opcoes.cancelar ?? 'Cancelar');
+    const botaoConfirmar = el('button', { type: 'submit', class: 'botao' }, opcoes.confirmar ?? 'Confirmar');
+    const formulario = el(
+      'form',
+      { method: 'dialog', class: 'dialogo__form' },
+      el('label', { for: id, class: 'dialogo__rotulo' }, opcoes.rotulo ?? 'Valor'),
+      campo,
+      el('div', { class: 'dialogo__acoes' }, botaoCancelar, botaoConfirmar),
+    );
+    const dialogo = el(
+      'dialog',
+      { class: 'dialogo', 'aria-labelledby': 'dialogo-titulo' },
+      titulo,
+      opcoes.texto ? el('p', {}, opcoes.texto) : null,
+      formulario,
+    );
+    const fechar = (resposta) => {
+      dialogo.close();
+      dialogo.remove();
+      resolver(resposta);
+    };
+    formulario.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!campo.checkValidity()) {
+        campo.reportValidity();
+        return;
+      }
+      fechar(campo.value.trim());
+    });
+    botaoCancelar.addEventListener('click', () => fechar(null));
+    dialogo.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      fechar(null);
+    });
+    document.body.append(dialogo);
+    dialogo.showModal();
+    campo.focus();
+  });
+}

@@ -57,6 +57,19 @@
             <p class="t-totais__tipo"><span class="ponto ponto--o" aria-hidden="true"></span><span class="numero" id="t-total-o" data-valor="0">0</span> <span class="t-totais__rotulo">orgânicos</span></p>
           </div>
 
+          <!-- Modo palco (?palco=1): QR code para a plateia entrar no prédio -->
+          <section class="t-palco" id="t-palco" aria-labelledby="t-palco-titulo" hidden>
+            <div class="t-palco__qr" id="t-palco-qr"></div>
+            <div class="t-palco__textos">
+              <h2 class="t-palco__titulo" id="t-palco-titulo">Aponte a câmera e entre no prédio</h2>
+              <p class="t-palco__pessoas" id="t-palco-pessoas-linha">
+                <span class="numero t-palco__numero" id="t-palco-pessoas" data-valor="0">0</span>
+                <span id="t-palco-pessoas-rotulo">pessoas no prédio</span>
+              </p>
+              <p class="t-palco__endereco" id="t-palco-endereco"></p>
+            </div>
+          </section>
+
           <!-- Sensor pela porta serial: só aparece com ?sensor=1 -->
           <section class="t-sensor vidro" id="t-sensor-painel" aria-labelledby="t-sensor-titulo" hidden>
             <div class="t-sensor__cabeca">

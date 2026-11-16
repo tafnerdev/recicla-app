@@ -2,6 +2,8 @@
  * Recicla Slide: app do morador (/app).
  * Duas abas (#inicio, #ranking) e a folha "Pontuar" (#pontuar), no mesmo arquivo.
  * O andar vem pela URL (?andar=7, o link da etiqueta NFC) ou fica guardado no aparelho.
+ * Modo palco (#palco): quem abre ?predio=CODIGO&entrar=1 (o QR code do telão) é
+ * colocado num andar e toca "Reciclável" ou "Orgânico" no lugar do sensor.
  */
 import * as dados from './dados.js';
 import {
@@ -46,6 +48,8 @@ const estado = {
   linhas: new Map(),
   predio: null,
   lixeiras: {}, // { reciclavel, organico }: as duas lixeiras do andar
+  lixeirasPalco: {}, // as mesmas, na tela do palco
+  modo: null, // { online, codigo, configurado, codigoSemConfig } (js/dados.js)
   ultimoToque: null, // último descarte pela etiqueta neste aparelho: { andar, tipo, em }
 };
 
@@ -67,6 +71,7 @@ async function iniciar() {
       dados.obterPessoal(),
     ]);
     Object.assign(estado, { edificio, placar, pessoal });
+    estado.modo = await dados.modo();
   } catch (erro) {
     console.error(erro);
     mostrarErro(erro);
@@ -90,6 +95,11 @@ async function iniciar() {
     }),
   };
   for (const [tipo, lixeira] of Object.entries(estado.lixeiras)) $(`lixeira-foto-${tipo}`).append(lixeira.elemento);
+  estado.lixeirasPalco = {
+    reciclavel: criarLixeira({ foto: 'verde', base: '../', descricao: '', carregamento: 'lazy' }),
+    organico: criarLixeira({ foto: 'verde', tampa: 'marrom', base: '../', descricao: '', carregamento: 'lazy' }),
+  };
+  for (const [tipo, lixeira] of Object.entries(estado.lixeirasPalco)) $(`palco-foto-${tipo}`).append(lixeira.elemento);
   estado.predio = montarPredio($('predio'), {
     andares: estado.edificio.andares,
     aceso: estado.meuAndar,
@@ -108,9 +118,17 @@ async function iniciar() {
   $('carregando').hidden = true;
   aplicarRota({ entrada: true });
 
-  if (!estado.meuAndar || alerta) abrirEscolha(alerta);
+  const entrandoNoPalco = new URLSearchParams(location.search).get('entrar') === '1';
+  if (entrandoNoPalco) entrarNoPalco();
+  else if (!estado.meuAndar || alerta) abrirEscolha(alerta);
   // Quem encostou na etiqueta vê o Início com um aviso "Pontuar agora" (a folha não abre sozinha).
   atualizarAvisoEtiqueta();
+  if (estado.modo.codigoSemConfig) {
+    avisar('Este endereço é de um prédio online, mas o placar online ainda não foi ligado. Você está vendo o prédio de exemplo.', {
+      duracao: 9000,
+    });
+  }
+  dados.aoMudarConexao(mostrarConexao);
 
   dados.aoMudar(aoMudarPlacar);
   dados.aoMudarPessoal((pessoal) => {
@@ -178,6 +196,7 @@ function lerRota() {
   const h = location.hash.replace('#', '');
   if (h === 'ranking') return { aba: 'ranking', folha: false };
   if (h === 'pontuar') return { aba: estado.aba, folha: true };
+  if (h === 'palco' && estado.modo?.online && estado.meuAndar) return { aba: 'palco', folha: false };
   return { aba: 'inicio', folha: false };
 }
 
@@ -185,7 +204,7 @@ function mostrarAba(aba, entrada) {
   const mudou = aba !== estado.aba || entrada;
   estado.aba = aba;
   document.body.dataset.aba = aba;
-  for (const nome of ['inicio', 'ranking']) {
+  for (const nome of ['inicio', 'ranking', 'palco']) {
     const secao = $(`aba-${nome}`);
     secao.hidden = nome !== aba;
     if (nome === aba && mudou) {
@@ -371,6 +390,7 @@ function renderizar({ animar }) {
   renderizarRanking(animar);
   renderizarDestaque(animar);
   renderizarLixeira();
+  renderizarPalco();
   renderizarPremio();
   atualizarHora();
   estado.predio?.atualizar({ aceso: estado.meuAndar, lider: liderUnico()?.andar ?? null, pontosAndares: pontosPorAndar() });
@@ -525,6 +545,115 @@ function renderizarLixeira() {
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* Modo palco                                                          */
+/* ------------------------------------------------------------------ */
+
+function renderizarPalco() {
+  if (!estado.meuAndar || !estado.placar) return;
+  $('palco-predio').textContent = estado.edificio.nome;
+  $('palco-andar').textContent = nomeAndar(estado.meuAndar);
+  const item = itemDoAndar(estado.meuAndar);
+  $('palco-posicao').textContent = item?.posicao
+    ? `${ordinal(item.posicao)} lugar · ${rotuloPontos(item.pontos)}`
+    : 'Ainda sem pontos. O primeiro toque coloca seu andar no ranking.';
+}
+
+/** Quem chegou pelo QR code do telão: entra no prédio, recebe um andar e vai para o palco. */
+async function entrarNoPalco() {
+  const url = new URL(location.href);
+  url.searchParams.delete('entrar');
+  url.searchParams.delete('andar');
+  if (!estado.modo.online) {
+    history.replaceState(null, '', url);
+    avisar('O modo palco precisa do placar online. Você está no app normal, com o prédio de exemplo.', { duracao: 9000 });
+    if (!estado.meuAndar) abrirEscolha();
+    return;
+  }
+  const entrada = $('entrada');
+  entrada.hidden = false;
+  entrada.classList.remove('chegou', 'saindo');
+  $('entrada-rotulo').textContent = 'Entrando no prédio…';
+  $('entrada-andar').textContent = '';
+  try {
+    const andar = await dados.entrarNoPredio();
+    estado.meuAndar = andar;
+    renderizar({ animar: false });
+    estado.predio?.atualizar({ aceso: andar });
+    $('entrada-rotulo').textContent = 'Você mora no';
+    $('entrada-andar').textContent = nomeAndar(andar);
+    entrada.classList.add('chegou');
+    vibrar();
+    url.hash = 'palco';
+    history.replaceState(null, '', url);
+    await new Promise((resolver) => setTimeout(resolver, semMovimento() ? 1400 : 1900));
+    aplicarRota({ entrada: true });
+    const sair = () => {
+      entrada.hidden = true;
+      entrada.classList.remove('saindo', 'chegou');
+    };
+    if (semMovimento()) sair();
+    else {
+      entrada.classList.add('saindo');
+      setTimeout(sair, 220);
+    }
+    $('palco-titulo').focus?.();
+  } catch (erro) {
+    console.error(erro);
+    entrada.hidden = true;
+    history.replaceState(null, '', url);
+    avisar(erro.message || 'Não deu para entrar no prédio. Tente de novo.', { tipo: 'erro', duracao: 9000 });
+    if (!estado.meuAndar) abrirEscolha();
+  }
+}
+
+/** Toque no palco: faz o papel do sensor da lixeira (conta para o andar). */
+async function tocarNoPalco(tipo, botao) {
+  const botoes = document.querySelectorAll('.a-palco__botao');
+  if (botao.disabled) return;
+  for (const b of botoes) {
+    b.disabled = true;
+    b.classList.remove('esperando');
+    void b.offsetWidth;
+    b.classList.add('esperando');
+  }
+  vibrar();
+  estado.lixeirasPalco[tipo]?.pulsar(tipo);
+  pulsar(botao.querySelector('.botao-tipo__brilho'), [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 0 }], {
+    duration: 1100,
+    id: 'brilho',
+  });
+  try {
+    // Sem internet, o toque fica na fila: o chip "Sem conexão · N toques guardados" já conta.
+    await dados.registrarDescarte(estado.meuAndar, tipo, 'app');
+  } catch (erro) {
+    if (erro?.codigo === 'devagar') avisar('Um toque a cada 2 segundos.');
+    else {
+      console.error(erro);
+      avisar(erro.message || 'Não deu para enviar. Tente de novo.', { tipo: 'erro' });
+    }
+  } finally {
+    setTimeout(() => {
+      for (const b of botoes) {
+        b.disabled = false;
+        b.classList.remove('esperando');
+      }
+    }, 2000);
+  }
+}
+
+/** Chip discreto "Sem conexão" (placar online): os toques esperam numa fila. */
+function mostrarConexao(conexao) {
+  const chip = $('conexao');
+  const precisa = conexao.online && (!conexao.conectado || conexao.pendentes > 0);
+  chip.hidden = !precisa;
+  document.body.classList.toggle('com-conexao', precisa); // o cabeçalho desce para o chip caber
+  if (!precisa) return;
+  const base = conexao.conectado ? 'Enviando' : 'Sem conexão';
+  const fila = conexao.pendentes ? ` · ${conexao.pendentes} ${conexao.pendentes === 1 ? 'toque guardado' : 'toques guardados'}` : '';
+  $('conexao-texto').textContent = base + fila;
+}
+
 function atualizarHora() {
   if (!estado.placar) return;
   renderizarLixeira();
@@ -546,6 +675,7 @@ function aoMudarPlacar(placar) {
 
     if (evento.andar === estado.meuAndar) {
       estado.lixeiras[evento.descarte]?.pulsar(evento.descarte);
+      estado.lixeirasPalco[evento.descarte]?.pulsar(evento.descarte);
       const mais = $('destaque-mais');
       mais.textContent = `+${evento.pontos}`;
       if (semMovimento()) {
@@ -661,6 +791,9 @@ function ligarEventos() {
   });
   for (const botao of document.querySelectorAll('.pontuar__botoes .botao-tipo')) {
     botao.addEventListener('click', () => pontuarPessoal(botao.dataset.tipo, botao));
+  }
+  for (const botao of document.querySelectorAll('.a-palco__botao')) {
+    botao.addEventListener('click', () => tocarNoPalco(botao.dataset.tipo, botao));
   }
 
   // Folha de escolher o andar

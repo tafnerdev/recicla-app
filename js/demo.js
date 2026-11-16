@@ -16,6 +16,7 @@ import {
   ordinal,
   prepararAvisos,
   ponto,
+  pedirTexto,
   pulsar,
   rotuloPontos,
   tempoRelativo,
@@ -58,6 +59,8 @@ async function iniciar() {
     return;
   }
 
+  estado.modo = await dados.modo();
+  ajustarAoModo();
   montarCartoes();
   renderizar();
   ligarEventos();
@@ -175,6 +178,10 @@ function destacar(evento) {
 async function registrar(andar, tipo) {
   try {
     const placar = await dados.registrarDescarte(andar, tipo, 'demo');
+    if (placar.evento?.tipo === 'na-fila') {
+      $('d-ultimo').innerHTML = `<strong>Sem conexão:</strong> ${ROTULO_TIPO[tipo].toLowerCase()} no ${nomeAndar(andar)} guardado. Vai quando a internet voltar.`;
+      return;
+    }
     const item = placar.ranking.find((i) => i.andar === andar);
     $('d-ultimo').innerHTML = `<strong>${ROTULO_TIPO[tipo]} no ${nomeAndar(andar)}</strong>: +${placar.evento.pontos}, agora com ${rotuloPontos(item.pontos)} (${ordinal(item.posicao)} lugar).`;
   } catch (erro) {
@@ -183,8 +190,56 @@ async function registrar(andar, tipo) {
   }
 }
 
+/** No prédio online, o painel mostra o código e troca "Zerar" por "Fechar o mês". */
+function ajustarAoModo() {
+  const { online, codigo, codigoSemConfig } = estado.modo;
+  if (online) {
+    $('d-aviso-texto').innerHTML = `Placar online do <strong>${estado.edificio.nome}</strong> (código <strong>${codigo}</strong>). Telão, app e painel em qualquer aparelho se atualizam juntos.`;
+    $('d-restaurar').hidden = true;
+    $('d-zerar-texto').textContent = 'Fechar o mês';
+  } else if (codigoSemConfig) {
+    $('d-aviso-texto').innerHTML = `O endereço pede o prédio <strong>${codigoSemConfig}</strong>, mas o placar online ainda não foi ligado (js/config.js). Este é o prédio de exemplo, local.`;
+  }
+}
+
+/**
+ * Desfazer e fechar o mês no prédio online pedem o PIN do síndico.
+ * Pede uma vez, guarda nesta aba e tenta de novo.
+ */
+async function comPinSeNecessario(acao) {
+  for (let tentativa = 0; tentativa < 3; tentativa += 1) {
+    try {
+      return await acao();
+    } catch (erro) {
+      if (erro?.codigo !== 'precisa-pin' && erro?.codigo !== 'pin-errado') throw erro;
+      const pin = await pedirTexto({
+        titulo: 'PIN do síndico',
+        texto:
+          erro.codigo === 'pin-errado'
+            ? 'PIN errado. Tente de novo.'
+            : 'No prédio online, desfazer e fechar o mês pedem o PIN do síndico (4 a 6 números).',
+        rotulo: 'PIN',
+        tipo: 'password',
+        modoTeclado: 'numeric',
+        padrao: '[0-9]{4,6}',
+        confirmar: 'Continuar',
+      });
+      if (!pin) return undefined;
+      dados.definirPinSindico(pin);
+    }
+  }
+  return undefined;
+}
+
 async function desfazer() {
-  const placar = await dados.desfazerUltimo();
+  let placar;
+  try {
+    placar = await comPinSeNecessario(() => dados.desfazerUltimo());
+  } catch (erro) {
+    avisar(erro.message, { tipo: 'erro' });
+    return;
+  }
+  if (placar === undefined) return;
   if (!placar) {
     avisar('Não há descarte para desfazer.');
     return;
@@ -241,16 +296,33 @@ function ligarEventos() {
   });
 
   $('d-zerar').addEventListener('click', async () => {
-    const ok = await confirmar({
-      titulo: 'Zerar o placar?',
-      texto: 'Todos os andares voltam a zero. Isso não dá para desfazer, mas depois você pode voltar aos dados de exemplo.',
-      confirmar: 'Zerar placar',
-      perigo: true,
-    });
+    const online = estado.modo?.online;
+    const ok = await confirmar(
+      online
+        ? {
+            titulo: 'Fechar o mês?',
+            texto: 'O andar líder fica guardado como campeão e todos os andares voltam a zero, em todas as telas. Pede o PIN do síndico.',
+            confirmar: 'Fechar o mês',
+            perigo: true,
+          }
+        : {
+            titulo: 'Zerar o placar?',
+            texto: 'Todos os andares voltam a zero. Isso não dá para desfazer, mas depois você pode voltar aos dados de exemplo.',
+            confirmar: 'Zerar placar',
+            perigo: true,
+          },
+    );
     if (!ok) return;
-    await dados.zerarPlacar();
-    $('d-ultimo').textContent = 'Placar zerado.';
-    avisar('Placar zerado.');
+    try {
+      const feito = await comPinSeNecessario(() => dados.zerarPlacar());
+      if (feito === undefined) return;
+    } catch (erro) {
+      avisar(erro.message, { tipo: 'erro' });
+      return;
+    }
+    const texto = online ? 'Mês fechado: o placar começou de novo.' : 'Placar zerado.';
+    $('d-ultimo').textContent = texto;
+    avisar(texto);
   });
 
   addEventListener('keydown', (e) => {

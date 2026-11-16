@@ -45,6 +45,8 @@ const estado = {
   ignoradas: 0,
   fimCelebracao: 0,
   ultimaMudanca: 0, // quando o placar mudou pela última vez (luz caindo, números contando)
+  palco: false, // ?palco=1: QR code para a plateia
+  ultimaCelebracao: 0,
   animacoes: [],
 };
 
@@ -158,6 +160,89 @@ async function iniciar() {
   dados.aoMudar(aoMudar);
 
   if (parametros.get('sensor') === '1') ligarSensor();
+  if (parametros.get('palco') === '1') ligarPalco();
+  if (parametros.get('simular') === '1') ligarSimulacao();
+  else ligarConexao();
+}
+
+/* ------------------------------------------------------------------ */
+/* Placar online: situação da conexão no selo do topo                  */
+/* ------------------------------------------------------------------ */
+
+function ligarConexao() {
+  dados.aoMudarConexao((conexao) => {
+    if (!conexao.online || estado.leitor) return; // modo local, ou o selo mostra o sensor
+    if (!conexao.conectado) definirStatus('alerta', 'Sem conexão');
+    else if (conexao.aoVivo) definirStatus('', 'Ao vivo');
+    else definirStatus('', 'Conectando');
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Modo palco (?palco=1): QR code para a plateia entrar no prédio      */
+/* ------------------------------------------------------------------ */
+
+/** Desenha o QR code (uqr) como SVG: módulos escuros sobre o fundo claro do cartão. */
+function svgDoQr({ data, size }) {
+  let caminho = '';
+  data.forEach((linha, y) =>
+    linha.forEach((escuro, x) => {
+      if (escuro) caminho += `M${x} ${y}h1v1h-1z`;
+    }),
+  );
+  return `<svg viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><path d="${caminho}" fill="#050807"/></svg>`;
+}
+
+function mostrarPessoas(total, animar) {
+  const numero = $('t-palco-pessoas');
+  if (animar) animarNumero(numero, total);
+  else {
+    numero.dataset.valor = String(total);
+    numero.textContent = formatarNumero(total);
+  }
+  $('t-palco-pessoas-rotulo').textContent = total === 1 ? 'pessoa no prédio' : 'pessoas no prédio';
+}
+
+async function ligarPalco() {
+  const { online, codigo } = await dados.modo();
+  estado.palco = true;
+  $('palco').classList.add('com-palco');
+  $('t-palco').hidden = false;
+  if (!online) {
+    // Sem o placar online, cada celular teria o seu placar: o QR não faria sentido.
+    $('t-palco-qr').hidden = true;
+    $('t-palco-pessoas-linha').hidden = true;
+    $('t-palco-titulo').textContent = 'O modo palco precisa do placar online';
+    $('t-palco-endereco').textContent =
+      'Preencha o js/config.js com o endereço e a chave do Supabase e abra o telão com ?predio=CÓDIGO&palco=1 (passo a passo no PENDENCIAS.md).';
+    return;
+  }
+  const endereco = new URL(`../app/?predio=${encodeURIComponent(codigo)}&entrar=1`, location.href).href;
+  const { encode } = await import('./vendor/uqr.mjs');
+  const qr = $('t-palco-qr');
+  qr.innerHTML = svgDoQr(encode(endereco, { ecc: 'M', border: 0 }));
+  qr.setAttribute('role', 'img');
+  qr.setAttribute('aria-label', `QR code para entrar no prédio: ${endereco}`);
+  $('t-palco-endereco').textContent = endereco.replace(/^https?:\/\//, '');
+  mostrarPessoas(await dados.obterParticipantes(), false);
+  dados.aoMudarParticipantes((total) => mostrarPessoas(total, !semMovimento()));
+}
+
+/* ------------------------------------------------------------------ */
+/* Plano B sem internet (?simular=1): demonstração local automática    */
+/* ------------------------------------------------------------------ */
+
+function ligarSimulacao() {
+  definirStatus('', 'Demonstração');
+  const andares = estado.edificio.andares;
+  const passo = () => {
+    if (document.hidden) return;
+    const andar = andares[Math.floor(Math.random() * andares.length)];
+    const tipo = Math.random() < 0.58 ? 'reciclavel' : 'organico';
+    dados.registrarDescarte(andar, tipo, 'demo').catch(() => {});
+  };
+  setTimeout(passo, 1500);
+  setInterval(passo, 3200);
 }
 
 function mostrarErro(erro) {
@@ -330,7 +415,14 @@ function aoMudar(placar) {
   anunciar(`${nomeAndar(evento.andar)}: mais ${evento.pontos} pontos, ${tipo}. Agora em ${ordinal(item.posicao)} lugar.`);
 
   const lider = liderUnico(placar);
-  if (lider && lider.andar === evento.andar && lider.andar !== liderAntes?.andar) celebrar(lider);
+  if (lider && lider.andar === evento.andar && lider.andar !== liderAntes?.andar) {
+    // No palco, com a plateia tocando, o líder troca toda hora: no máximo uma celebração a cada 15 s.
+    const descanso = estado.palco && Date.now() - estado.ultimaCelebracao < 15_000;
+    if (!descanso) {
+      estado.ultimaCelebracao = Date.now();
+      celebrar(lider);
+    }
+  }
 }
 
 function destacarLinha(linha, evento, posicaoAntes, posicaoDepois) {

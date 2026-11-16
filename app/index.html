@@ -137,7 +137,55 @@
           <p class="a-rotulo a-fim__dica" id="dica-ios" hidden>No iPhone, toque em Compartilhar e depois em “Adicionar à Tela de Início” para instalar.</p>
         </div>
       </section>
+
+      <!-- Modo palco: a plateia vira o prédio (abre pelo QR code do telão, ?predio=CODIGO&entrar=1) -->
+      <section class="a-aba a-palco" id="aba-palco" aria-labelledby="palco-titulo" hidden>
+        <p class="a-rotulo" id="palco-predio">Prédio</p>
+        <h1 class="a-titulo" id="palco-titulo" tabindex="-1">Você mora no <span id="palco-andar">1º andar</span></h1>
+        <p class="a-sub" id="palco-posicao"></p>
+
+        <div class="a-palco__lixeiras">
+          <div class="a-palco__lixeira" data-tipo="reciclavel">
+            <div class="a-palco__foto" id="palco-foto-reciclavel"></div>
+            <button type="button" class="botao-tipo a-palco__botao" data-tipo="reciclavel">
+              <span class="botao-tipo__brilho" aria-hidden="true"></span>
+              <span class="ponto ponto--grande ponto--brilho" aria-hidden="true"></span>
+              <span class="botao-tipo__textos">
+                <span class="botao-tipo__nome">Reciclável</span>
+                <span class="botao-tipo__sub">Lixeira verde</span>
+              </span>
+              <span class="a-palco__espera" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="a-palco__lixeira" data-tipo="organico">
+            <div class="a-palco__foto" id="palco-foto-organico"></div>
+            <button type="button" class="botao-tipo a-palco__botao" data-tipo="organico">
+              <span class="botao-tipo__brilho" aria-hidden="true"></span>
+              <span class="ponto ponto--o ponto--grande ponto--brilho" aria-hidden="true"></span>
+              <span class="botao-tipo__textos">
+                <span class="botao-tipo__nome">Orgânico</span>
+                <span class="botao-tipo__sub">Lixeira marrom</span>
+              </span>
+              <span class="a-palco__espera" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+
+        <p class="a-palco__nota">No palco, o botão faz o papel do sensor da lixeira.</p>
+        <a class="a-palco__ranking" href="#ranking">Ver o ranking do prédio</a>
+      </section>
     </main>
+
+    <!-- Entrada no modo palco: "Você mora no 12º andar" -->
+    <div class="a-entrada" id="entrada" role="status" aria-live="polite" hidden>
+      <p class="a-entrada__rotulo" id="entrada-rotulo">Entrando no prédio…</p>
+      <p class="a-entrada__andar" id="entrada-andar"></p>
+    </div>
+
+    <!-- Placar online sem conexão: os toques esperam numa fila -->
+    <p class="a-conexao" id="conexao" role="status" hidden>
+      <span class="a-conexao__ponto" aria-hidden="true"></span><span id="conexao-texto">Sem conexão</span>
+    </p>
 
     <nav class="a-barra vidro" aria-label="Principal">
       <a class="a-barra__item" href="#inicio" data-aba="inicio">

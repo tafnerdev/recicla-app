@@ -517,6 +517,81 @@
   display: none;
 }
 
+/* Modo palco: o QR code e o contador no lugar do prédio */
+.com-palco .t-predio,
+.com-palco .t-totais {
+  display: none;
+}
+
+.t-palco {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 40px;
+  height: 100%;
+}
+
+.t-palco[hidden] {
+  display: none;
+}
+
+/* O QR precisa de contraste alto para a câmera: módulos escuros sobre o claro */
+.t-palco__qr {
+  width: 440px;
+  aspect-ratio: 1;
+  padding: 28px;
+  border-radius: 32px;
+  background: var(--claro);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.t-palco__qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.t-palco__qr[hidden] {
+  display: none;
+}
+
+.t-palco__textos {
+  display: grid;
+  gap: 18px;
+}
+
+.t-palco__titulo {
+  max-width: 14ch;
+  font-size: 52px;
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+
+.t-palco__pessoas {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  color: var(--texto-2);
+  font-size: 30px;
+}
+
+.t-palco__numero {
+  color: var(--texto);
+  font-size: 104px;
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+}
+
+.t-palco__endereco {
+  max-width: 680px;
+  color: var(--texto-2);
+  font-size: 22px;
+  line-height: 30px;
+  overflow-wrap: anywhere;
+}
+
 .t-sensor {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
