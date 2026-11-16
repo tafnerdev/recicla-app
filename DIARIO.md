@@ -54,5 +54,5 @@ Uma linha por tarefa concluída, com data e hora (horário de Brasília).
 | 16/11 10:33 | Redesign, polimento ciclo 5: estados vazio e de erro do telão e do app conferidos; ícone do "Tentar de novo" do telão no tamanho do texto. |
 | 16/11 10:36 | Redesign, polimento ciclo 6: rodada completa (auditoria sem apontamentos, 33 testes); linha fina duplicada entre o passo 4 e o bloco NFC no celular removida. |
 | 16/11 10:38 | Redesign, polimento ciclo 7: todas as telas em 768 px conferidas. Nada relevante; ciclo limpo 1 de 3. |
-| 16/11 11:22 | Redesign, polimento ciclo 8: "reduzir movimento" em execução (prédio em SVG parado, sem canvas, sem animação, conteúdo visível, novo líder parado). Ciclo limpo 2 de 3. |
-| 16/11 11:24 | Redesign, polimento ciclo 9: cada teste repetido 3 vezes, 99 de 99. Ciclo limpo 3 de 3: polimento do redesign encerrado. |
+| 16/11 10:38 | Redesign, polimento ciclo 8: "reduzir movimento" em execução (prédio em SVG parado, sem canvas, sem animação, conteúdo visível, novo líder parado). Ciclo limpo 2 de 3. |
+| 16/11 10:38 | Redesign, polimento ciclo 9: cada teste repetido 3 vezes, 99 de 99. Ciclo limpo 3 de 3: polimento do redesign encerrado. |
