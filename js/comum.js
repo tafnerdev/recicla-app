@@ -92,6 +92,49 @@ export function reduzMovimento() {
   return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
+/**
+ * Cabeçalho que some ao rolar para baixo e volta ao rolar para cima.
+ * Fica à vista perto do topo, com o foco dentro dele e enquanto `travado()` for verdadeiro.
+ * O CSS da classe "escondido" tira o cabeçalho (e o degradê dele) da tela.
+ */
+export function ligarCabecalhoQueSome(cabecalho, { travado = () => false, topo = 80, passo = 12 } = {}) {
+  if (!cabecalho) return;
+  let ultimoY = posicaoDaRolagem();
+  let andou = 0;
+  let pedido = 0;
+  const mostrar = () => cabecalho.classList.remove('escondido');
+  const atualizar = () => {
+    pedido = 0;
+    const y = posicaoDaRolagem();
+    const delta = y - ultimoY;
+    ultimoY = y;
+    if (y <= topo || travado() || cabecalho.contains(document.activeElement)) {
+      andou = 0;
+      mostrar();
+      return;
+    }
+    if (!delta) return;
+    if (delta > 0 !== andou > 0) andou = 0;
+    andou += delta;
+    if (andou > passo) cabecalho.classList.add('escondido');
+    else if (andou < -passo) mostrar();
+  };
+  addEventListener(
+    'scroll',
+    () => {
+      if (!pedido) pedido = requestAnimationFrame(atualizar);
+    },
+    { passive: true },
+  );
+  cabecalho.addEventListener('focusin', mostrar);
+}
+
+/** Rolagem sem o "elástico" do iPhone, que passa do começo e do fim da página. */
+function posicaoDaRolagem() {
+  const maximo = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+  return Math.min(Math.max(scrollY, 0), maximo);
+}
+
 /** Modo estável do telão (?estavel=1): sem desfoque, sem WebGL, sem animação contínua. */
 export function modoEstavel() {
   return document.documentElement.classList.contains('estavel');

@@ -7,7 +7,7 @@
  *
  * Ao publicar uma versão nova, mude VERSAO. As telas avisam "Nova versão disponível".
  */
-const VERSAO = 'recicla-v8';
+const VERSAO = 'recicla-v9';
 const ESPERA_REDE = 2500;
 
 const ARQUIVOS = [

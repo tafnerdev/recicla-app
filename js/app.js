@@ -16,6 +16,7 @@ import {
   el,
   formatarNumero,
   icone,
+  ligarCabecalhoQueSome,
   marcarDescarte,
   mostrarEstado,
   nomeAndar,
@@ -62,6 +63,9 @@ const mes = nomeMes();
 async function iniciar() {
   prepararAvisos();
   for (const caixa of document.querySelectorAll('[data-icone]')) caixa.innerHTML = icone(caixa.dataset.icone);
+  ligarCabecalhoQueSome(document.querySelector('.a-topo'), {
+    travado: () => Boolean(document.querySelector('dialog[open]')),
+  });
 
   try {
     await dados.iniciar();

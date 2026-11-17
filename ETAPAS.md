@@ -274,3 +274,43 @@ Enquanto isso não acontece, nada quebra: tudo segue em modo local.
 A auditoria de acessibilidade não apontou nada.
 
 **O que não deu para testar daqui:** o Supabase de verdade (não há conta aqui, e criar conta é com vocês). O `schema.sql` traz, no fim, umas linhas de conferência para rodar no SQL Editor logo depois de colar.
+
+## Ajustes do Safari do iPhone, antes da Etapa 3 (16/11/2026)
+
+### O que mudou
+
+- **Cabeçalho perto do topo.** No navegador, o cabeçalho do site e o topo do app ficam a 10 px do alto da área visível. O recorte da câmera (`env(safe-area-inset-top)`) só entra no app instalado na tela de início, e uma vez só: o CSS usa sempre a variável `--topo-seguro`, que vale 0 no navegador.
+- **Degradê atrás do cabeçalho.** Um degradê escuro vai do alto da tela até um pouco abaixo da cápsula do site e do topo do app, e o conteúdo não aparece cru atrás deles. No app instalado, uma faixa escura fica atrás do relógio e da bateria.
+- **Cabeçalho que some.** Ao rolar para baixo, o cabeçalho sai da tela, junto com o degradê. Ao rolar para cima, ele volta. Perto do topo ele sempre aparece, e também quando recebe o foco do teclado. O topo do app passou a flutuar do mesmo jeito.
+- **Embaixo.**
+  - A barra do app, os avisos e o rodapé continuam somando a barrinha de início do iPhone (`env(safe-area-inset-bottom)`).
+  - Conferi com a área segura do iPhone simulada: a barra fica 20 px acima da barrinha, e os avisos e o fim do conteúdo acima da barra.
+- **Fim da faixa preta.**
+  - As camadas de fundo fixas passaram a ter `100lvh` mais 40% da tela, e cobrem a tela inteira, inclusive atrás das barras do Safari. São elas as luzes, o fundo da entrada "Você mora no…" e o fundo escurecido das folhas.
+  - A foto da abertura terminava numa linha reta atrás do título. Agora as bordas de cima e de baixo somem num degradê.
+- No app instalado, o link "Pular para o conteúdo" aparecia no alto da tela. Agora ele fica escondido e só aparece com o teclado.
+
+### Links
+
+- Site: https://tafnerdev.github.io/recicla-app/
+- App: https://tafnerdev.github.io/recicla-app/app/?andar=7
+
+### Três coisas para conferir no iPhone
+
+1. **No Safari (sem instalar):** abra o site. A cápsula deve ficar a uns 10 px do alto, sem o vão grande de antes. Role para baixo e ela some. Role um pouco para cima e ela volta.
+2. **Fim da tela:** role o site até o rodapé, com a barra do Safari embaixo e depois em cima (Ajustes > Apps > Safari > Abas). Não deve aparecer faixa preta de borda reta, e a foto da abertura não termina numa linha reta.
+3. **No app instalado:** o topo fica logo abaixo do relógio, uma vez só, sem vão duplo. A barra de Início, Ranking e Pontuar fica acima da barrinha do iPhone.
+
+### Testes
+
+74 testes passando (eram 67). Os 7 novos simulam a área segura do iPhone no Chrome (59 px em cima, 34 embaixo), com e sem o app instalado:
+- o cabeçalho a 10 px no navegador e a 69 px no app instalado;
+- o degradê;
+- some e volta;
+- volta com o foco do teclado;
+- barra, avisos e rodapé;
+- fundos maiores que a tela.
+
+A auditoria de acessibilidade não apontou nada.
+
+**O que não deu para testar daqui:** o Safari de verdade no iOS 26. O Chrome simula a área segura, mas não as barras flutuantes do Safari.

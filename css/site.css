@@ -67,11 +67,30 @@
 
 .cabecalho {
   position: fixed;
-  top: calc(20px + env(safe-area-inset-top));
+  top: calc(var(--folga-topo) + var(--topo-seguro));
   left: 0;
   right: 0;
   z-index: var(--z-cabecalho);
   padding-inline: 24px;
+  transition: transform 360ms var(--ease-saida);
+}
+
+/* Degradê escuro do alto da tela até abaixo da cápsula: o conteúdo não passa cru atrás dela */
+.cabecalho::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  top: calc(-1 * (var(--folga-topo) + var(--topo-seguro)) - 60px);
+  bottom: -44px;
+  background: linear-gradient(180deg, rgba(5, 8, 7, 0.94) 0, rgba(5, 8, 7, 0.9) calc(100% - 44px), rgba(5, 8, 7, 0.45) calc(100% - 20px), rgba(5, 8, 7, 0) 100%);
+  pointer-events: none;
+}
+
+/* Some ao rolar para baixo (com o degradê e a sombra) e volta ao rolar para cima */
+.cabecalho.escondido {
+  transform: translateY(calc(-100% - var(--folga-topo) - var(--topo-seguro) - 64px));
 }
 
 .cabecalho__pilula {
@@ -202,7 +221,7 @@ html.menu-aberto {
 .s-menu {
   margin: auto auto calc(8px + env(safe-area-inset-bottom));
   width: min(100% - 16px, 520px);
-  max-height: calc(100dvh - 24px - env(safe-area-inset-top));
+  max-height: calc(100dvh - 24px - var(--topo-seguro));
   overflow: auto;
   overscroll-behavior: contain;
   padding: 10px 24px 24px;
@@ -352,7 +371,7 @@ html.menu-aberto {
   flex-direction: column;
   justify-content: flex-end;
   min-height: 100svh;
-  padding: calc(112px + env(safe-area-inset-top)) 24px clamp(40px, 7svh, 72px);
+  padding: calc(var(--folga-topo) + 102px + var(--topo-seguro)) 24px clamp(40px, 7svh, 72px);
   overflow: hidden;
   background: var(--fundo);
 }
@@ -367,15 +386,19 @@ html.menu-aberto {
 .heroi__lixeira {
   position: absolute;
   inset: 0;
+  top: var(--topo-seguro); /* no app instalado, a lixeira desce junto com o cabeçalho */
   --lx-ocupa: 0.32;
   --lx-x: 50%;
   --lx-y: 29%;
   background: var(--fundo);
 }
 
-/* Entrada: zoom lento de 1,06 para 1 em 1,6 s */
+/* Entrada: zoom lento de 1,06 para 1 em 1,6 s.
+   As bordas de cima e de baixo da foto somem num degradê: nada de linha reta no fundo. */
 .heroi__lixeira .lixeira__cena {
   height: max(calc(100cqh * var(--lx-ocupa) / var(--lx-altura)), calc(100cqw * var(--lx-largura-min, 0) * var(--lx-razao)), calc(100cqh * var(--lx-altura-min, 0)));
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 6%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 6%, #000 78%, transparent 100%);
   animation: heroi-zoom 1.6s var(--ease-saida) both;
 }
 

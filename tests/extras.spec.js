@@ -194,6 +194,10 @@ test.describe('página inicial', () => {
       await page.setViewportSize({ width: largura, height: 900 });
       await page.goto('./');
       await page.evaluate(() => scrollTo(0, 700));
+      // descendo, o cabeçalho some; subindo um pouco, ele volta
+      await expect(page.locator('.cabecalho')).toHaveClass(/escondido/);
+      await page.evaluate(() => scrollTo(0, 640));
+      await expect(page.locator('.cabecalho')).not.toHaveClass(/escondido/);
       const botao = page.getByRole('button', { name: 'Menu' });
       await botao.click();
       const folha = page.getByRole('dialog', { name: 'Menu' });

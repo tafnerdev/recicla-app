@@ -20,6 +20,9 @@ function instalado() {
   return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 }
 
+// Aberto pela tela de início: o CSS passa a somar o recorte da câmera no topo (--topo-seguro)
+if (instalado()) document.documentElement.classList.add('instalado');
+
 function mostrarBotoesInstalar(mostrar) {
   for (const botao of document.querySelectorAll('[data-instalar]')) botao.hidden = !mostrar;
 }

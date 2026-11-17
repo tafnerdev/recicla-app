@@ -20,6 +20,7 @@ import {
   semMovimento,
   rotuloDescartes,
   rotuloPontos,
+  ligarCabecalhoQueSome,
 } from './comum.js';
 import { ligarLixeira, trocarPorVideoSeExistir } from './lixeira.js';
 import { montarPredio } from './predio.js';
@@ -353,6 +354,9 @@ function ligarContato() {
 /* ------------------------------------------------------------------ */
 
 ligarMenu();
+ligarCabecalhoQueSome(document.querySelector('.cabecalho'), {
+  travado: () => document.documentElement.classList.contains('menu-aberto'),
+});
 ligarSecaoAtual();
 ligarContato();
 ligarDemoRanking();

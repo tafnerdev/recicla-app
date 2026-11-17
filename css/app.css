@@ -32,7 +32,7 @@
   right: auto;
   left: calc(50% - 395px);
   top: auto;
-  bottom: -60px;
+  bottom: calc(-60px + var(--fundo-baixo));
   width: 440px;
   height: 440px;
 }
@@ -48,13 +48,36 @@
   padding-inline: var(--margem);
 }
 
+/* O topo flutua: fica a 10 px do alto, some ao rolar para baixo e volta ao rolar para cima */
 .a-topo {
+  --topo-y: calc(var(--folga-topo) + var(--topo-seguro));
+  position: sticky;
+  top: var(--topo-y);
+  z-index: var(--z-cabecalho);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--e-3);
   height: 44px;
-  margin-top: calc(20px + env(safe-area-inset-top));
+  margin-top: var(--topo-y);
+  transition: transform 360ms var(--ease-saida);
+}
+
+/* Degradê escuro do alto da tela até abaixo do topo */
+.a-topo::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  top: calc(-1 * var(--topo-y) - 60px);
+  bottom: -44px;
+  background: linear-gradient(180deg, rgba(5, 8, 7, 0.94) 0, rgba(5, 8, 7, 0.9) calc(100% - 44px), rgba(5, 8, 7, 0.45) calc(100% - 20px), rgba(5, 8, 7, 0) 100%);
+  pointer-events: none;
+}
+
+.a-topo.escondido {
+  transform: translateY(calc(-100% - var(--topo-y) - 64px));
 }
 
 .a-andar {
@@ -429,7 +452,7 @@
 }
 
 #aba-ranking {
-  padding-top: calc(24px + env(safe-area-inset-top));
+  padding-top: calc(24px + var(--topo-seguro));
 }
 
 .a-rotulo {
@@ -576,7 +599,7 @@
 dialog.folha {
   margin: auto auto calc(8px + env(safe-area-inset-bottom));
   width: min(100% - 16px, 440px);
-  max-height: calc(100dvh - 24px - env(safe-area-inset-top));
+  max-height: calc(100dvh - 24px - var(--topo-seguro));
   overflow: auto;
   overscroll-behavior: contain;
   padding: 10px 24px 24px;
@@ -957,11 +980,23 @@ dialog.folha::backdrop {
   justify-items: center;
   gap: 12px;
   padding: 24px;
+  text-align: center;
+  animation: entrada-aparece var(--t-entrada) var(--ease-saida) both;
+}
+
+/* O fundo passa do fim da tela, para cobrir atrás da barra do Safari */
+.a-entrada::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(100vh + var(--sobra-fundo));
+  height: calc(100lvh + var(--sobra-fundo));
   background: rgba(5, 8, 7, 0.86);
   -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
-  text-align: center;
-  animation: entrada-aparece var(--t-entrada) var(--ease-saida) both;
 }
 
 .a-entrada[hidden] {
@@ -1016,7 +1051,7 @@ dialog.folha::backdrop {
 /* Sem conexão: chip discreto no alto */
 .a-conexao {
   position: fixed;
-  top: calc(12px + env(safe-area-inset-top));
+  top: calc(var(--folga-topo) + var(--topo-seguro));
   left: 50%;
   z-index: var(--z-aviso);
   display: inline-flex;
@@ -1039,11 +1074,11 @@ dialog.folha::backdrop {
 
 /* Com o chip no alto, o conteúdo desce um pouco para não ficar embaixo dele */
 .com-conexao .a-topo {
-  margin-top: calc(56px + env(safe-area-inset-top));
+  --topo-y: calc(var(--folga-topo) + 44px + var(--topo-seguro));
 }
 
 .com-conexao #aba-ranking {
-  padding-top: calc(60px + env(safe-area-inset-top));
+  padding-top: calc(var(--folga-topo) + 50px + var(--topo-seguro));
 }
 
 .a-conexao__ponto {
