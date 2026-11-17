@@ -193,10 +193,11 @@ test.describe('página inicial', () => {
     test(`menu do celular (${largura} px) abre como folha, trava o fundo e fecha com Esc e no fundo`, async ({ page }) => {
       await page.setViewportSize({ width: largura, height: 900 });
       await page.goto('./');
-      await page.evaluate(() => scrollTo(0, 700));
+      // rolagem instantânea: a suave pode ser interrompida pelo ScrollTrigger enquanto a página carrega
+      await page.evaluate(() => scrollTo({ top: 700, behavior: 'instant' }));
       // descendo, o cabeçalho some; subindo um pouco, ele volta
       await expect(page.locator('.cabecalho')).toHaveClass(/escondido/);
-      await page.evaluate(() => scrollTo(0, 640));
+      await page.evaluate(() => scrollTo({ top: 640, behavior: 'instant' }));
       await expect(page.locator('.cabecalho')).not.toHaveClass(/escondido/);
       const botao = page.getByRole('button', { name: 'Menu' });
       await botao.click();

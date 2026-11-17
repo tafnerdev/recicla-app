@@ -7,7 +7,7 @@
  *
  * Ao publicar uma versão nova, mude VERSAO. As telas avisam "Nova versão disponível".
  */
-const VERSAO = 'recicla-v9';
+const VERSAO = 'recicla-v10';
 const ESPERA_REDE = 2500;
 
 const ARQUIVOS = [
@@ -15,6 +15,7 @@ const ARQUIVOS = [
   'app/',
   'telao/',
   'demo/',
+  'sindico/',
   '404.html',
   'manifest.webmanifest',
   'data/edificio-exemplo.json',
@@ -23,12 +24,16 @@ const ARQUIVOS = [
   'css/app.css',
   'css/telao.css',
   'css/demo.css',
+  'css/sindico.css',
   'js/dados.js',
   'js/comum.js',
   'js/site.js',
   'js/app.js',
   'js/telao.js',
   'js/demo.js',
+  'js/sindico.js',
+  'js/local.js',
+  'js/qr.js',
   'js/serial.js',
   'js/predio.js',
   'js/lixeira.js',

@@ -9,6 +9,8 @@
  *    o placar vive no Supabase (js/remoto.js, supabase/schema.sql) e chega ao
  *    vivo pelo Realtime. Sem internet, os toques esperam numa fila e vão
  *    quando a conexão voltar; a tela continua com o último placar.
+ *    Um prédio cadastrado no painel do síndico com o config.js vazio usa o mesmo
+ *    caminho, com o "servidor" deste navegador (js/local.js) no lugar do Supabase.
  * A página inicial (meta recicla-dados=exemplo) e o telão com ?simular=1 usam
  * sempre o prédio de exemplo.
  *
@@ -27,6 +29,7 @@
  */
 
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from './config.js';
+import { codigoDoExemploLocal, conectarLocal, existePredioLocal, semearPredio } from './local.js';
 
 const URL_DADOS = new URL('../data/edificio-exemplo.json', import.meta.url);
 
@@ -39,6 +42,7 @@ const CHAVE_APARELHO = `${PREFIXO}:aparelho:v1`;
 const CHAVE_FILA = `${PREFIXO}:fila:v1`;
 const LIMITE_HISTORICO = 30;
 const LIMITE_HISTORICO_PESSOAL = 20;
+const PIN_DO_EXEMPLO = '1234'; // só o prédio de exemplo do painel, que é fictício e fica neste navegador
 
 export const TIPOS = Object.freeze(['reciclavel', 'organico']);
 export const ORIGENS = Object.freeze(['demo', 'sensor', 'app']);
@@ -113,6 +117,7 @@ function validarConfig(bruto) {
     premio: {
       exemplo: Boolean(bruto.premio?.exemplo),
       titulo: String(bruto.premio?.titulo ?? ''),
+      patrocinador: String(bruto.premio?.patrocinador ?? ''),
       descricao: String(bruto.premio?.descricao ?? ''),
     },
     andares: andares
@@ -133,7 +138,7 @@ export function iniciar() {
   if (!carregando) {
     carregando = (async () => {
       const codigo = codigoPedido();
-      if (codigo && configurado()) {
+      if (codigo && (existePredioLocal(codigo) || configurado())) {
         await iniciarOnline(codigo);
         ligarSincronizacao();
         return;
@@ -435,7 +440,8 @@ function configDoPredio(predio) {
     },
     pontosPorDescarte: { reciclavel: 10, organico: 10 },
     premio: {
-      exemplo: false,
+      // enquanto o síndico não desmarcar, o prêmio aparece marcado como exemplo
+      exemplo: predio.premio_exemplo !== false,
       titulo: predio.premio_titulo ?? '',
       patrocinador: predio.premio_patrocinador ?? '',
       descricao: predio.premio_patrocinador ? `Oferecido por ${predio.premio_patrocinador}.` : '',
@@ -484,7 +490,7 @@ function conexaoAtual() {
   const pendentes = on ? lerFila().filter((p) => p.codigo === on.codigo).length : 0;
   return {
     online: Boolean(on),
-    conectado: on ? !on.semRede && navigator.onLine !== false : true,
+    conectado: on ? on.local || (!on.semRede && navigator.onLine !== false) : true,
     aoVivo: Boolean(on?.aoVivo),
     pendentes,
   };
@@ -504,6 +510,7 @@ function aplicarLinha(linha) {
   if (!contagem || !TIPOS.includes(linha.tipo)) return null;
   on.vistos.add(id);
   contagem[linha.tipo] += 1;
+  on.ultimos[Number(linha.andar)] = linha.criado_em;
   const evento = eventoDaLinha(linha);
   on.historico.unshift(evento);
   on.historico.length = Math.min(on.historico.length, LIMITE_HISTORICO);
@@ -533,18 +540,25 @@ async function recarregarOnline(motivo = 'sincronizado') {
   const anterior = on.predio;
   const novoConfig = configDoPredio(predio);
   const contagens = Object.fromEntries(novoConfig.andares.map((a) => [a.numero, { reciclavel: 0, organico: 0 }]));
+  const ultimos = {};
   for (const linha of linhas ?? []) {
-    if (contagens[linha.andar]) contagens[linha.andar] = { reciclavel: Number(linha.reciclavel) || 0, organico: Number(linha.organico) || 0 };
+    if (!contagens[linha.andar]) continue;
+    contagens[linha.andar] = { reciclavel: Number(linha.reciclavel) || 0, organico: Number(linha.organico) || 0 };
+    if (linha.ultimo_em) ultimos[linha.andar] = linha.ultimo_em;
   }
   const historico = (recentes ?? []).map(eventoDaLinha);
   const mudouMes = anterior.mes_inicio !== predio.mes_inicio;
-  const mudouPremio = anterior.premio_titulo !== predio.premio_titulo || anterior.premio_patrocinador !== predio.premio_patrocinador;
+  const mudouPremio =
+    anterior.premio_titulo !== predio.premio_titulo ||
+    anterior.premio_patrocinador !== predio.premio_patrocinador ||
+    anterior.premio_exemplo !== predio.premio_exemplo;
   const mudouPlacar = mudouMes || !contagensIguais(contagens, on.contagens) || Object.keys(contagens).length !== Object.keys(on.contagens).length;
 
   on.semRede = false;
   on.predio = predio;
   config = novoConfig;
   on.contagens = contagens;
+  on.ultimos = ultimos;
   on.historico = historico;
   on.vistos = new Set(historico.map((e) => e.id));
   if (Number(predio.participantes) !== on.participantes) {
@@ -556,7 +570,8 @@ async function recarregarOnline(motivo = 'sincronizado') {
   if (mudouPlacar || mudouPremio || motivo !== 'sincronizado') {
     on.versao += 1;
     on.atualizadoEm = new Date().toISOString();
-    const tipo = mudouMes ? 'zerado' : motivo;
+    // mudança percebida na conferência periódica: as telas ainda precisam saber o que mudou
+    const tipo = mudouMes ? 'zerado' : mudouPremio && motivo === 'sincronizado' ? 'premio' : motivo;
     const placar = { ...montarPlacar(estadoOnline()), evento: { id: novoId(), tipo, em: on.atualizadoEm } };
     avisar(ouvintesPlacar, placar);
     return placar;
@@ -564,9 +579,16 @@ async function recarregarOnline(motivo = 'sincronizado') {
   return null;
 }
 
-/** Sincroniza em segundo plano: relê o servidor e manda os toques da fila. */
+/**
+ * Sincroniza em segundo plano: relê o servidor e manda os toques da fila. Um aviso que
+ * chega no meio de outra sincronização não se perde: roda logo depois dela.
+ */
 async function sincronizar(motivo) {
-  if (!on || on.sincronizando) return;
+  if (!on) return;
+  if (on.sincronizando) {
+    if (!on.depois || on.depois === 'sincronizado') on.depois = motivo ?? 'sincronizado';
+    return;
+  }
   on.sincronizando = true;
   try {
     await recarregarOnline(motivo);
@@ -578,6 +600,9 @@ async function sincronizar(motivo) {
     } else console.warn('[Recicla Slide] não sincronizou:', erro);
   } finally {
     on.sincronizando = false;
+    const depois = on.depois;
+    on.depois = null;
+    if (depois) sincronizar(depois === 'sincronizado' ? undefined : depois);
   }
 }
 
@@ -595,7 +620,7 @@ function argumentosDoToque(pedido) {
 
 /** Manda, em ordem, os toques guardados sem internet (com 2 s entre os toques do app). */
 async function esvaziarFila() {
-  if (!on || on.esvaziando || navigator.onLine === false) return;
+  if (!on || on.esvaziando || (!on.local && navigator.onLine === false)) return;
   on.esvaziando = true;
   try {
     for (;;) {
@@ -623,13 +648,19 @@ async function esvaziarFila() {
   }
 }
 
-async function iniciarOnline(codigo) {
+/** Supabase (js/remoto.js), carregado só quando precisa. */
+async function conectarRemoto() {
   const { conectar } = await import('./remoto.js');
+  return conectar({ url: SUPABASE_URL, chave: SUPABASE_ANON_KEY });
+}
+
+async function iniciarOnline(codigo) {
+  const local = existePredioLocal(codigo);
   const foto = ler(`${PREFIXO}:online:${codigo}`);
   let api = null;
   let predio = null;
   try {
-    api = await conectar({ url: SUPABASE_URL, chave: SUPABASE_ANON_KEY });
+    api = local ? conectarLocal() : await conectarRemoto();
     predio = await api.buscarPredio(codigo);
     if (!predio) throw new ErroDados('predio-nao-encontrado', `Não achei o prédio ${codigo}. Confira o código.`);
   } catch (erro) {
@@ -641,8 +672,10 @@ async function iniciarOnline(codigo) {
   on = {
     api,
     codigo,
+    local,
     predio: base,
     contagens: Object.fromEntries(config.andares.map((a) => [a.numero, { reciclavel: 0, organico: 0 }])),
+    ultimos: {},
     historico: [],
     vistos: new Set(),
     versao: 1,
@@ -676,8 +709,7 @@ function ligarOnline() {
     if (!on.api) {
       // a biblioteca não carregou (primeira visita sem internet): tenta de novo
       try {
-        const { conectar } = await import('./remoto.js');
-        on.api = await conectar({ url: SUPABASE_URL, chave: SUPABASE_ANON_KEY });
+        on.api = await conectarRemoto();
       } catch {
         return;
       }
@@ -690,8 +722,8 @@ function ligarOnline() {
         avisar(ouvintesParticipantes, on.participantes);
       },
       aoEvento: (linha) => {
-        const motivo = linha?.tipo === 'desfeito' ? 'desfeito' : linha?.tipo === 'mes_fechado' ? 'zerado' : 'premio';
-        sincronizar(motivo);
+        const motivos = { desfeito: 'desfeito', mes_fechado: 'zerado', premio: 'premio', alerta: 'alerta', manutencao: 'manutencao' };
+        sincronizar(motivos[linha?.tipo] ?? 'premio');
       },
       aoEstado: (situacao) => {
         const antes = on.aoVivo;
@@ -736,6 +768,17 @@ function lerPin() {
   }
 }
 
+/** Guarda o PIN do síndico só nesta aba (sessionStorage), por prédio. */
+function guardarPin(codigo, pin) {
+  try {
+    const chave = `${PREFIXO}:pin:${codigo}`;
+    if (pin) sessionStorage.setItem(chave, String(pin));
+    else sessionStorage.removeItem(chave);
+  } catch {
+    /* sem sessionStorage: o PIN precisa ser digitado de novo */
+  }
+}
+
 async function comPin(funcao, argumentos) {
   const pin = lerPin();
   if (!pin) throw new ErroDados('precisa-pin', 'Digite o PIN do síndico.');
@@ -765,7 +808,12 @@ export async function modo() {
   } catch {
     /* o erro de carregamento aparece pelas outras funções */
   }
-  return { online: Boolean(on), codigo: on?.codigo ?? null, configurado: configurado(), codigoSemConfig };
+  return { online: Boolean(on), local: Boolean(on?.local), codigo: on?.codigo ?? null, configurado: configurado(), codigoSemConfig };
+}
+
+/** O placar online (Supabase) está ligado no js/config.js? Não precisa carregar nada. */
+export function placarOnlineLigado() {
+  return configurado();
 }
 
 /** Palco: coloca este aparelho num andar (sempre o que tem menos gente) e guarda o andar. */
@@ -807,13 +855,7 @@ export function aoMudarConexao(callback) {
 
 /** PIN do síndico para desfazer e fechar o mês no prédio online (fica só nesta aba). */
 export function definirPinSindico(pin) {
-  try {
-    const chave = `${PREFIXO}:pin:${on?.codigo}`;
-    if (pin) sessionStorage.setItem(chave, String(pin));
-    else sessionStorage.removeItem(chave);
-  } catch {
-    /* sem sessionStorage: o PIN precisa ser digitado de novo */
-  }
+  guardarPin(on?.codigo, pin);
 }
 
 /* ------------------------------------------------------------------ */
@@ -890,7 +932,7 @@ async function registrarDescarteOnline(andar, tipo, origem) {
     gravarFila([...lerFila(), pedido]);
     return { ...montarPlacar(estadoOnline()), evento: { id: pedido.id, tipo: 'na-fila', andar, descarte: tipo, em: pedido.em } };
   };
-  if (navigator.onLine === false || !on.api) return naFila();
+  if ((!on.local && navigator.onLine === false) || !on.api) return naFila();
   try {
     const linha = await on.api.rpc('registrar_descarte', argumentosDoToque(pedido));
     if (on.semRede) {
@@ -1027,6 +1069,191 @@ export function aoMudar(callback) {
   ouvintesPlacar.add(callback);
   iniciar().catch(() => {});
   return () => ouvintesPlacar.delete(callback);
+}
+
+/* ------------------------------------------------------------------ */
+/* API pública: painel do síndico (/sindico)                           */
+/* ------------------------------------------------------------------ */
+
+const MENSAGENS_SINDICO = {
+  nome_invalido: 'O nome do prédio precisa ter de 2 a 60 letras.',
+  andares_invalido: 'O prédio precisa ter de 2 a 60 andares.',
+  aptos_invalido: 'Use de 1 a 20 apartamentos por andar.',
+  pin_invalido: 'O PIN precisa ter de 4 a 6 números.',
+  pin_errado: 'PIN errado.',
+  muitas_tentativas: 'Muitas tentativas de PIN. Espere 10 minutos.',
+  predio_nao_encontrado: 'Não achei esse prédio. Confira o código.',
+  andar_invalido: 'Esse andar não existe neste prédio.',
+  rede: 'Sem conexão com o placar online. Tente de novo.',
+};
+
+/** Erro do banco (ou deste navegador) com uma mensagem para a tela. */
+function erroDoSindico(erro) {
+  if (erro instanceof ErroDados) return erro;
+  const codigo = erro?.codigo ?? 'servidor';
+  if (codigo === 'pin_errado') guardarPin(on?.codigo, '');
+  return new ErroDados(codigo.replaceAll('_', '-'), MENSAGENS_SINDICO[codigo] ?? 'O servidor recusou o pedido. Tente de novo.');
+}
+
+/** Onde mora o prédio deste código: neste navegador ou no Supabase. */
+async function apiDoCodigo(codigo) {
+  if (existePredioLocal(codigo)) return conectarLocal();
+  if (configurado()) return conectarRemoto();
+  throw new ErroDados('predio-nao-encontrado', 'Esse prédio não está neste navegador, e o placar online ainda não está ligado.');
+}
+
+/**
+ * Cadastra um prédio e devolve { codigo, local }. Com o placar online ligado, vai para o
+ * Supabase; sem ele, fica neste navegador (local: true). O PIN fica guardado nesta aba.
+ */
+export async function cadastrarPredio({ nome, andares, aptosPorAndar, pin }) {
+  const local = !configurado();
+  try {
+    const api = local ? conectarLocal() : await conectarRemoto();
+    const codigo = await api.rpc('criar_predio', {
+      p_nome: String(nome ?? '').trim(),
+      p_andares: Number(andares),
+      p_aptos_por_andar: Number(aptosPorAndar),
+      p_pin: String(pin ?? ''),
+    });
+    guardarPin(codigo, pin);
+    return { codigo, local };
+  } catch (erro) {
+    throw erroDoSindico(erro);
+  }
+}
+
+/**
+ * O prédio de exemplo do painel: o Edifício Exemplo (20 andares, os números fictícios
+ * do JSON espalhados pelo mês), neste navegador. Se já existir, abre o mesmo.
+ */
+export async function abrirPredioExemplo() {
+  let codigo = codigoDoExemploLocal();
+  if (!codigo) {
+    const resposta = await fetch(URL_DADOS, { cache: 'no-cache' });
+    if (!resposta.ok) throw new Error(`Não carregou os dados (HTTP ${resposta.status}).`);
+    const exemplo = validarConfig(await resposta.json());
+    codigo = await conectarLocal().rpc('criar_predio', {
+      p_nome: exemplo.edificio.nome,
+      p_andares: Math.max(...exemplo.andares.map((a) => a.numero)),
+      p_aptos_por_andar: exemplo.edificio.apartamentosPorAndar,
+      p_pin: PIN_DO_EXEMPLO,
+    });
+    await semearPredio(codigo, { andares: exemplo.andares, premio: exemplo.premio });
+  }
+  guardarPin(codigo, PIN_DO_EXEMPLO);
+  return { codigo, pin: PIN_DO_EXEMPLO };
+}
+
+/** Confere o código e o PIN do síndico. Certo: guarda o PIN nesta aba e devolve { codigo, nome }. */
+export async function entrarComoSindico(codigo, pin) {
+  const normal = String(codigo ?? '').trim().toUpperCase();
+  if (!CODIGO_VALIDO.test(normal)) throw new ErroDados('codigo-invalido', 'O código do prédio tem 6 letras e números.');
+  let resposta;
+  try {
+    const api = await apiDoCodigo(normal);
+    resposta = await api.rpc('verificar_pin', { p_codigo: normal, p_pin: String(pin ?? '') });
+  } catch (erro) {
+    throw erroDoSindico(erro);
+  }
+  if (!resposta?.ok) throw erroDoSindico({ codigo: resposta?.erro });
+  guardarPin(normal, pin);
+  return { codigo: normal, nome: resposta.nome };
+}
+
+/** O síndico já digitou o PIN deste prédio nesta aba? */
+export async function temPinSindico() {
+  await iniciar();
+  return Boolean(on && lerPin());
+}
+
+function exigirPredio() {
+  if (!on) throw new ErroDados('so-predio', 'Abra um prédio cadastrado no painel do síndico.');
+}
+
+async function comPinDoSindico(funcao, argumentos) {
+  await iniciar();
+  exigirPredio();
+  try {
+    return await comPin(funcao, argumentos);
+  } catch (erro) {
+    throw erroDoSindico(erro);
+  }
+}
+
+/**
+ * Tudo o que o painel do síndico mostra: prédio, prêmio, manutenção, último descarte
+ * por andar, descartes por dia no mês, alertas em aberto e campeões dos meses fechados.
+ */
+export async function obterSindico() {
+  await iniciar();
+  exigirPredio();
+  let resumo;
+  let alertas;
+  let campeoes;
+  try {
+    [resumo, alertas, campeoes] = await Promise.all([
+      on.api?.buscarResumo?.(on.codigo) ?? [],
+      on.api?.buscarAlertas?.(on.predio.id) ?? [],
+      on.api?.buscarCampeoes?.(on.predio.id) ?? [],
+    ]);
+  } catch (erro) {
+    throw erroDoSindico(erro);
+  }
+  const p = on.predio;
+  return {
+    codigo: on.codigo,
+    local: on.local,
+    exemplo: Boolean(p.exemplo),
+    nome: p.nome,
+    andares: Number(p.andares),
+    aptosPorAndar: Number(p.aptos_por_andar),
+    criadoEm: p.criado_em,
+    mesInicio: p.mes_inicio,
+    premio: { titulo: p.premio_titulo ?? '', patrocinador: p.premio_patrocinador ?? '', exemplo: p.premio_exemplo !== false },
+    manutencao: {
+      limpezaEm: p.limpeza_em ?? p.criado_em,
+      inspecaoEm: p.inspecao_em ?? p.criado_em,
+      pilhasEm: p.pilhas_em ?? p.criado_em,
+    },
+    ultimos: { ...on.ultimos },
+    resumo: (resumo ?? []).map((d) => ({ dia: String(d.dia).slice(0, 10), reciclavel: Number(d.reciclavel) || 0, organico: Number(d.organico) || 0 })),
+    alertas: (alertas ?? []).map((a) => ({ id: Number(a.id), andar: Number(a.andar), tipo: a.tipo, em: a.criado_em })),
+    campeoes: (campeoes ?? []).map((c) => ({
+      inicio: c.mes_inicio,
+      fim: c.mes_fim,
+      andar: c.andar === null || c.andar === undefined ? null : Number(c.andar),
+      pontos: Number(c.pontos) || 0,
+      reciclavel: Number(c.reciclavel) || 0,
+      organico: Number(c.organico) || 0,
+    })),
+  };
+}
+
+/** Prêmio do mês: título, quem oferece e se ainda é exemplo (patrocinador fictício). */
+export async function definirPremio({ titulo, patrocinador, exemplo }) {
+  await comPinDoSindico('definir_premio', { p_titulo: titulo ?? '', p_patrocinador: patrocinador ?? '', p_exemplo: Boolean(exemplo) });
+  return recarregarOnline('premio');
+}
+
+/** Demonstração: um descarte que entrou no andar e não chegou à central. */
+export async function simularEntupimento(andar, tipo = 'reciclavel') {
+  await iniciar();
+  exigirPredio();
+  if (!existeAndar(Number(andar))) throw new ErroDados('andar-invalido', MENSAGENS_SINDICO.andar_invalido);
+  await comPinDoSindico('simular_entupimento', { p_andar: Number(andar), p_tipo: tipo });
+  return recarregarOnline('alerta');
+}
+
+export async function resolverAlerta(id) {
+  await comPinDoSindico('resolver_alerta', { p_id: Number(id) });
+  return recarregarOnline('alerta');
+}
+
+/** Manutenção feita hoje: 'limpeza' (tubos), 'inspecao' (portinholas) ou 'pilhas' (sensores). */
+export async function registrarManutencao(item) {
+  await comPinDoSindico('registrar_manutencao', { p_item: item });
+  return recarregarOnline('manutencao');
 }
 
 /* ------------------------------------------------------------------ */

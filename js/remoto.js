@@ -79,8 +79,34 @@ export async function conectar({ url, chave }) {
     /** Prédio pelo código (view sem o hash do PIN), ou null. */
     buscarPredio: (codigo) => resultado(cliente.from('predios_publicos').select('*').eq('codigo', codigo).maybeSingle()),
 
-    /** Contagens do mês por andar: [{ andar, reciclavel, organico }]. */
-    buscarPlacar: (codigo) => resultado(cliente.from('placar_publico').select('andar, reciclavel, organico').eq('codigo', codigo)),
+    /** Contagens do mês por andar: [{ andar, reciclavel, organico, ultimo_em }]. */
+    buscarPlacar: (codigo) => resultado(cliente.from('placar_publico').select('andar, reciclavel, organico, ultimo_em').eq('codigo', codigo)),
+
+    /** Descartes do mês por dia (painel do síndico): [{ dia, reciclavel, organico }]. */
+    buscarResumo: (codigo) =>
+      resultado(cliente.from('resumo_por_dia').select('dia, reciclavel, organico').eq('codigo', codigo).order('dia', { ascending: true })),
+
+    /** Alertas de entupimento em aberto, o mais novo primeiro. */
+    buscarAlertas: (predioId) =>
+      resultado(
+        cliente
+          .from('alertas')
+          .select('id, andar, tipo, criado_em')
+          .eq('predio_id', predioId)
+          .is('resolvido_em', null)
+          .order('id', { ascending: false }),
+      ),
+
+    /** Campeões dos meses fechados, o mais recente primeiro. */
+    buscarCampeoes: (predioId) =>
+      resultado(
+        cliente
+          .from('campeoes')
+          .select('id, mes_inicio, mes_fim, andar, reciclavel, organico, pontos')
+          .eq('predio_id', predioId)
+          .order('id', { ascending: false })
+          .limit(12),
+      ),
 
     /** Descartes mais recentes do mês (para "último descarte" e o histórico). */
     buscarHistorico: (predioId, desde, limite = 30) =>

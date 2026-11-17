@@ -18,6 +18,17 @@ const TELAS = [
   ['app-sem-andar', 'app/'],
   ['telao', 'telao/?sensor=1'],
   ['demo', 'demo/'],
+  ['sindico', 'sindico/'],
+  // painel aberto no prédio de exemplo (neste navegador)
+  [
+    'sindico-painel',
+    'sindico/',
+    async (page) => {
+      await page.click('#abrir-exemplo');
+      await page.waitForSelector('#s-painel:not([hidden]) .s-etiqueta');
+      await page.waitForTimeout(400);
+    },
+  ],
   ['404', 'nao-existe/'],
 ];
 
@@ -38,7 +49,7 @@ function relatar(tela, lista, titulo) {
 }
 
 try {
-  for (const [tela, caminho] of TELAS) {
+  for (const [tela, caminho, preparar] of TELAS) {
     for (const largura of [1440, 390]) {
       const contexto = await navegador.newContext({
         viewport: { width: largura, height: largura > 800 ? 900 : 844 },
@@ -48,6 +59,7 @@ try {
       const page = await contexto.newPage();
       await page.goto(BASE + caminho, { waitUntil: 'networkidle' });
       await page.waitForTimeout(500);
+      if (preparar) await preparar(page);
 
       // 1. Estrutura e nomes (só na largura de computador, para não repetir)
       if (largura === 1440) {
@@ -109,7 +121,8 @@ try {
           [...document.querySelectorAll('button, a[href], input, summary, [role="switch"]')]
             .filter((el) => !el.closest('[hidden]') && el.getClientRects().length)
             .map((el) => {
-              const alvo = el.matches('input[type="radio"]') ? el.parentElement : el;
+              // rádio e caixa de marcar: o alvo é o rótulo em volta (tocar no texto também marca)
+              const alvo = el.matches('input[type="radio"], input[type="checkbox"]') ? (el.closest('label') ?? el.parentElement) : el;
               const r = alvo.getBoundingClientRect();
               const c = { width: r.width / escala, height: r.height / escala };
               return { el, c, texto: (el.getAttribute('aria-label') || el.textContent || el.id).trim().slice(0, 30) };

@@ -13,6 +13,7 @@
   "premio": {
     "exemplo": true,
     "titulo": "Noite da pizza no salão de festas",
+    "patrocinador": "Pizzaria do Bairro",
     "descricao": "Para todos os moradores do andar campeão. Prêmio de exemplo: cada condomínio define o seu."
   },
   "andares": [

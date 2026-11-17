@@ -64,7 +64,33 @@ function criarServidorFalso() {
         .sort((a, b) => b.id - a.id)
         .slice(0, limite);
     },
+    buscarResumo: () => [],
+    buscarAlertas: () => [],
+    buscarCampeoes: () => [],
     rpc(nome, a) {
+      if (nome === 'criar_predio') {
+        if (!(a.p_andares >= 2 && a.p_andares <= 60)) return { __erro: 'andares_invalido' };
+        if (!/^[0-9]{4,6}$/.test(a.p_pin)) return { __erro: 'pin_invalido' };
+        const agora = new Date().toISOString();
+        const novo = {
+          id: `predio-falso-${banco.predios.length + 1}`,
+          codigo: 'NOVO23',
+          nome: a.p_nome,
+          andares: a.p_andares,
+          aptos_por_andar: a.p_aptos_por_andar,
+          premio_titulo: null,
+          premio_patrocinador: null,
+          premio_exemplo: true,
+          mes_inicio: agora,
+          criado_em: agora,
+          limpeza_em: agora,
+          inspecao_em: agora,
+          pilhas_em: agora,
+          pin: a.p_pin,
+        };
+        banco.predios.push(novo);
+        return novo.codigo;
+      }
       const p = banco.predios.find((x) => x.codigo === a.p_codigo);
       if (!p) return { __erro: 'predio_nao_encontrado' };
       if (nome === 'entrar') {
@@ -102,6 +128,12 @@ function criarServidorFalso() {
         return linha;
       }
       if (a.p_pin !== p.pin) return { ok: false, erro: 'pin_errado' };
+      if (nome === 'verificar_pin') return { ok: true, codigo: p.codigo, nome: p.nome };
+      if (nome === 'definir_premio') {
+        Object.assign(p, { premio_titulo: a.p_titulo || null, premio_patrocinador: a.p_patrocinador || null, premio_exemplo: a.p_exemplo });
+        emitir({ tipo: 'evento', predio_id: p.id, linha: { tipo: 'premio' } });
+        return { ok: true };
+      }
       if (nome === 'desfazer_ultimo') {
         const ultimo = banco.descartes.filter((x) => x.predio_id === p.id).sort((x, y) => y.id - x.id)[0];
         if (!ultimo) return { ok: true, nada: true };
@@ -141,6 +173,9 @@ function remotoFalsoNoNavegador() {
     buscarPredio: (c) => chamar('buscarPredio', c),
     buscarPlacar: (c) => chamar('buscarPlacar', c),
     buscarHistorico: (id, desde, limite) => chamar('buscarHistorico', id, desde, limite),
+    buscarResumo: (c) => chamar('buscarResumo', c),
+    buscarAlertas: (id) => chamar('buscarAlertas', id),
+    buscarCampeoes: (id) => chamar('buscarCampeoes', id),
     rpc: (nome, a) => chamar('rpc', nome, a),
     assinar(predioId, retornos) {
       retornosPorPredio.push({ predioId, retornos });
@@ -167,6 +202,59 @@ async function aparelho(browser, servidor, viewport = { width: 390, height: 844 
 }
 
 const numeroDoAndar = async (pagina) => Number((await pagina.locator('#palco-andar').textContent()).match(/\d+/)[0]);
+
+test.describe('painel do síndico com o placar online (servidor falso)', () => {
+  test.describe.configure({ timeout: 60_000 });
+
+  test('o síndico cadastra o prédio no Supabase e o prêmio chega ao telão de outro aparelho', async ({ browser }) => {
+    const servidor = criarServidorFalso();
+    const contextoSindico = await aparelho(browser, servidor, { width: 1280, height: 900 });
+    const sindico = await contextoSindico.newPage();
+    await sindico.goto('sindico/');
+    await expect(sindico.locator('#s-onde')).toContainText('O placar online está ligado');
+    const form = sindico.locator('#form-cadastro');
+    await form.getByLabel('Nome do prédio').fill('Prédio Online');
+    await form.getByLabel('Andares').fill('12');
+    await form.getByLabel('Apartamentos por andar').fill('4');
+    await form.getByLabel('PIN do síndico').fill('2468');
+    await form.getByLabel('Repita o PIN').fill('2468');
+    await form.getByRole('button', { name: 'Cadastrar prédio' }).click();
+    await expect(sindico).toHaveURL(/sindico\/\?predio=NOVO23&novo=1$/);
+    await expect(sindico.locator('#s-onde-chip')).toHaveText('Online');
+    await expect(sindico.locator('#s-novo-local')).toBeHidden();
+    expect(servidor.banco.predios.at(-1)).toMatchObject({ codigo: 'NOVO23', nome: 'Prédio Online', andares: 12, aptos_por_andar: 4 });
+
+    // o telão, em outro aparelho, abre o mesmo prédio
+    const contextoTelao = await aparelho(browser, servidor, { width: 1920, height: 1080 });
+    const telao = await contextoTelao.newPage();
+    await telao.goto('telao/?predio=NOVO23');
+    await expect(telao.locator('#t-predio')).toHaveText('Prédio Online');
+    await expect(telao.locator('#t-status-texto')).toHaveText('Ao vivo');
+
+    const premio = sindico.locator('#form-premio');
+    await premio.getByLabel('Prêmio do andar campeão').fill('Churrasco no salão');
+    await premio.getByLabel('Oferecido por').fill('Açougue Exemplo');
+    await premio.getByRole('button', { name: 'Salvar prêmio' }).click();
+    await expect(telao.locator('#t-premio-titulo')).toHaveText('Churrasco no salão');
+    await expect(telao.locator('#t-premio-por')).toHaveText(' · oferecido por Açougue Exemplo');
+    await expect(telao.locator('#t-premio-exemplo')).toBeVisible();
+    expect(servidor.banco.predios.at(-1)).toMatchObject({ premio_titulo: 'Churrasco no salão', premio_exemplo: true });
+
+    // outro aparelho entra com o código e o PIN
+    const contextoOutro = await aparelho(browser, servidor, { width: 390, height: 844 });
+    const outro = await contextoOutro.newPage();
+    await outro.goto('sindico/');
+    await outro.locator('#form-entrar').getByLabel('Código do prédio').fill('NOVO23');
+    await outro.locator('#form-entrar').getByLabel('PIN do síndico').fill('1111');
+    await outro.locator('#form-entrar').getByRole('button', { name: 'Entrar' }).click();
+    await expect(outro.locator('#entrar-erro')).toHaveText('PIN errado.');
+    await outro.locator('#form-entrar').getByLabel('PIN do síndico').fill('2468');
+    await outro.locator('#form-entrar').getByRole('button', { name: 'Entrar' }).click();
+    await expect(outro.getByRole('heading', { level: 1, name: 'Prédio Online' })).toBeVisible();
+    await expect(outro.locator('#premio-titulo-campo')).toHaveValue('Churrasco no salão');
+    for (const c of [contextoSindico, contextoTelao, contextoOutro]) await c.close().catch(() => {});
+  });
+});
 
 test.describe('placar online (servidor falso)', () => {
   // vários aparelhos ao mesmo tempo: mais folga quando a bateria inteira roda em paralelo
@@ -388,7 +476,7 @@ test.describe('supabase-js de verdade', () => {
     await page.goto(`telao/?predio=${CODIGO}`);
     await expect(page.locator('#t-predio')).toHaveText('Prédio pela API');
     expect(chamadas.some((c) => c.startsWith(`GET /rest/v1/predios_publicos?select=*&codigo=eq.${CODIGO}`))).toBe(true);
-    expect(chamadas.some((c) => c.startsWith(`GET /rest/v1/placar_publico?select=andar%2Creciclavel%2Corganico&codigo=eq.${CODIGO}`))).toBe(true);
+    expect(chamadas.some((c) => c.startsWith(`GET /rest/v1/placar_publico?select=andar%2Creciclavel%2Corganico%2Cultimo_em&codigo=eq.${CODIGO}`))).toBe(true);
 
     // um descarte pelo painel no mesmo navegador chega ao telão (pela conferência periódica, sem o Realtime)
     const painel = await context.newPage();

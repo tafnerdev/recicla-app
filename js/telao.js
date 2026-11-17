@@ -27,6 +27,7 @@ import {
 } from './comum.js';
 import { montarPredio } from './predio.js';
 import { definirCondicaoParaRecarregar } from './pwa.js';
+import { svgDoQr } from './qr.js';
 import { BAUD_PADRAO, LeitorSerial, interpretarLinha, serialDisponivel } from './serial.js';
 
 const $ = (id) => document.getElementById(id);
@@ -34,6 +35,8 @@ const parametros = new URLSearchParams(location.search);
 const TEMPO_OCIOSO = 3000;
 const LIMITE_LINHAS = 10; // o palco foi desenhado para 10 linhas legíveis a distância
 const LINHAS_GRANDES = 3;
+const TEMPO_PRIMEIRA_PAGINA = 12_000; // com mais de 10 andares, as páginas se alternam
+const TEMPO_OUTRAS_PAGINAS = 8_000;
 
 const estado = {
   edificio: null,
@@ -48,6 +51,8 @@ const estado = {
   palco: false, // ?palco=1: QR code para a plateia
   ultimaCelebracao: 0,
   animacoes: [],
+  pagina: 0,
+  trocandoPagina: false,
 };
 
 /* ------------------------------------------------------------------ */
@@ -141,6 +146,7 @@ async function iniciar() {
   }
 
   $('t-predio').textContent = estado.edificio.nome;
+  renderizarPremio();
   const { reciclavel, organico } = estado.edificio.pontosPorDescarte;
   $('t-regra').textContent =
     reciclavel === organico ? `Cada descarte vale ${reciclavel} pontos` : `Reciclável ${reciclavel} pontos, orgânico ${organico} pontos`;
@@ -158,6 +164,7 @@ async function iniciar() {
   $('t-carregando').hidden = true;
   renderizar(false);
   dados.aoMudar(aoMudar);
+  agendarPagina();
 
   if (parametros.get('sensor') === '1') ligarSensor();
   if (parametros.get('palco') === '1') ligarPalco();
@@ -182,17 +189,6 @@ function ligarConexao() {
 /* Modo palco (?palco=1): QR code para a plateia entrar no prédio      */
 /* ------------------------------------------------------------------ */
 
-/** Desenha o QR code (uqr) como SVG: módulos escuros sobre o fundo claro do cartão. */
-function svgDoQr({ data, size }) {
-  let caminho = '';
-  data.forEach((linha, y) =>
-    linha.forEach((escuro, x) => {
-      if (escuro) caminho += `M${x} ${y}h1v1h-1z`;
-    }),
-  );
-  return `<svg viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><path d="${caminho}" fill="#050807"/></svg>`;
-}
-
 function mostrarPessoas(total, animar) {
   const numero = $('t-palco-pessoas');
   if (animar) animarNumero(numero, total);
@@ -204,12 +200,13 @@ function mostrarPessoas(total, animar) {
 }
 
 async function ligarPalco() {
-  const { online, codigo } = await dados.modo();
+  const { online, local, codigo } = await dados.modo();
   estado.palco = true;
   $('palco').classList.add('com-palco');
   $('t-palco').hidden = false;
-  if (!online) {
-    // Sem o placar online, cada celular teria o seu placar: o QR não faria sentido.
+  if (!online || local) {
+    // Sem o placar online (ou num prédio que só existe neste navegador), cada celular
+    // teria o seu placar: o QR não faria sentido.
     $('t-palco-qr').hidden = true;
     $('t-palco-pessoas-linha').hidden = true;
     $('t-palco-titulo').textContent = 'O modo palco precisa do placar online';
@@ -218,9 +215,8 @@ async function ligarPalco() {
     return;
   }
   const endereco = new URL(`../app/?predio=${encodeURIComponent(codigo)}&entrar=1`, location.href).href;
-  const { encode } = await import('./vendor/uqr.mjs');
   const qr = $('t-palco-qr');
-  qr.innerHTML = svgDoQr(encode(endereco, { ecc: 'M', border: 0 }));
+  qr.innerHTML = await svgDoQr(endereco);
   qr.setAttribute('role', 'img');
   qr.setAttribute('aria-label', `QR code para entrar no prédio: ${endereco}`);
   $('t-palco-endereco').textContent = endereco.replace(/^https?:\/\//, '');
@@ -336,15 +332,21 @@ function renderizarRanking(animar) {
   const estavaEscondida = lista.hidden;
   lista.hidden = false;
 
-  const visiveis = ranking.slice(0, LIMITE_LINHAS);
-  const totalLider = visiveis[0].reciclavel + visiveis[0].organico;
+  // Mais de 10 andares: 10 por página (as páginas se alternam sozinhas, agendarPagina)
+  const paginas = Math.ceil(ranking.length / LIMITE_LINHAS);
+  if (estado.pagina >= paginas) estado.pagina = 0;
+  const inicio = estado.pagina * LIMITE_LINHAS;
+  const visiveis = ranking.slice(inicio, inicio + LIMITE_LINHAS);
+  mostrarPaginas(inicio, visiveis.length, ranking.length);
+  // a barra é proporcional ao líder do prédio, em todas as páginas
+  const totalLider = ranking[0].reciclavel + ranking[0].organico;
   const linhas = visiveis.map((item, indice) => {
     let linha = estado.linhas.get(item.andar);
     if (!linha) {
       linha = criarLinha(item.andar);
       estado.linhas.set(item.andar, linha);
     }
-    atualizarLinha(linha, item, indice, totalLider, animar && !estavaEscondida);
+    atualizarLinha(linha, item, inicio + indice, totalLider, animar && !estavaEscondida);
     return linha;
   });
 
@@ -366,6 +368,51 @@ function renderizarRanking(animar) {
   // Quem saiu dos 10 primeiros sai da lista.
   for (const filho of [...lista.children]) if (!linhas.includes(filho)) filho.remove();
   reordenarComAnimacao(lista, linhas, { duracao: 900, escala: estado.escala });
+}
+
+function mostrarPaginas(inicio, quantos, total) {
+  const indicador = $('t-paginas');
+  indicador.hidden = total <= LIMITE_LINHAS;
+  indicador.textContent = `${ordinal(inicio + 1)} ao ${ordinal(inicio + quantos)} de ${total} andares`;
+}
+
+/** Troca a página do ranking: a lista some, troca e as linhas entram de novo. */
+async function trocarPagina() {
+  const { ranking } = estado.placar;
+  const paginas = Math.ceil(ranking.length / LIMITE_LINHAS);
+  if (paginas <= 1 || estado.trocandoPagina) return;
+  const lista = $('t-lista');
+  estado.trocandoPagina = true;
+  try {
+    if (!semMovimento()) {
+      lista.classList.add('trocando');
+      await new Promise((resolver) => setTimeout(resolver, 280));
+    }
+    estado.pagina = (estado.pagina + 1) % paginas;
+    lista.replaceChildren();
+    lista.classList.remove('trocando');
+    renderizarRanking(true);
+  } finally {
+    estado.trocandoPagina = false;
+  }
+}
+
+function agendarPagina() {
+  const tempo = estado.pagina === 0 ? TEMPO_PRIMEIRA_PAGINA : TEMPO_OUTRAS_PAGINAS;
+  setTimeout(async () => {
+    // espera a celebração do novo líder e a aba voltar a aparecer
+    if (!document.hidden && Date.now() > estado.fimCelebracao && estado.placar?.totais.pontos > 0) await trocarPagina();
+    agendarPagina();
+  }, tempo);
+}
+
+/** Prêmio do mês no topo: título, quem oferece e "Exemplo" enquanto for fictício. */
+function renderizarPremio() {
+  const { premio } = estado.edificio;
+  $('t-premio').hidden = !premio.titulo;
+  $('t-premio-titulo').textContent = premio.titulo;
+  $('t-premio-por').textContent = premio.patrocinador ? ` · oferecido por ${premio.patrocinador}` : '';
+  $('t-premio-exemplo').hidden = !premio.exemplo;
 }
 
 function renderizarTotais(animar) {
@@ -399,6 +446,16 @@ function aoMudar(placar) {
   const evento = placar.evento;
 
   renderizar(true);
+
+  if (evento?.tipo === 'premio') {
+    dados
+      .obterEdificio()
+      .then((edificio) => {
+        estado.edificio = edificio;
+        renderizarPremio();
+      })
+      .catch(() => {});
+  }
 
   if (evento?.tipo !== 'descarte') {
     if (evento?.tipo === 'zerado') anunciar('Placar zerado.');

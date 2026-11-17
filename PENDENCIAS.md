@@ -46,8 +46,8 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
 
 6. **Imagem de compartilhamento (WhatsApp, LinkedIn).** Feito: o `og:image` aponta para o endereço completo publicado.
 
-7. **Prédio com mais de 10 andares.**
-   O prédio de exemplo agora tem 20 andares, como na apresentação. O telão mostra os 10 primeiros colocados (o que cabe legível a distância) até a Etapa 3, que faz ele alternar as páginas. O app, o site e o painel mostram todos; no painel, dois números seguidos escolhem os andares acima do 10º.
+7. **Prédio com mais de 10 andares: feito na Etapa 3.**
+   O telão mostra 10 por vez (o que cabe legível a distância) e alterna as páginas a cada 8 a 12 segundos. O app, o site, o painel de demonstração e o painel do síndico mostram todos os andares, até 60. No painel, dois números seguidos escolhem os andares acima do 10º.
 
 ## 4. Materiais que só vocês têm
 
@@ -83,6 +83,12 @@ O git deste PC não tem nome nem e-mail configurados. Para não expor dados pess
 1. **Conferir o prédio 3D no seu celular** (Etapa 0). Na resposta da Etapa 0, o modelo e o resultado vieram como "(MODELO)" e "(O QUE APARECEU)", sem preencher. Como o prédio agora fica na aba Ranking, abra `https://tafnerdev.github.io/recicla-app/app/?diag=1#ranking` e me diga o que aparece embaixo do prédio e o modelo do celular.
 2. **Duas lixeiras por andar: decidido e feito.** Como na apresentação, cada andar tem a lixeira verde (recicláveis) e a marrom (orgânicos), cada uma com seu tubo. Os textos do site, do app e dos guias já dizem isso. A tampa marrom do app é a foto da lixeira verde com a tampa pintada (só existe render da verde); quando houver render da marrom, troque em `js/lixeira.js`.
 3. **"Conectadas" é simulado.** Ainda não há sensor de verdade ligado ao app, então o estado das lixeiras aparece com a marca "Simulado"; "Sem sinal" aparece quando o celular está sem internet. "Último descarte" é verdadeiro: vem dos descartes registrados (painel, sensor ou a etiqueta neste celular).
+4. **Painel do síndico (Etapa 3).**
+   - **Se você já tinha colado o `schema.sql` antes,** cole de novo o arquivo inteiro. Ele acrescenta as colunas, a tabela de alertas e as funções novas sem apagar nada. Testei rodar o arquivo duas vezes seguidas num Postgres de verdade (PGlite).
+   - **Prédio cadastrado sem o placar online** fica só no navegador em que foi criado. No iPhone, o Safari e o app instalado guardam coisas separadas. Para o demo day, cadastre depois de ligar o Supabase.
+   - **Entupimento de verdade** precisa de um sensor na central do térreo, que avise quando o descarte chega. Hoje o alerta vem do botão "Simular entupimento" do painel de demonstração, e o banco já tem a tabela `alertas` pronta para o sensor.
+   - **Estado e pilhas das lixeiras são simulados** (marcados "Simulado") até os sensores existirem. O último descarte é real.
+   - **Prêmio:** fica marcado "Exemplo" no app e no telão até o síndico desmarcar "Ainda é exemplo". Desmarque só com o patrocinador confirmado.
 
 ## 8. Ligar o placar online (Supabase), Etapa 2
 
@@ -99,14 +105,14 @@ Enquanto isto não for feito, tudo continua funcionando em modo local (cada nave
    ```sql
    select criar_predio('Edifício Demo Day', 20, 4, '123456');
    ```
-   O resultado é o **código do prédio**, por exemplo `K7M2QX`. Anote. (Na Etapa 3, isso vira um formulário no painel do síndico.)
+   O resultado é o **código do prédio**, por exemplo `K7M2QX`. Anote. Depois do passo 7, também dá para cadastrar pelo formulário do painel do síndico (`/sindico`).
 5. **Copiar a URL e a chave pública.** Menu **Project Settings** > **API** (em algumas versões, "Data API" e "API Keys"). Copie a **Project URL** e a chave **anon public**. **Não** copie a `service_role`: ela nunca entra no site.
 6. **Preencher o `js/config.js`:**
    ```js
    export const SUPABASE_URL = 'https://xxxxxxxx.supabase.co';
    export const SUPABASE_ANON_KEY = 'eyJ...';
    ```
-7. **Publicar.** Aumente a `VERSAO` no `sw.js` (por exemplo `recicla-v9`) e rode no PowerShell, na pasta do projeto:
+7. **Publicar.** Aumente a `VERSAO` no `sw.js` (se estiver `recicla-v10`, troque para `recicla-v11`) e rode no PowerShell, na pasta do projeto:
    ```powershell
    git add js/config.js sw.js
    git commit -m "Liga o placar online"

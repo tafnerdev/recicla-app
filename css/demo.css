@@ -499,3 +499,41 @@ kbd {
 .d-historico__lista:empty {
   display: none;
 }
+
+/* Entupimento (simulação para o painel do síndico) */
+.d-entupimento .d-auto__texto {
+  margin-bottom: var(--e-4);
+}
+
+.d-entupimento__form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e-3);
+}
+
+.d-entupimento__form .botao {
+  grid-column: 1 / -1;
+}
+
+.d-entupimento__form select {
+  min-height: 48px;
+  padding: 0 var(--e-3);
+  border-radius: var(--r-campo);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--texto);
+  font-size: 16px;
+}
+
+.d-entupimento__form option {
+  background: var(--fundo-2);
+}
+
+.d-entupimento__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: var(--e-2);
+  color: var(--texto-vidro);
+  font-size: 14px;
+}

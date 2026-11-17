@@ -493,6 +493,12 @@
   font-weight: 500;
 }
 
+.a-premio__por {
+  color: var(--texto-2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
 .a-legenda {
   margin: 14px 0 6px;
 }

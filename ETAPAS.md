@@ -314,3 +314,69 @@ A auditoria de acessibilidade não apontou nada.
 A auditoria de acessibilidade não apontou nada.
 
 **O que não deu para testar daqui:** o Safari de verdade no iOS 26. O Chrome simula a área segura, mas não as barras flutuantes do Safari.
+
+## Etapa 3 · Painel do síndico (16/11/2026)
+
+### O que mudou
+
+- **Painel do síndico em `/sindico`.**
+  - **Cadastrar prédio:** nome, andares (2 a 60), apartamentos por andar e PIN de 4 a 6 números (digitado duas vezes). Ao criar, aparecem o código do prédio, os links do app e do telão e os dois QR codes.
+  - **Entrar num prédio existente:** código e PIN. O PIN errado avisa; 10 erros em 10 minutos bloqueiam por um tempo.
+  - **Botão "Ver o painel com o prédio de exemplo":** abre o Edifício Exemplo com os 486 descartes fictícios espalhados pelo mês, para ver o painel cheio.
+- **No painel:**
+  - **Visão do mês:** descartes, recicláveis, orgânicos, andar líder e um gráfico com uma barra por dia.
+  - **Alertas:** "Possível entupimento entre o 12º e o térreo", com o tubo (recicláveis ou orgânicos) e o botão "Marcar como resolvido". O painel de demonstração ganhou "Simular entupimento" (andar e tubo, pede o PIN).
+  - **Prêmio do mês:** título e "oferecido por". Aparece no app (aba Ranking) e no telão (no topo, ou perto do rodapé no telão em pé). Fica marcado "Exemplo" até o síndico desmarcar "Ainda é exemplo".
+  - **Lixeiras:** uma linha por andar, com as duas lixeiras (conectada, sem sinal, possível entupimento), o último descarte (real) e as pilhas. Estado e pilhas estão marcados "Simulado".
+  - **Manutenção:** os prazos da apresentação. Limpeza dos tubos e troca das pilhas a cada 3 meses, inspeção das portinholas corta-fogo todo mês. Cada item mostra a próxima data, "Em dia", "Vence em…" ou "Atrasada há…", e tem um botão para registrar que foi feito hoje.
+  - **Etiquetas dos andares:** para cada andar, o link, o QR code, "Copiar link" e "Gravar etiqueta NFC". No Chrome do Android a gravação é de verdade (Web NFC). Nos outros, "Como gravar" mostra o passo a passo com o NFC Tools. "Imprimir etiquetas" gera uma folha com um cartão por andar (nome do prédio, andar, QR grande).
+  - **Fechar o mês:** confirmação com o nome do campeão e os pontos, guarda o campeão na lista "Campeões" e zera o placar em todas as telas.
+- **Fim do limite de 10 andares:**
+  - O telão mostra 10 por vez e alterna as páginas, com "1º ao 10º de 60 andares" no rodapé.
+  - Listas e tabelas rolam.
+  - O desenho do prédio (3D e SVG) vai até 60 andares.
+  - O app e o painel de demonstração aceitam o 60º.
+- **Sem o placar online,** o prédio cadastrado fica neste navegador (`js/local.js`, com as mesmas regras do banco). Assim dá para experimentar tudo agora, no seu celular, antes do Supabase. O telão no modo palco explica que precisa do placar online.
+- **Banco (`supabase/schema.sql`):**
+  - Novidades: colunas de prêmio-exemplo e datas de manutenção, a tabela `alertas`, a view `resumo_por_dia` e as funções `simular_entupimento`, `resolver_alerta` e `registrar_manutencao`.
+  - `definir_premio` ganhou o "é exemplo".
+  - O arquivo pode ser colado de novo sem perder nada.
+  - **Testei o arquivo num Postgres de verdade** (PGlite, Postgres 17 rodando no computador): rodou duas vezes seguidas e passou em 30 conferências. Entre elas: o anônimo não lê o hash do PIN, não escreve direto nas tabelas e não chama a função interna do PIN.
+- **Achado no caminho:** um aviso que chegava enquanto a tela ainda sincronizava (prêmio novo, mês fechado) era descartado, e só aparecia na conferência seguinte, até 20 s depois. Agora ele roda logo em seguida. Valia também para o Realtime do Supabase.
+- Links para o painel: no rodapé do site ("Painel do síndico") e no fim da aba Ranking do app ("Sou o síndico").
+
+### Links
+
+- Painel do síndico: https://tafnerdev.github.io/recicla-app/sindico/
+- Painel de demonstração, para simular entupimento: o link aparece no próprio painel do síndico, depois de cadastrar.
+
+### Três coisas para conferir no celular
+
+1. **Cadastrar:** abra `/sindico/`, cadastre um prédio de 30 andares com um PIN seu. Deve aparecer o código grande, os links e os dois QR codes. Toque em "App do morador" e confira que o app abre nesse prédio.
+2. **Prêmio e páginas:** no painel, salve um prêmio com "oferecido por". Abra o telão pelo botão do painel: o prêmio aparece no topo, marcado "Exemplo", e com 30 andares a lista troca de página sozinha.
+3. **Entupimento e etiquetas:** abra o painel de demonstração pelo botão do painel do síndico, use "Simular entupimento" no 12º andar e volte ao painel do síndico. O alerta aparece em Alertas e na linha do 12º em Lixeiras. Em Etiquetas, toque em "Como gravar" (iPhone) ou "Gravar etiqueta NFC" (Android com Chrome).
+
+Sem o Supabase, o prédio cadastrado vale só no navegador onde você o criou. No iPhone, o Safari e o app instalado guardam coisas separadas. Faça os três testes no mesmo navegador.
+
+### Testes
+
+87 testes passando (eram 74), e a bateria inteira rodou duas vezes seguidas sem falha (174 de 174). Os 13 novos:
+- **Cadastro:**
+  - limites (61 andares, PIN curto, PINs diferentes) e código, links e QR codes;
+  - o PIN não fica guardado, só o hash;
+  - PIN errado e certo, "Sair" e o pedido de PIN.
+- **Painel:**
+  - prédio de exemplo com 486 descartes, líder e uma barra por dia;
+  - prêmio no app e no telão, com e sem "Exemplo";
+  - 60 andares, com o telão alternando as páginas;
+  - entupimento do painel de demonstração até o painel do síndico, e resolvido;
+  - manutenção atrasada e registrada;
+  - fechar o mês com o campeão e o telão zerado.
+- **Etiquetas:** gravação NFC (com um leitor NFC de mentira, que confere o endereço gravado), "Como gravar", impressão de uma etiqueta por andar e o palco explicando que precisa do placar online.
+- **Online, com o servidor falso:** o síndico cadastra no "Supabase", o prêmio chega ao telão de outro aparelho e um terceiro aparelho entra com código e PIN.
+
+A auditoria de acessibilidade agora inclui o painel do síndico (início e painel aberto) e não apontou nada.
+
+**O que não deu para testar daqui:**
+- a gravação NFC num Android de verdade;
+- o Supabase na nuvem. O `schema.sql` foi executado num Postgres de verdade, mas não no Supabase.

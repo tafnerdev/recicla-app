@@ -192,12 +192,30 @@ async function registrar(andar, tipo) {
 
 /** No prédio online, o painel mostra o código e troca "Zerar" por "Fechar o mês". */
 function ajustarAoModo() {
-  const { online, codigo, codigoSemConfig } = estado.modo;
+  const { online, local, codigo, codigoSemConfig } = estado.modo;
   if (online) {
-    $('d-aviso-texto').innerHTML = `Placar online do <strong>${estado.edificio.nome}</strong> (código <strong>${codigo}</strong>). Telão, app e painel em qualquer aparelho se atualizam juntos.`;
+    $('d-aviso-texto').innerHTML = local
+      ? `Prédio <strong>${estado.edificio.nome}</strong> (código <strong>${codigo}</strong>), guardado <strong>neste navegador</strong>: telão, app e painel abertos aqui se atualizam juntos.`
+      : `Placar online do <strong>${estado.edificio.nome}</strong> (código <strong>${codigo}</strong>). Telão, app e painel em qualquer aparelho se atualizam juntos.`;
     $('d-restaurar').hidden = true;
     $('d-zerar-texto').textContent = 'Fechar o mês';
-  } else if (codigoSemConfig) {
+    // links das outras telas no mesmo prédio
+    const c = encodeURIComponent(codigo);
+    for (const link of document.querySelectorAll('.d-topo__links a')) {
+      const url = new URL(link.getAttribute('href'), location.href);
+      url.searchParams.set('predio', codigo);
+      link.href = url.href;
+    }
+    $('d-link-sindico').href = `../sindico/?predio=${c}`;
+    const andares = estado.edificio.andares;
+    const campo = $('d-entupimento-andar');
+    campo.max = String(Math.max(...andares));
+    campo.value = String(andares.includes(12) ? 12 : Math.max(...andares));
+    $('d-entupimento').hidden = false;
+  } else {
+    $('d-entupimento-texto').textContent = 'Para simular um entupimento, abra um prédio cadastrado no painel do síndico. O alerta aparece lá.';
+  }
+  if (!online && codigoSemConfig) {
     $('d-aviso-texto').innerHTML = `O endereço pede o prédio <strong>${codigoSemConfig}</strong>, mas o placar online ainda não foi ligado (js/config.js). Este é o prédio de exemplo, local.`;
   }
 }
@@ -217,7 +235,7 @@ async function comPinSeNecessario(acao) {
         texto:
           erro.codigo === 'pin-errado'
             ? 'PIN errado. Tente de novo.'
-            : 'No prédio online, desfazer e fechar o mês pedem o PIN do síndico (4 a 6 números).',
+            : 'Neste prédio, desfazer, fechar o mês e simular entupimento pedem o PIN do síndico (4 a 6 números).',
         rotulo: 'PIN',
         tipo: 'password',
         modoTeclado: 'numeric',
@@ -281,6 +299,18 @@ function alternarAutomatico() {
 
 function ligarEventos() {
   $('d-desfazer').addEventListener('click', desfazer);
+  $('d-entupimento').addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    const andar = Number($('d-entupimento-andar').value);
+    const tipo = $('d-entupimento-tipo').value;
+    try {
+      const feito = await comPinSeNecessario(() => dados.simularEntupimento(andar, tipo));
+      if (feito === undefined) return;
+      avisar(`Entupimento simulado entre o ${ordinal(andar)} e o térreo. O alerta está no painel do síndico.`);
+    } catch (erro) {
+      avisar(erro.message, { tipo: 'erro' });
+    }
+  });
   $('d-auto').addEventListener('click', alternarAutomatico);
 
   $('d-restaurar').addEventListener('click', async () => {

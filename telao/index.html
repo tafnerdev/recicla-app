@@ -41,6 +41,10 @@
               <h2 class="t-titulo">Ranking de <span id="t-mes">novembro</span></h2>
             </div>
           </div>
+          <div class="t-premio" id="t-premio" hidden>
+            <p class="t-premio__rotulo">Prêmio do mês<span id="t-premio-por"></span></p>
+            <p class="t-premio__nome"><span class="t-premio__titulo" id="t-premio-titulo"></span><span class="t-premio__exemplo" id="t-premio-exemplo" hidden>Exemplo</span></p>
+          </div>
           <div class="t-acoes">
             <p class="t-chip t-status" id="t-status"><span class="ponto ponto--brilho t-status__ponto" aria-hidden="true"></span><span id="t-status-texto">Ao vivo</span></p>
             <button type="button" class="t-chip t-botao" id="t-tela-cheia" aria-label="Tela cheia (atalho: F)">
@@ -108,7 +112,7 @@
 
         <footer class="t-rodape">
           <p>Encoste o celular na etiqueta das lixeiras e pontue no seu nome</p>
-          <p id="t-regra">Cada descarte vale 10 pontos</p>
+          <p><span class="t-paginas" id="t-paginas" hidden></span><span id="t-regra">Cada descarte vale 10 pontos</span></p>
         </footer>
 
         <!-- Novo líder -->

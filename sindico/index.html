@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Painel do síndico | Recicla Slide</title>
+    <meta name="description" content="Cadastre o prédio, defina o prêmio do mês, acompanhe as lixeiras e gere as etiquetas dos andares." />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#050807" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="manifest" href="../manifest.webmanifest" />
+    <link rel="icon" href="../icons/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="../icons/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
+    <link rel="preload" href="../fonts/rubik-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="../fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/sindico.css" />
+    <script type="module" src="../js/sindico.js"></script>
+    <script type="module" src="../js/pwa.js"></script>
+  </head>
+  <body class="tela-sindico">
+    <div class="luzes" aria-hidden="true">
+      <div class="luz luz--verde s-luz-1"></div>
+      <div class="luz luz--laranja s-luz-2"></div>
+    </div>
+
+    <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+    <header class="s-topo">
+      <div class="s-topo__linha contem">
+        <a class="logo" href="../" aria-label="Recicla Slide, página inicial" translate="no">Recicla Slide</a>
+        <p class="s-topo__nome">Painel do síndico</p>
+        <button type="button" class="botao botao--vidro s-sair" id="s-sair" hidden>Sair</button>
+      </div>
+    </header>
+
+    <main class="contem s-principal" id="conteudo" tabindex="-1">
+      <div class="s-carregando" id="s-carregando" aria-busy="true">
+        <p class="visualmente-oculto" role="status">Carregando o painel…</p>
+        <div class="esqueleto s-esq-titulo"></div>
+        <div class="esqueleto s-esq-bloco"></div>
+        <div class="esqueleto s-esq-bloco"></div>
+      </div>
+
+      <div class="s-erro" id="s-erro" hidden></div>
+
+      <!-- Sem prédio aberto: cadastrar ou entrar -->
+      <section class="s-inicio" id="s-inicio" aria-labelledby="s-inicio-titulo" hidden>
+        <h1 class="s-inicio__titulo" id="s-inicio-titulo">Painel do síndico</h1>
+        <p class="s-inicio__sub">Cadastre o prédio, defina o prêmio do mês, acompanhe as lixeiras e gere as etiquetas dos andares.</p>
+        <p class="s-onde" id="s-onde"></p>
+        <p class="s-aviso" id="s-inicio-aviso" role="alert" hidden></p>
+
+        <div class="s-inicio__grade">
+          <form class="s-cartao vidro" id="form-cadastro" novalidate aria-labelledby="cadastro-titulo">
+            <h2 id="cadastro-titulo">Cadastrar prédio</h2>
+            <div class="campo">
+              <label for="cad-nome">Nome do prédio</label>
+              <input id="cad-nome" name="nome" type="text" required minlength="2" maxlength="60" autocomplete="off" placeholder="Ex.: Residencial das Palmeiras" />
+            </div>
+            <div class="s-campos-lado">
+              <div class="campo">
+                <label for="cad-andares">Andares</label>
+                <input id="cad-andares" name="andares" type="number" inputmode="numeric" required min="2" max="60" step="1" value="20" />
+                <p class="campo__ajuda">De 2 a 60</p>
+              </div>
+              <div class="campo">
+                <label for="cad-aptos">Apartamentos por andar</label>
+                <input id="cad-aptos" name="aptos" type="number" inputmode="numeric" required min="1" max="20" step="1" value="4" />
+                <p class="campo__ajuda">De 1 a 20</p>
+              </div>
+            </div>
+            <div class="s-campos-lado">
+              <div class="campo">
+                <label for="cad-pin">PIN do síndico</label>
+                <input id="cad-pin" name="pin" type="password" inputmode="numeric" required pattern="[0-9]{4,6}" minlength="4" maxlength="6" autocomplete="new-password" />
+                <p class="campo__ajuda">De 4 a 6 números</p>
+              </div>
+              <div class="campo">
+                <label for="cad-pin2">Repita o PIN</label>
+                <input id="cad-pin2" name="pin2" type="password" inputmode="numeric" required pattern="[0-9]{4,6}" minlength="4" maxlength="6" autocomplete="new-password" />
+              </div>
+            </div>
+            <p class="s-form__erro" id="cadastro-erro" role="alert" hidden></p>
+            <button type="submit" class="botao botao--bloco">Cadastrar prédio</button>
+          </form>
+
+          <div class="s-inicio__coluna">
+            <form class="s-cartao vidro" id="form-entrar" novalidate aria-labelledby="entrar-titulo">
+              <h2 id="entrar-titulo">Entrar num prédio</h2>
+              <div class="campo">
+                <label for="ent-codigo">Código do prédio</label>
+                <input id="ent-codigo" name="codigo" type="text" required minlength="6" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="6 letras e números" />
+              </div>
+              <div class="campo">
+                <label for="ent-pin">PIN do síndico</label>
+                <input id="ent-pin" name="pin" type="password" inputmode="numeric" required minlength="4" maxlength="6" autocomplete="current-password" />
+              </div>
+              <p class="s-form__erro" id="entrar-erro" role="alert" hidden></p>
+              <button type="submit" class="botao botao--vidro botao--bloco">Entrar</button>
+            </form>
+
+            <div class="s-cartao s-cartao--exemplo">
+              <h2>Só quer ver como fica?</h2>
+              <p>Abra o painel com o Edifício Exemplo: 20 andares e números fictícios espalhados pelo mês, neste navegador.</p>
+              <button type="button" class="botao botao--vidro botao--bloco" id="abrir-exemplo">Ver o painel com o prédio de exemplo</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Prédio aberto, mas sem o PIN nesta aba -->
+      <section class="s-inicio s-pin" id="s-pin" aria-labelledby="s-pin-titulo" hidden>
+        <form class="s-cartao vidro" id="form-pin" novalidate>
+          <h1 class="s-pin__titulo" id="s-pin-titulo">Digite o PIN do síndico</h1>
+          <p class="s-pin__predio">Prédio <strong class="numero" id="s-pin-codigo"></strong></p>
+          <div class="campo">
+            <label for="pin-pin">PIN</label>
+            <input id="pin-pin" name="pin" type="password" inputmode="numeric" required minlength="4" maxlength="6" autocomplete="current-password" />
+          </div>
+          <p class="s-form__erro" id="pin-erro" role="alert" hidden></p>
+          <button type="submit" class="botao botao--bloco">Abrir o painel</button>
+          <a class="s-pin__outro" href="./">Entrar em outro prédio</a>
+        </form>
+      </section>
+
+      <!-- Painel do prédio -->
+      <div class="s-painel" id="s-painel" hidden>
+        <div class="s-cabeca">
+          <div class="s-cabeca__textos">
+            <p class="s-cabeca__rotulo">
+              <span>Prédio <strong class="numero" id="s-codigo" translate="no"></strong></span>
+              <span class="chip s-onde-chip" id="s-onde-chip"></span>
+              <span class="chip" id="s-exemplo-chip" hidden>Exemplo</span>
+            </p>
+            <h1 class="s-cabeca__nome" id="s-nome" tabindex="-1"></h1>
+            <p class="s-cabeca__tamanho" id="s-tamanho"></p>
+          </div>
+          <nav class="s-cabeca__links" aria-label="Telas deste prédio">
+            <a class="botao botao--vidro" id="s-link-app" target="app-recicla" data-icone-fim="externo">App do morador</a>
+            <a class="botao botao--vidro" id="s-link-telao" target="telao-recicla" data-icone-fim="externo">Telão</a>
+            <a class="botao botao--vidro" id="s-link-demo" target="demo-recicla" data-icone-fim="externo">Painel de demonstração</a>
+          </nav>
+        </div>
+
+        <p class="s-aviso-exemplo" id="s-aviso-exemplo" hidden>
+          <span data-icone="alerta"></span>
+          <span>Prédio de exemplo, com números fictícios, só neste navegador. PIN deste exemplo: <strong class="numero">1234</strong> (para o painel de demonstração).</span>
+        </p>
+
+        <!-- Logo depois de cadastrar -->
+        <section class="s-novo vidro" id="s-novo" aria-labelledby="s-novo-titulo" hidden>
+          <div class="s-novo__cabeca">
+            <div>
+              <h2 id="s-novo-titulo">Prédio cadastrado</h2>
+              <p>Guarde o código e o PIN: é com eles que você entra de novo neste painel.</p>
+            </div>
+            <p class="s-novo__codigo numero" id="s-novo-codigo" translate="no"></p>
+          </div>
+          <p class="s-novo__local" id="s-novo-local" hidden>
+            Este prédio está só neste navegador, porque o placar online ainda não foi ligado. Os links abaixo funcionam aqui. Para vários celulares, ligue o placar online (PENDENCIAS.md, item 8) e cadastre o prédio de novo.
+          </p>
+          <div class="s-novo__links">
+            <figure class="s-qr-cartao">
+              <div class="s-qr" id="s-novo-qr-app"></div>
+              <figcaption>
+                <strong>App do morador</strong>
+                <a id="s-novo-link-app" class="s-link-longo" target="app-recicla"></a>
+              </figcaption>
+            </figure>
+            <figure class="s-qr-cartao">
+              <div class="s-qr" id="s-novo-qr-telao"></div>
+              <figcaption>
+                <strong>Telão do prédio</strong>
+                <a id="s-novo-link-telao" class="s-link-longo" target="telao-recicla"></a>
+              </figcaption>
+            </figure>
+          </div>
+          <button type="button" class="botao botao--vidro" id="s-novo-fechar">Pronto, ir para o painel</button>
+        </section>
+
+        <nav class="s-secoes" aria-label="Seções do painel">
+          <a href="#mes">Mês</a>
+          <a href="#alertas">Alertas <span class="s-secoes__conta numero" id="s-conta-alertas" hidden></span></a>
+          <a href="#premio">Prêmio</a>
+          <a href="#lixeiras">Lixeiras</a>
+          <a href="#manutencao">Manutenção</a>
+          <a href="#etiquetas">Etiquetas</a>
+          <a href="#fechar">Fechar o mês</a>
+        </nav>
+
+        <section class="s-bloco" id="mes" aria-labelledby="mes-titulo">
+          <div class="s-bloco__cabeca">
+            <h2 id="mes-titulo">Visão do mês</h2>
+            <p class="s-bloco__sub" id="mes-desde"></p>
+          </div>
+          <dl class="s-numeros">
+            <div><dt>Descartes</dt><dd class="numero" id="mes-total">0</dd></div>
+            <div><dt><span class="ponto" aria-hidden="true"></span>Recicláveis</dt><dd class="numero" id="mes-reciclavel">0</dd></div>
+            <div><dt><span class="ponto ponto--o" aria-hidden="true"></span>Orgânicos</dt><dd class="numero" id="mes-organico">0</dd></div>
+            <div><dt>Andar líder</dt><dd id="mes-lider">Nenhum ainda</dd></div>
+          </dl>
+          <figure class="s-grafico" id="mes-grafico">
+            <figcaption class="s-grafico__legenda">Descartes por dia <span class="s-grafico__chaves"><span><span class="ponto" aria-hidden="true"></span>recicláveis</span><span><span class="ponto ponto--o" aria-hidden="true"></span>orgânicos</span></span></figcaption>
+            <div class="s-grafico__area" id="mes-barras"></div>
+            <table class="visualmente-oculto" id="mes-tabela"></table>
+          </figure>
+        </section>
+
+        <section class="s-bloco" id="alertas" aria-labelledby="alertas-titulo">
+          <div class="s-bloco__cabeca">
+            <h2 id="alertas-titulo">Alertas</h2>
+            <p class="s-bloco__sub">Quando um descarte entra no andar e não chega à central do térreo.</p>
+          </div>
+          <ul class="s-alertas" id="s-alertas" role="list"></ul>
+          <p class="s-vazio" id="s-alertas-vazio">Nenhum alerta. Os tubos estão livres.</p>
+        </section>
+
+        <section class="s-bloco" id="premio" aria-labelledby="premio-titulo">
+          <div class="s-bloco__cabeca">
+            <h2 id="premio-titulo">Prêmio do mês</h2>
+            <p class="s-bloco__sub">Aparece no app e no telão para todos os moradores.</p>
+          </div>
+          <form class="s-premio" id="form-premio" novalidate>
+            <div class="campo">
+              <label for="premio-titulo-campo">Prêmio do andar campeão</label>
+              <input id="premio-titulo-campo" name="titulo" type="text" maxlength="80" autocomplete="off" placeholder="Ex.: Noite da pizza no salão de festas" />
+            </div>
+            <div class="campo">
+              <label for="premio-patrocinador">Oferecido por</label>
+              <input id="premio-patrocinador" name="patrocinador" type="text" maxlength="60" autocomplete="off" placeholder="Ex.: a pizzaria do bairro" />
+            </div>
+            <label class="s-marcar">
+              <input type="checkbox" name="exemplo" id="premio-exemplo" checked />
+              <span>Ainda é exemplo: o patrocinador não está confirmado (as telas mostram “Exemplo”)</span>
+            </label>
+            <button type="submit" class="botao">Salvar prêmio</button>
+          </form>
+        </section>
+
+        <section class="s-bloco" id="lixeiras" aria-labelledby="lixeiras-titulo">
+          <div class="s-bloco__cabeca">
+            <h2 id="lixeiras-titulo">Lixeiras</h2>
+            <p class="s-bloco__sub">Duas por andar, a verde e a marrom. <span class="chip" id="lixeiras-simulado">Simulado</span> Estado e pilhas são simulados até os sensores estarem instalados. O último descarte é real.</p>
+          </div>
+          <div class="s-tabela-rola" tabindex="0" role="region" aria-labelledby="lixeiras-titulo">
+            <table class="s-tabela">
+              <thead>
+                <tr><th scope="col">Andar</th><th scope="col">Recicláveis</th><th scope="col">Orgânicos</th><th scope="col">Último descarte</th><th scope="col">Pilhas</th></tr>
+              </thead>
+              <tbody id="s-lixeiras"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="s-bloco" id="manutencao" aria-labelledby="manutencao-titulo">
+          <div class="s-bloco__cabeca">
+            <h2 id="manutencao-titulo">Manutenção</h2>
+            <p class="s-bloco__sub">Os prazos da manutenção mensal: limpeza dos tubos e troca das pilhas a cada 3 meses, inspeção das portinholas corta-fogo todo mês.</p>
+          </div>
+          <ul class="s-manutencao" id="s-manutencao" role="list"></ul>
+        </section>
+
+        <section class="s-bloco" id="etiquetas" aria-labelledby="etiquetas-titulo">
+          <div class="s-bloco__cabeca">
+            <h2 id="etiquetas-titulo">Etiquetas dos andares</h2>
+            <p class="s-bloco__sub">Cada andar tem uma etiqueta NFC e um QR code entre as duas lixeiras. Quem encosta o celular abre o app já no andar certo.</p>
+          </div>
+          <div class="s-etiquetas__acoes">
+            <button type="button" class="botao" id="s-imprimir">Imprimir etiquetas</button>
+            <p class="s-etiquetas__nfc" id="s-nfc-texto"></p>
+          </div>
+          <ol class="s-etiquetas" id="s-etiquetas" role="list"></ol>
+        </section>
+
+        <section class="s-bloco" id="fechar" aria-labelledby="fechar-titulo">
+          <div class="s-bloco__cabeca">
+            <h2 id="fechar-titulo">Fechar o mês</h2>
+            <p class="s-bloco__sub">Guarda o andar campeão e zera o placar de todas as telas.</p>
+          </div>
+          <ol class="s-campeoes" id="s-campeoes" role="list"></ol>
+          <p class="s-vazio" id="s-campeoes-vazio">Nenhum mês fechado ainda.</p>
+          <button type="button" class="botao botao--perigo" id="s-fechar-mes">Fechar o mês</button>
+        </section>
+      </div>
+    </main>
+
+    <!-- Folha de etiquetas para imprimir (só aparece na impressão) -->
+    <div class="s-impressao" id="s-impressao" aria-hidden="true"></div>
+  </body>
+</html>

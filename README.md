@@ -33,7 +33,7 @@ Abra `http://localhost:8080/`. O terminal mostra os endereços das quatro telas.
 
 ```bash
 npm install     # só na primeira vez: instala o Playwright (dependência de desenvolvimento)
-npm test        # 74 testes, usando o Chrome já instalado
+npm test        # 87 testes, usando o Chrome já instalado
 npm run capturas  # capturas de todas as telas em capturas/ (fora do git)
 ```
 
@@ -51,12 +51,31 @@ Sem configuração, tudo funciona em **modo local**: o prédio de exemplo, com o
 | `app/?predio=CODIGO&entrar=1` | Modo palco: o celular entra no prédio, recebe o andar com menos gente e vira o sensor (dois botões grandes) |
 | `telao/?predio=CODIGO&palco=1` | Telão com o QR code para a plateia entrar e o contador "37 pessoas no prédio" |
 | `telao/?simular=1` | Plano B sem internet: demonstração automática no prédio de exemplo |
-| `demo/?predio=CODIGO` | Painel do prédio online. Desfazer e fechar o mês pedem o PIN do síndico |
+| `demo/?predio=CODIGO` | Painel do prédio online. Desfazer, fechar o mês e simular entupimento pedem o PIN do síndico |
+| `sindico/` | Painel do síndico: cadastrar o prédio ou entrar com código e PIN |
+| `sindico/?predio=CODIGO` | Painel do síndico do prédio (pede o PIN uma vez por aba) |
 | qualquer tela com `?predio=exemplo` | Volta este aparelho ao prédio de exemplo |
 
 - **Banco:** `supabase/schema.sql` (tabelas, funções e Realtime). Ninguém escreve direto nas tabelas: toda escrita passa por funções que conferem tudo no servidor, inclusive 2 segundos entre toques do mesmo celular.
 - **Código:** só o `js/dados.js` sabe que existe o Supabase (por meio do `js/remoto.js`). As telas usam as mesmas funções nos dois modos.
 - **Sem internet:** os toques esperam numa fila, o app mostra um chip discreto "Sem conexão" e manda tudo quando a conexão volta. O telão fica com o último placar.
+
+## Painel do síndico (`/sindico`)
+
+- **Cadastrar prédio:** nome, andares (2 a 60), apartamentos por andar e um PIN de 4 a 6 números. Ao criar, mostra o código, os links do app e do telão e os QR codes.
+- **Entrar:** código e PIN. O PIN fica só na aba (sessionStorage) e, no banco, só o hash.
+- **No painel:**
+  - visão do mês (descartes, recicláveis, orgânicos, andar líder e um gráfico por dia);
+  - alertas de entupimento;
+  - prêmio do mês com "oferecido por" (marcado "Exemplo" até o síndico confirmar);
+  - lixeiras por andar (estado e pilhas simulados, último descarte real);
+  - manutenção (limpeza dos tubos e troca das pilhas a cada 3 meses, inspeção das portinholas corta-fogo todo mês);
+  - etiquetas (link, QR code, impressão e gravação NFC);
+  - fechar o mês.
+- **Sem o placar online,** o prédio cadastrado fica neste navegador (`js/local.js`, com as mesmas regras do `schema.sql`). Serve para experimentar: app, telão e painéis abertos no mesmo navegador funcionam juntos. O botão "Ver o painel com o prédio de exemplo" abre o Edifício Exemplo com os números fictícios espalhados pelo mês (PIN `1234`, só nesse exemplo).
+- **NFC:** no Chrome do Android, "Gravar etiqueta NFC" grava a URL do andar de verdade (Web NFC). Nos outros navegadores aparece o passo a passo do `docs/etiqueta-nfc.md`.
+- **Entupimento:** o painel de demonstração tem "Simular entupimento". Com o sensor da central instalado, é ele quem vai avisar.
+- **Mais de 10 andares:** listas rolam, o telão mostra 10 por vez e alterna as páginas, e o desenho do prédio vai até 60 andares.
 
 ## A lixeira e o anel de LED
 
@@ -123,7 +142,7 @@ O botão **Descartes automáticos** faz um descarte aleatório a cada 4 segundos
 
 ```
 index.html            site
-app/ telao/ demo/     as três telas do sistema (cada uma com index.html)
+app/ telao/ demo/ sindico/   as telas do sistema (cada uma com index.html)
 404.html              página de endereço inexistente
 css/base.css          variáveis do DESIGN.md e componentes compartilhados (vidro, botões, barra, linha do ranking)
 css/*.css             estilos de cada tela
@@ -132,7 +151,9 @@ js/comum.js           peças de interface compartilhadas (formatação, ícones,
 js/lixeira.js         a lixeira (foto) com o anel de LED que respira e pulsa a cada descarte
 js/predio.js          o prédio em SVG e a escolha entre SVG e 3D
 js/predio3d.js        o prédio em 3D (Three.js)
-js/app.js telao.js demo.js site.js   uma por tela
+js/app.js telao.js demo.js sindico.js site.js   uma por tela
+js/local.js           o "servidor" deste navegador, para o prédio cadastrado sem o placar online
+js/qr.js              QR code em SVG (usa js/vendor/uqr.mjs)
 js/serial.js          leitura do sensor pela Web Serial
 js/config.js          endereço e chave pública do Supabase (vazio = modo local)
 js/remoto.js          a conversa com o Supabase (só o dados.js usa)

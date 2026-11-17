@@ -2,7 +2,16 @@
 
 Cada lixeira tem uma etiqueta NFC. Quem encosta o celular nela abre o app do morador já no andar certo e pode marcar o descarte no próprio nome. A etiqueta guarda só um endereço (URL). Não guarda dado de ninguém.
 
-## O que gravar
+## O jeito fácil: o painel do síndico
+
+No painel do síndico (`/sindico`), a seção **Etiquetas dos andares** já traz, para cada andar, o link certo e o QR code. Também tem o botão "Imprimir etiquetas", que gera uma folha com um cartão por andar.
+
+- **Celular Android com Chrome:** toque em **Gravar etiqueta NFC** e encoste o celular na etiqueta. O Chrome grava o endereço direto (Web NFC), sem app nenhum.
+- **iPhone e outros navegadores:** não gravam NFC pelo site. Toque em **Como gravar** para ver o passo a passo abaixo, com o link do andar pronto para copiar.
+
+Num prédio cadastrado, o link leva o código do prédio, assim: `https://tafnerdev.github.io/recicla-app/app/?predio=K7M2QX&andar=7`. Ele tem cerca de 70 caracteres e também cabe numa NTAG213.
+
+## O que gravar (prédio de exemplo)
 
 Um registro do tipo **URL** com o endereço do app e o número do andar:
 

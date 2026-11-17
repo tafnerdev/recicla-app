@@ -90,6 +90,26 @@
             </div>
           </section>
 
+          <section class="d-bloco d-entupimento" aria-labelledby="d-entupimento-titulo">
+            <h2 id="d-entupimento-titulo">Entupimento</h2>
+            <p class="d-auto__texto" id="d-entupimento-texto">Faz de conta que um descarte entrou no andar e não chegou à central do térreo. O painel do síndico mostra o alerta.</p>
+            <form class="d-entupimento__form" id="d-entupimento" hidden>
+              <div class="campo">
+                <label for="d-entupimento-andar">Andar</label>
+                <input id="d-entupimento-andar" name="andar" type="number" inputmode="numeric" min="1" step="1" value="12" required />
+              </div>
+              <div class="campo">
+                <label for="d-entupimento-tipo">Tubo</label>
+                <select id="d-entupimento-tipo" name="tipo">
+                  <option value="reciclavel">Recicláveis</option>
+                  <option value="organico">Orgânicos</option>
+                </select>
+              </div>
+              <button type="submit" class="botao botao--vidro botao--bloco">Simular entupimento</button>
+            </form>
+            <a class="d-entupimento__link" id="d-link-sindico" href="../sindico/" target="sindico-recicla">Abrir o painel do síndico</a>
+          </section>
+
           <section class="d-bloco d-atalhos" aria-labelledby="d-atalhos-titulo">
             <h2 id="d-atalhos-titulo">Atalhos de teclado</h2>
             <dl>

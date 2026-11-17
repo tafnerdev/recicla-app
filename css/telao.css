@@ -124,6 +124,62 @@
   gap: 16px;
 }
 
+/* Prêmio do mês, entre o título e os botões (no telão em pé, desce para perto do rodapé) */
+.t-premio {
+  flex: 1;
+  min-width: 0;
+  max-width: 760px;
+  margin-left: auto;
+  text-align: right;
+}
+
+.t-premio__rotulo,
+.t-premio__nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.t-premio__rotulo {
+  font-size: 26px;
+  line-height: 32px;
+  color: var(--texto-2);
+}
+
+.t-premio__nome {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  font-size: 30px;
+  line-height: 40px;
+}
+
+.t-premio__titulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.t-premio__exemplo {
+  flex: none;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--texto-vidro);
+  font-size: 26px;
+  line-height: 36px;
+}
+
+/* Mais de 10 andares: as páginas se alternam */
+.t-paginas::after {
+  content: ' · ';
+}
+
+.t-lista.trocando {
+  opacity: 0;
+  transition: opacity 260ms var(--ease-saida);
+}
+
 .t-chip {
   display: inline-flex;
   align-items: center;
@@ -821,5 +877,23 @@
     flex-direction: column;
     gap: 2px;
     font-size: 26px;
+  }
+
+  /* em pé não cabe no topo: fica logo acima do rodapé */
+  .t-topo {
+    position: static;
+  }
+
+  .t-premio {
+    position: absolute;
+    left: 56px;
+    right: 56px;
+    bottom: 128px;
+    max-width: none;
+    text-align: left;
+  }
+
+  .t-premio__nome {
+    justify-content: flex-start;
   }
 }

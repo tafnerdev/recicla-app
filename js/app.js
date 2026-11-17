@@ -76,6 +76,7 @@ async function iniciar() {
     ]);
     Object.assign(estado, { edificio, placar, pessoal });
     estado.modo = await dados.modo();
+    if (estado.modo.online) $('link-sindico').href = `../sindico/?predio=${encodeURIComponent(estado.modo.codigo)}`;
   } catch (erro) {
     console.error(erro);
     mostrarErro(erro);
@@ -519,6 +520,8 @@ function renderizarPremio() {
   const caixa = $('premio');
   caixa.hidden = !premio.titulo;
   $('premio-nome').textContent = premio.titulo;
+  $('premio-por').hidden = !premio.patrocinador;
+  $('premio-por').textContent = premio.patrocinador ? `Oferecido por ${premio.patrocinador}` : '';
   $('premio-exemplo').hidden = !premio.exemplo;
 }
 
@@ -672,6 +675,17 @@ function aoMudarPlacar(placar) {
 
   const evento = placar.evento;
   if (!evento) return;
+
+  if (evento.tipo === 'premio') {
+    // o síndico mudou o prêmio: busca o prédio de novo
+    dados
+      .obterEdificio()
+      .then((edificio) => {
+        estado.edificio = edificio;
+        renderizarPremio();
+      })
+      .catch(() => {});
+  }
 
   if (evento.tipo === 'descarte') {
     marcarDescarte(estado.linhas.get(evento.andar), evento.pontos);
